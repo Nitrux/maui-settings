@@ -15,9 +15,11 @@
 #include <KAboutData>
 #include <KI18n/KLocalizedString>
 
-#include "../nxmanager_version.h"
+#include "../mauimanager_version.h"
 
-#define NXMANAGER_URI "org.nx.manager"
+#include "src/code/modulesmanager.h"
+
+#define MAUIMANAGER_URI "org.maui.manager"
 
 int main(int argc, char *argv[])
 {
@@ -31,30 +33,43 @@ int main(int argc, char *argv[])
 
     MauiApp::instance()->setIconName("qrc:/nxmanager.svg");
 
-    KLocalizedString::setApplicationDomain("nxmanager");
+    KLocalizedString::setApplicationDomain("manager");
 
-    KAboutData about(QStringLiteral("nxmanager"), i18n("NX Manager"), NXMANAGER_VERSION_STRING, i18n("Nitrux Settings manager."),
-                     KAboutLicense::LGPL_V3, i18n("© 2019-%1 Nitrux Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
+    KAboutData about(QStringLiteral("manager"), i18n("Maui Manager"), MAUIMANAGER_VERSION_STRING, i18n("Maui Settings Manager."),
+                     KAboutLicense::LGPL_V3, i18n("© 2019-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
 
     about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
     about.setHomepage("https://nxos.org");
-    about.setProductName("nx/manager");
+    about.setProductName("maui/manager");
     about.setBugAddress("https://github.com/nitrux/nxmanager");
-    about.setOrganizationDomain(NXMANAGER_URI);
+    about.setOrganizationDomain(MAUIMANAGER_URI);
     about.setProgramLogo(app.windowIcon());
 
     KAboutData::setApplicationData(about);
-
+    ModulesManager manager;
     QCommandLineParser parser;
-    parser.setApplicationDescription(about.shortDescription());
 
     if(about.setupCommandLine(&parser))
     {
         qDebug() << "App data was set correctly";
     }
-    parser.process(app);
 
+    parser.setApplicationDescription(about.shortDescription());
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    QCommandLineOption moduleOption(QStringList() << "m" << "module",
+                                    QCoreApplication::translate("main", "open the manager at the given module name"),
+                                    QCoreApplication::translate("main", "module"));
+    parser.addOption(moduleOption);
+
+    parser.process(app);
     about.processCommandLine(&parser);
+
+    if (parser.isSet(moduleOption))
+    {
+
+    }
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));

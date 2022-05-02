@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="Touchegg.qml">controls/Touchegg.qml</file>
+    </qresource>
+</RCC>
