@@ -69,16 +69,19 @@ include_directories(
 set(mauiman_HDRS
     code/abstractmodule.h
     code/dbusmodulesyncer.h
+    code/settingsstore.h
     )
 
 set(mauiman_SRCS
     code/abstractmodule.cpp
     code/dbusmodulesyncer.cpp
+    code/settingsstore.cpp
     )
 
 add_library(${PROJECT_NAME}
     SHARED
     ${mauiman_SRCS}
+    ${mauiman_HDRS}
     )
 
 add_library(MauiMan::MauiMan ALIAS MauiMan)

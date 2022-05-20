@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/modules/background">
+        <file>controls/BackgroundModuleView.qml</file>
+    </qresource>
+</RCC>

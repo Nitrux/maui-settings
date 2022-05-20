@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.16)
 
+set(MAUIMAN_VERSION 1.0.0)
 
 #include_directories(src/mauiman)
 
@@ -12,4 +13,5 @@ add_subdirectory(mauiman) #add mauiman libs
 #  INTERFACE
 #    MauiMan:MauiMan
 #)
-add_subdirectory(app)
+add_subdirectory(server)
+add_subdirectory(manager)
