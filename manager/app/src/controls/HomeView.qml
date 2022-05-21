@@ -42,6 +42,8 @@ Maui.StackView
 
         headBar.middleContent: Maui.TextField
         {
+            enabled: ModulesManager.serverRunning
+
             Layout.alignment: Qt.AlignCenter
             Layout.maximumWidth: 500
             Layout.fillWidth: true
@@ -51,9 +53,16 @@ Maui.StackView
         Maui.ListBrowser
         {
             anchors.fill: parent
+            enabled: ModulesManager.serverRunning
+            holder.visible: count === 0 || !ModulesManager.serverRunning
+            holder.title: !ModulesManager.serverRunning ? i18n("Not server!") : i18n("No Modules!")
+            holder.body: !ModulesManager.serverRunning ? i18n("MauiMan server is not running") : i18n("No modules avaliable!")
+            holder.emoji: "face-confused-symbolic"
+
             model : ModulesManager.model
             currentIndex : -1
-            section.delegate: Maui.LabelDelegate {
+            section.delegate: Maui.LabelDelegate
+            {
                 width: ListView.view.width
                 label: section
                 isSection: true

@@ -7,7 +7,7 @@
 #include <QDebug>
 
 Background::Background(QObject *parent) : QObject(parent)
-  ,m_settings(new SettingsStore(this))
+  ,m_settings(new MauiMan::SettingsStore(this))
 {
     qDebug( " INIT BACKGORUND MANAGER");
     new BackgroundAdaptor(this);

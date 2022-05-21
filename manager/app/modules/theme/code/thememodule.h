@@ -2,13 +2,13 @@
 
 #include "code/abstractmodule.h"
 
-class Background;
-class BackgroundModule : public AbstractModule
+class Theme;
+class ThemeModule : public AbstractModule
 {
     Q_OBJECT
-    Q_PROPERTY(Background* manager READ manager CONSTANT FINAL)
+    Q_PROPERTY(Theme* manager READ manager CONSTANT FINAL)
 public:
-    BackgroundModule(QObject * parent = nullptr);
+    ThemeModule(QObject * parent = nullptr);
 
 
     // AbstractModule interface
@@ -22,9 +22,11 @@ public:
     QString description() const override final;
 
 
-    Background* manager() const;
+    Theme* manager() const;
 
 private:
-    Background *m_manager;
+    Theme *m_manager;
+
+
 };
 

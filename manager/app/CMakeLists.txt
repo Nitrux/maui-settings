@@ -6,7 +6,6 @@
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/modules/background
     )
 
 set(app_SRCS
@@ -30,12 +29,18 @@ set(app_RSCRS
 
 set(modulesSRCS
     modules/background/src/code/backgroundmodule.cpp
-    modules/background/src/code/backgroundmanager.cpp
+    modules/background/src/code/background.cpp
+
+    modules/theme/code/thememodule.cpp
+    modules/theme/code/theme.cpp
     )
 
 set(modulesHDRS
     modules/background/src/code/backgroundmodule.h
-    modules/background/src/code/backgroundmanager.h
+    modules/background/src/code/background.h
+
+    modules/theme/code/thememodule.h
+    modules/theme/code/theme.h
     )
 
 set(modulesRSCRS
@@ -50,13 +55,14 @@ add_executable(${PROJECT_NAME}
     ${modulesSRCS}
     ${modulesHDRS}
     ${modulesRSCRS}
-
     )
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
+
 target_link_libraries(${PROJECT_NAME}
+    PRIVATE
     MauiKit
     MauiMan
     Qt5::DBus

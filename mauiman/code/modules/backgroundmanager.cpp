@@ -4,28 +4,31 @@
 
 #include <QDebug>
 
+using namespace MauiMan;
 BackgroundManager::BackgroundManager(QObject *parent) : QObject(parent)
-  ,m_settings(new SettingsStore(this))
   ,m_backgroundInterface("org.mauiman.Manager",
                          "/Background",
                          "org.mauiman.Background",
                          QDBusConnection::sessionBus(), this)
 {
     qDebug( " INIT BACKGORUND MANAGER");
-
-    m_settings->beginModule("Background");
-    m_wallpaperSource = m_settings->load("Wallpaper", m_wallpaperSource).toString();
-    m_dimWallpaper = m_settings->load("DimWallpaper", m_dimWallpaper).toBool();
-    m_showWallpaper = m_settings->load("ShowWallpaper", m_showWallpaper).toBool();
-    m_adaptiveColorScheme = m_settings->load("AdaptiveColorScheme", m_adaptiveColorScheme).toBool();
-    m_fitWallpaper = m_settings->load("FitWallpaper", m_fitWallpaper).toBool();
-    m_solidColor = m_settings->load("SolidColor", m_solidColor).toString();
-    m_settings->endModule();
+    MauiMan::SettingsStore settings;
+    settings.beginModule("Background");
+    m_wallpaperSource = settings.load("Wallpaper", m_wallpaperSource).toString();
+    m_dimWallpaper = settings.load("DimWallpaper", m_dimWallpaper).toBool();
+    m_showWallpaper = settings.load("ShowWallpaper", m_showWallpaper).toBool();
+    m_adaptiveColorScheme = settings.load("AdaptiveColorScheme", m_adaptiveColorScheme).toBool();
+    m_fitWallpaper = settings.load("FitWallpaper", m_fitWallpaper).toBool();
+    m_solidColor = settings.load("SolidColor", m_solidColor).toString();
+    settings.endModule();
 
     if (m_backgroundInterface.isValid())
     {
         connect(&m_backgroundInterface, SIGNAL(wallpaperSourceChanged(QString)), this, SLOT(onWallpaperChanged(QString)));
         connect(&m_backgroundInterface, SIGNAL(solidColorChanged(QString)), this, SLOT(onSolidColorChanged(QString)));
+        connect(&m_backgroundInterface, SIGNAL(fitWallpaperChanged(bool)), this, SLOT(onFitWallpaperChanged(bool)));
+        connect(&m_backgroundInterface, SIGNAL(showWallpaperChanged(bool)), this, SLOT(onShowWallpaperChanged(bool)));
+        connect(&m_backgroundInterface, SIGNAL(dimWallpaperChanged(bool)), this, SLOT(onDimWallpaperChanged(bool)));
 
     }
 }
@@ -150,6 +153,33 @@ void BackgroundManager::onSolidColorChanged(const QString &solidColor)
 
     m_solidColor = solidColor;
     emit solidColorChanged(m_solidColor);
+}
+
+void BackgroundManager::onFitWallpaperChanged(const bool &fitWallpaper)
+{
+    if (m_fitWallpaper == fitWallpaper)
+        return;
+
+    m_fitWallpaper = fitWallpaper;
+    emit fitWallpaperChanged(m_fitWallpaper);
+}
+
+void BackgroundManager::onDimWallpaperChanged(const bool &dimWallpaper)
+{
+    if (m_dimWallpaper == dimWallpaper)
+        return;
+
+    m_dimWallpaper = dimWallpaper;
+    emit dimWallpaperChanged(m_dimWallpaper);
+}
+
+void BackgroundManager::onShowWallpaperChanged(const bool &showWallpaper)
+{
+    if (m_showWallpaper == showWallpaper)
+        return;
+
+    m_showWallpaper = showWallpaper;
+    emit showWallpaperChanged(m_showWallpaper);
 }
 
 void BackgroundManager::sync(const QString &key, const QVariant &value)

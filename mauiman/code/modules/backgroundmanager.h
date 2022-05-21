@@ -2,11 +2,16 @@
 
 #include <QObject>
 #include <QString>
-#include <QQmlEngine>
 #include <QDBusInterface>
+#include "mauiman_export.h"
 
-class SettingsStore;
-class BackgroundManager : public QObject
+/**
+ * @brief The BackgroundManager class
+ * Helpfull for third parties to connect to property cahnges form the Background module setting changes.
+ */
+namespace MauiMan
+{
+class MAUIMAN_EXPORT BackgroundManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString wallpaperSource READ wallpaperSource WRITE setWallpaperSource NOTIFY wallpaperSourceChanged)
@@ -17,7 +22,6 @@ class BackgroundManager : public QObject
     Q_PROPERTY(bool showWallpaper READ showWallpaper WRITE setShowWallpaper NOTIFY showWallpaperChanged)
 
     Q_PROPERTY(QString wallpaperSourceDir READ wallpaperSourceDir WRITE setWallpaperSourceDir NOTIFY wallpaperSourceDirChanged)
-
 
 public:
     explicit BackgroundManager(QObject * parent = nullptr);
@@ -52,6 +56,9 @@ public:
 private slots:
     void onWallpaperChanged(const QString &wallpaperSource);
     void onSolidColorChanged(const QString &solidColor);
+    void onFitWallpaperChanged(const bool &fitWallpaper);
+    void onDimWallpaperChanged(const bool &dimWallpaper);
+    void onShowWallpaperChanged(const bool &showWallpaper);
 
 signals:
     void wallpaperSourceChanged(QString wallpaperSource);
@@ -69,7 +76,6 @@ signals:
     void wallpaperSourceDirChanged(QString wallpaperSourceDir);
 
 private:
-    SettingsStore *m_settings;
     QDBusInterface m_backgroundInterface;
 
     QString m_wallpaperSource = "file:///home/camilo/Pictures/Wallpapers/new_wall (2).png";
@@ -83,4 +89,5 @@ private:
 
     void sync(const QString &key, const QVariant &value);
 };
+}
 

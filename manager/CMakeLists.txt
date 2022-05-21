@@ -5,36 +5,39 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(MAUIMANAGER_VERSION 1.0.0)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-project(MauiManager VERSION ${MAUIMANAGER_VERSION})
+project(MauiManager VERSION ${MAUIMAN_VERSION})
 
-set(REQUIRED_QT_VERSION 5.15.0)
+set(REQUIRED_QT_VERSION 5.15.2)
 set(REQUIRED_KF5_VERSION 5.40.0)
 
 find_package(ECM ${REQUIRED_KF5_VERSION} NO_MODULE)
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${ECM_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 
-include(KDEInstallDirs)
-include(KDECMakeSettings)
 include(ECMInstallIcons)
 include(ECMAddAppIcon)
 
-include(KDECompilerSettings NO_POLICY_SCOPE)
 include(KDEClangFormat)
-include(ECMSetupVersion)
 include(ECMSourceVersionControl)
-include(FeatureSummary)
 include(ECMQMLModules)
+
+include(GenerateExportHeader)
+include(GNUInstallDirs)
+include(KDEInstallDirs)
+include(KDECMakeSettings)
+include(KDECompilerSettings)
+include(FeatureSummary)
+include(ECMPoQmTools)
+include(ECMSetupVersion)
+include(ECMGenerateQmlTypes)
+include(CMakePackageConfigHelpers)
 
 find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets)
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons)
@@ -61,15 +64,14 @@ if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
 
 else()
-    add_definitions(-DGIT_COMMIT_HASH="${MAUIMANAGER_VERSION}")
+    add_definitions(-DGIT_COMMIT_HASH="${MAUIMAN_VERSION}")
     add_definitions(-DGIT_BRANCH="Stable")
 endif()
 
-ecm_setup_version(${MAUIMANAGER_VERSION}
+ecm_setup_version(${MAUIMAN_VERSION}
     VARIABLE_PREFIX MAUIMANAGER
     VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauimanager_version.h"
     )
-
 
 add_subdirectory(app)
 

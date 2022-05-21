@@ -3,7 +3,11 @@
 #include <QObject>
 #include <QString>
 
+namespace MauiMan
+{
 class SettingsStore;
+}
+
 class Background : public QObject
 {
     Q_OBJECT
@@ -64,5 +68,5 @@ private:
     QString m_solidColor;
     bool m_showWallpaper;
 
-    SettingsStore *m_settings;
+    MauiMan::SettingsStore *m_settings;
 };

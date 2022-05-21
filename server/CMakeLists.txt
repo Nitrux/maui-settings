@@ -33,7 +33,6 @@ include(ECMGenerateQmlTypes)
 include(CMakePackageConfigHelpers)
 include(KDEPackageAppTemplates)
 
-
 find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core DBus)
 
 include_directories(

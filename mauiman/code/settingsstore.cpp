@@ -4,6 +4,7 @@
 static const QString ORG = "Maui";
 static const QString APP = "MauiMan";
 
+using namespace MauiMan;
 SettingsStore::SettingsStore(QObject *parent) : QObject(parent)
   ,m_settings(new QSettings(ORG, APP, this))
 {

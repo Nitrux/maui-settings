@@ -1,14 +1,13 @@
 #include "backgroundmodule.h"
-#include "backgroundmanager.h"
+#include "background.h"
 
 
 BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule(parent)
-  , m_manager(new BackgroundManager(this))
+  , m_manager(new Background(this))
 {
-    qRegisterMetaType<BackgroundManager *>("const BackgroundManager*"); // this is needed for QML to know of FMList in the search method
+    qRegisterMetaType<Background*>("const Background*"); // this is needed for QML to know of FMList in the search method
 
 }
-
 
 QString BackgroundModule::qmlSource() const
 {
@@ -41,7 +40,7 @@ QString BackgroundModule::description() const
     return "Wallpaper color, sources, aspect and more";
 }
 
-BackgroundManager *BackgroundModule::manager() const
+Background *BackgroundModule::manager() const
 {
     return m_manager;
 }

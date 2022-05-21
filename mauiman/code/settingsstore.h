@@ -10,12 +10,14 @@ class QSettings;
  * @brief The SettingsStore class
  * Allows to store and read settings from MauiMan.
  */
+namespace MauiMan
+{
 class MAUIMAN_EXPORT SettingsStore : public QObject
 {
     Q_OBJECT
 public:
     explicit SettingsStore(QObject *parent = nullptr);
-~SettingsStore();
+    ~SettingsStore();
 
     QVariant load(const QString &key, const QVariant &defaultValue);
 
@@ -30,4 +32,5 @@ private:
 signals:
 
 };
+}
 

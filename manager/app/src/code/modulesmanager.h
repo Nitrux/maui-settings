@@ -7,11 +7,13 @@ class ModulesManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(ModulesModel * model READ model CONSTANT FINAL)
-
+    Q_PROPERTY(bool serverRunning READ serverRunning NOTIFY serverRunningChanged)
 public:
     explicit ModulesManager(QObject *parent = nullptr);
 
     ModulesModel * model() const;
+
+    bool serverRunning() const;
 
 public slots:
 
@@ -19,7 +21,10 @@ public slots:
 private:
     ModulesModel * m_model;
 
+    bool m_serverRunning = false;
+
 signals:
 
+    void serverRunningChanged(bool serverRunning);
 };
 

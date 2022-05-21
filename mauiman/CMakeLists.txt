@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(KF5_VERSION "5.70.0")
-set(REQUIRED_QT_VERSION 5.15.0)
+set(REQUIRED_QT_VERSION 5.15.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,8 +17,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(AUTOMOC_MOC_OPTIONS -Muri=org.maui.man)
-
-set(MAUIMAN_VERSION 1.0.0)
 
 project(MauiMan VERSION ${MAUIMAN_VERSION})
 
@@ -57,25 +55,37 @@ install(FILES
 install(EXPORT MauiManTargets
     DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
     FILE MauiManTargets.cmake
+    NAMESPACE MauiMan::)
+
+ecm_setup_version(${PROJECT_VERSION}
+    VARIABLE_PREFIX MauiMan
+    VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauiman_version.h"
+    PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/MauiManConfigVersion.cmake"
+    SOVERSION ${PROJECT_VERSION_MAJOR}
     )
 
-find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Qml Core QuickControls2)
+find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Core Qml)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules
+    ${CMAKE_CURRENT_BINARY_DIR}/modules
     )
 
 set(mauiman_HDRS
     code/abstractmodule.h
     code/dbusmodulesyncer.h
     code/settingsstore.h
+    code/modules/backgroundmanager.h
     )
 
 set(mauiman_SRCS
     code/abstractmodule.cpp
     code/dbusmodulesyncer.cpp
     code/settingsstore.cpp
+    code/modules/backgroundmanager.cpp
     )
 
 add_library(${PROJECT_NAME}
@@ -97,7 +107,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
     Qt5::Core
     Qt5::Qml
-    Qt5::QuickControls2
+    Qt5::DBus
     )
 
 install(TARGETS ${PROJECT_NAME} EXPORT MauiManTargets ${INSTALL_TARGETS_DEFAULT_ARGS})

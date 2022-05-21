@@ -7,8 +7,9 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
-import Qt.labs.settings 1.0
+
 import QtGraphicalEffects 1.0
+ import QtQuick.Dialogs 1.3
 
 import org.mauikit.controls 1.3 as Maui
 import org.mauikit.filebrowsing 1.3 as FB
@@ -58,153 +59,158 @@ Maui.Page
                     width: parent.width
                     spacing: Maui.Style.space.medium
 
-                    RowLayout
+                    Maui.SettingsSection
                     {
-                        Layout.margins: Maui.Style.space.medium
-                        Layout.fillWidth: true
-                        Layout.fillHeight: false
-                        Layout.preferredHeight: 180
-                        Layout.preferredWidth: 400
-                        Layout.alignment: Qt.AlignCenter
-                        spacing: Maui.Style.space.big
-
-                        ColumnLayout
+                        title: i18n("Wallpaper Image")
+                        description: i18n("Pick a new image")
+                        RowLayout
                         {
-                            Layout.fillHeight: true
+                            //                        Layout.margins: Maui.Style.space.medium
                             Layout.fillWidth: true
+                            Layout.fillHeight: false
+                            Layout.preferredHeight: 180
+                            Layout.preferredWidth: 400
+                            Layout.alignment: Qt.AlignCenter
+                            spacing: Maui.Style.space.big
 
-                            Rectangle
+                            ColumnLayout
                             {
-                                id: _imgDesktop
-
                                 Layout.fillHeight: true
                                 Layout.fillWidth: true
 
-                                radius: 8
-                                color: "#333"
-
-                                Image
-                                {
-                                    anchors.fill: parent
-                                    fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
-                                    source: control.manager.wallpaperSource
-                                }
-
                                 Rectangle
                                 {
-                                    anchors.top: parent.top
-                                    color: Kirigami.Theme.backgroundColor
-                                    opacity: 0.7
-                                    height: 10
-                                    radius: 4
-                                    width: parent.width* 0.95
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.margins: 6
+                                    id: _imgDesktop
 
-                                }
+                                    Layout.fillHeight: true
+                                    Layout.fillWidth: true
 
-                                Rectangle
-                                {
-                                    anchors.bottom: parent.bottom
-                                    color: Kirigami.Theme.backgroundColor
-                                    opacity: 0.7
-                                    height: 30
-                                    radius: 10
-                                    width: parent.width* 0.6
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.margins: 6
-                                }
+                                    radius: 8
+                                    color: "#333"
 
-
-                                layer.enabled: true
-                                layer.effect: OpacityMask
-                                {
-                                    maskSource: Rectangle
+                                    Image
                                     {
-                                        width: _imgDesktop.width
-                                        height: _imgDesktop.height
-                                        radius: 8
-                                    }
-                                }
-                            }
-
-
-                            Button
-                            {
-                                Layout.alignment: Qt.AlignCenter
-                                Layout.fillWidth: true
-                                text: i18n("Workspace")
-                                onClicked: _stackView.push(_wallpapersGridViewComponent)
-                            }
-
-                        }
-
-                        ColumnLayout
-                        {
-
-                            Layout.fillHeight: true
-                            Layout.fillWidth: true
-
-                            Rectangle
-                            {
-                                id: _imgLockScreen
-
-                                Layout.fillHeight: true
-                                Layout.fillWidth: true
-                                radius: 8
-                                color: "#333"
-
-                                Image
-                                {
-                                    anchors.fill: parent
-                                    fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
-                                    source: control.manager.wallpaperSource
-                                }
-
-
-                                Column
-                                {
-
-                                    anchors.centerIn: parent
-                                    spacing: Maui.Style.space.medium
-
-                                    Rectangle
-                                    {
-                                        color: Kirigami.Theme.backgroundColor
-                                        opacity: 0.7
-                                        implicitHeight: 80
-                                        implicitWidth: height
-                                        radius: 20
+                                        anchors.fill: parent
+                                        fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
+                                        source: control.manager.wallpaperSource
                                     }
 
                                     Rectangle
                                     {
+                                        anchors.top: parent.top
                                         color: Kirigami.Theme.backgroundColor
                                         opacity: 0.7
-                                        implicitHeight: 20
-                                        implicitWidth: 120
+                                        height: 10
                                         radius: 4
+                                        width: parent.width* 0.95
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.margins: 6
+
+                                    }
+
+                                    Rectangle
+                                    {
+                                        anchors.bottom: parent.bottom
+                                        color: Kirigami.Theme.backgroundColor
+                                        opacity: 0.7
+                                        height: 30
+                                        radius: 10
+                                        width: parent.width* 0.6
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.margins: 6
+                                    }
+
+
+                                    layer.enabled: true
+                                    layer.effect: OpacityMask
+                                    {
+                                        maskSource: Rectangle
+                                        {
+                                            width: _imgDesktop.width
+                                            height: _imgDesktop.height
+                                            radius: 8
+                                        }
                                     }
                                 }
 
-                                layer.enabled: true
-                                layer.effect: OpacityMask
+
+                                Button
                                 {
-                                    maskSource: Rectangle
-                                    {
-                                        width: _imgLockScreen.width
-                                        height: _imgLockScreen.height
-                                        radius: 8
-                                    }
+                                    Layout.alignment: Qt.AlignCenter
+                                    Layout.fillWidth: true
+                                    text: i18n("Workspace")
+                                    onClicked: _stackView.push(_wallpapersGridViewComponent)
                                 }
+
                             }
 
-                            Button
+                            ColumnLayout
                             {
-                                Layout.alignment: Qt.AlignCenter
+
+                                Layout.fillHeight: true
                                 Layout.fillWidth: true
-                                text: i18n("Lock Screen")
-                                onClicked: _stackView.push(_wallpapersGridViewComponent)
+
+                                Rectangle
+                                {
+                                    id: _imgLockScreen
+
+                                    Layout.fillHeight: true
+                                    Layout.fillWidth: true
+                                    radius: 8
+                                    color: "#333"
+
+                                    Image
+                                    {
+                                        anchors.fill: parent
+                                        fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
+                                        source: control.manager.wallpaperSource
+                                    }
+
+
+                                    Column
+                                    {
+
+                                        anchors.centerIn: parent
+                                        spacing: Maui.Style.space.medium
+
+                                        Rectangle
+                                        {
+                                            color: Kirigami.Theme.backgroundColor
+                                            opacity: 0.7
+                                            implicitHeight: 80
+                                            implicitWidth: height
+                                            radius: 20
+                                        }
+
+                                        Rectangle
+                                        {
+                                            color: Kirigami.Theme.backgroundColor
+                                            opacity: 0.7
+                                            implicitHeight: 20
+                                            implicitWidth: 120
+                                            radius: 4
+                                        }
+                                    }
+
+                                    layer.enabled: true
+                                    layer.effect: OpacityMask
+                                    {
+                                        maskSource: Rectangle
+                                        {
+                                            width: _imgLockScreen.width
+                                            height: _imgLockScreen.height
+                                            radius: 8
+                                        }
+                                    }
+                                }
+
+                                Button
+                                {
+                                    Layout.alignment: Qt.AlignCenter
+                                    Layout.fillWidth: true
+                                    text: i18n("Lock Screen")
+                                    onClicked: _stackView.push(_wallpapersGridViewComponent)
+                                }
                             }
                         }
                     }
@@ -212,6 +218,7 @@ Maui.Page
                     Maui.SettingsSection
                     {
                         title: i18n("Options")
+                        description: i18n("Configure look and feel")
 
                         Maui.SettingTemplate
                         {
@@ -252,35 +259,71 @@ Maui.Page
                             }
                         }
 
+                        Maui.SettingTemplate
+                        {
+                            label1.text: i18n("Show Wallpaper")
+                            label2.text: i18n("Show image or solid color")
+
+                            Switch
+                            {
+                                checked: control.manager.showWallpaper
+                                onToggled: control.manager.showWallpaper = !control.manager.showWallpaper
+                            }
+                        }
                     }
 
                     Maui.SettingsSection
                     {
                         title: i18n("Customize")
-
                         Maui.SettingTemplate
                         {
+                            enabled: control.manager.showWallpaper
+
                             label1.text: i18n("Solid Color")
                             label2.text: i18n("Pick a solid color")
 
-                            Rectangle
+                            Button
                             {
                                 height: Maui.Style.rowHeight
                                 width: height
-                                radius: Maui.Style.radiusV
+
+                                background:Rectangle
+                                {
+                                    radius: Maui.Style.radiusV
                                 color: control.manager.solidColor
                                 border.color: Kirigami.Theme.textColor
+                                }
+
+                                onClicked: colorDialog.open()
                             }
 
+                            ColorDialog
+                            {
+                                id: colorDialog
+                                title: "Please choose a color"
+                                onAccepted:
+                                {
+                                    control.manager.solidColor = colorDialog.color
+                                    console.log("You chose: " + colorDialog.color)
+                                }
+                                onRejected: {
+                                    console.log("Canceled")
+                                    colorDialog.close()
+                                }
+                            }
                         }
 
                         Maui.SettingTemplate
                         {
-                            label1.text: i18n("Widgets")
-                            label2.text: i18n("Show widgets")
+                            label1.text: i18n("Sources")
+                            label2.text: i18n("Wallpaper source directory")
 
-                            Switch
+                            Maui.TextField
                             {
+                                width: parent.parent.width
+//                                height: implicitHeight
+//                                iconSource: "folder"
+                                text: control.manager.wallpaperSourceDir
                             }
                         }
                     }
@@ -319,6 +362,8 @@ Maui.Page
                     property string wallpaper : model.url
                     Maui.GridBrowserDelegate
                     {
+                        checkable: false
+                        checked: model.thumbnail ===  control.module.manager.wallpaperSource
                         isCurrentItem: parent.GridView.isCurrentItem
                         anchors.fill: parent
                         anchors.margins: Maui.Style.space.tiny

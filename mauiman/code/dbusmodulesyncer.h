@@ -1,7 +1,8 @@
 #pragma once
 #include <QObject>
+#include "mauiman_export.h"
 
-class DBusModuleSyncer : public QObject
+class MAUIMAN_EXPORT DBusModuleSyncer : public QObject
 {
     Q_OBJECT
 public:

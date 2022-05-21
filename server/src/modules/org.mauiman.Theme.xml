@@ -1,6 +1,6 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
-<interface name="com.mauiman.Background">
+<interface name="org.mauiman.Theme">
 <method name="setWallpaperSource">
 <arg name="wallpaperSource" type="s" direction="in"/>
 </method>
@@ -20,12 +20,9 @@
 <arg name="showWallpaper" type="b" direction="in"/>
 </method>
 
-<property name="wallpaperSource" type="s" access="read"/>
-<property name="dimWallpaper" type="b" access="read"/>
-<property name="adaptiveColorScheme" type="b" access="read"/>
-<property name="fitWallpaper" type="b" access="read"/>
-<property name="solidColor" type="s" access="read"/>
-<property name="showWallpaper" type="b" access="read"/>
+<property name="accentColor" type="s" access="read"/>
+<property name="styleType" type="i" access="read"/>
+<property name="iconTheme" type="b" access="read"/>
 
 <signal name="wallpaperSourceChanged">
 <arg type="s"/>
