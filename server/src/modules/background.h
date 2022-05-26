@@ -3,17 +3,11 @@
 #include <QObject>
 #include <QString>
 
-namespace MauiMan
-{
-class SettingsStore;
-}
-
 class Background : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString wallpaperSource READ wallpaperSource WRITE setWallpaperSource NOTIFY wallpaperSourceChanged)
     Q_PROPERTY(bool dimWallpaper READ dimWallpaper WRITE setDimWallpaper NOTIFY dimWallpaperChanged)
-    Q_PROPERTY(bool adaptiveColorScheme READ adaptiveColorScheme WRITE setAdaptiveColorScheme NOTIFY adaptiveColorSchemeChanged)
     Q_PROPERTY(bool fitWallpaper READ fitWallpaper WRITE setFitWallpaper NOTIFY fitWallpaperChanged)
     Q_PROPERTY(QString solidColor READ solidColor WRITE setSolidColor NOTIFY solidColorChanged)
     Q_PROPERTY(bool showWallpaper READ showWallpaper WRITE setShowWallpaper NOTIFY showWallpaperChanged)
@@ -25,8 +19,6 @@ public:
 
     bool dimWallpaper() const;
 
-    bool adaptiveColorScheme() const;
-
     bool fitWallpaper() const;
 
     QString solidColor() const;
@@ -36,8 +28,6 @@ public:
     void setWallpaperSource(QString wallpaperSource);
 
     void setDimWallpaper(bool dimWallpaper);
-
-    void setAdaptiveColorScheme(bool adaptiveColorScheme);
 
     void setFitWallpaper(bool fitWallpaper);
 
@@ -50,23 +40,17 @@ signals:
 
     void dimWallpaperChanged(bool dimWallpaper);
 
-    void adaptiveColorSchemeChanged(bool adaptiveColorScheme);
-
     void fitWallpaperChanged(bool fitWallpaper);
 
     void solidColorChanged(QString solidColor);
 
     void showWallpaperChanged(bool showWallpaper);
 
-
 private:
-
     QString m_wallpaperSource;
     bool m_dimWallpaper;
-    bool m_adaptiveColorScheme;
     bool m_fitWallpaper;
     QString m_solidColor;
     bool m_showWallpaper;
 
-    MauiMan::SettingsStore *m_settings;
 };

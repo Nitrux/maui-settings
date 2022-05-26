@@ -5,6 +5,11 @@
 #include <QDBusInterface>
 #include "mauiman_export.h"
 
+namespace MauiMan
+{
+class SettingsStore;
+}
+
 /**
  * @brief The BackgroundManager class
  * Helpfull for third parties to connect to property cahnges form the Background module setting changes.
@@ -16,7 +21,6 @@ class MAUIMAN_EXPORT BackgroundManager : public QObject
     Q_OBJECT
     Q_PROPERTY(QString wallpaperSource READ wallpaperSource WRITE setWallpaperSource NOTIFY wallpaperSourceChanged)
     Q_PROPERTY(bool dimWallpaper READ dimWallpaper WRITE setDimWallpaper NOTIFY dimWallpaperChanged)
-    Q_PROPERTY(bool adaptiveColorScheme READ adaptiveColorScheme WRITE setAdaptiveColorScheme NOTIFY adaptiveColorSchemeChanged)
     Q_PROPERTY(bool fitWallpaper READ fitWallpaper WRITE setFitWallpaper NOTIFY fitWallpaperChanged)
     Q_PROPERTY(QString solidColor READ solidColor WRITE setSolidColor NOTIFY solidColorChanged)
     Q_PROPERTY(bool showWallpaper READ showWallpaper WRITE setShowWallpaper NOTIFY showWallpaperChanged)
@@ -30,8 +34,6 @@ public:
 
     bool dimWallpaper() const;
 
-    bool adaptiveColorScheme() const;
-
     bool fitWallpaper() const;
 
     QString solidColor() const;
@@ -41,8 +43,6 @@ public:
     void setWallpaperSource(QString wallpaperSource);
 
     void setDimWallpaper(bool dimWallpaper);
-
-    void setAdaptiveColorScheme(bool adaptiveColorScheme);
 
     void setFitWallpaper(bool fitWallpaper);
 
@@ -65,8 +65,6 @@ signals:
 
     void dimWallpaperChanged(bool dimWallpaper);
 
-    void adaptiveColorSchemeChanged(bool adaptiveColorScheme);
-
     void fitWallpaperChanged(bool fitWallpaper);
 
     void solidColorChanged(QString solidColor);
@@ -77,10 +75,10 @@ signals:
 
 private:
     QDBusInterface m_backgroundInterface;
+    MauiMan::SettingsStore *m_settings;
 
     QString m_wallpaperSource = "file:///home/camilo/Pictures/Wallpapers/new_wall (2).png";
     bool m_dimWallpaper = false;
-    bool m_adaptiveColorScheme = true;
     bool m_fitWallpaper = false; //false is to fill, true to fit
     QString m_solidColor = "#333";
     bool m_showWallpaper = true;
@@ -88,6 +86,7 @@ private:
     QString m_wallpaperSourceDir = "file:///usr/share/wallpapers/Cask";
 
     void sync(const QString &key, const QVariant &value);
+    void setConnections();
 };
 }
 

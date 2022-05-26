@@ -7,9 +7,6 @@
 <method name="setDimWallpaper">
 <arg name="dimsWallpaper" type="b" direction="in"/>
 </method>
-<method name="setAdaptiveColorScheme">
-<arg name="adaptiveColorScheme" type="b" direction="in"/>
-</method>
 <method name="setFitWallpaper">
 <arg name="fitWallpaper" type="b" direction="in"/>
 </method>
@@ -22,7 +19,6 @@
 
 <property name="wallpaperSource" type="s" access="read"/>
 <property name="dimWallpaper" type="b" access="read"/>
-<property name="adaptiveColorScheme" type="b" access="read"/>
 <property name="fitWallpaper" type="b" access="read"/>
 <property name="solidColor" type="s" access="read"/>
 <property name="showWallpaper" type="b" access="read"/>
@@ -31,9 +27,6 @@
 <arg type="s"/>
 </signal>
 <signal name="dimWallpaperChanged">
-<arg type="b"/>
-</signal>
-<signal name="adpativeColorSchemeChanged">
 <arg type="b"/>
 </signal>
 <signal name="fitWallpaperChanged">

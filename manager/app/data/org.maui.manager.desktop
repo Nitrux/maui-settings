@@ -5,13 +5,13 @@
 
 
 [Desktop Entry]
-Name=NX Manager
-Comment=Nitrux Settings Manager
-TryExec=nxmanager
-Exec=nxmanager %U
+Name=Maui Manager
+Comment=Maui Settings Manager
+TryExec=MauiManager
+Exec=MauiManager %U
 Terminal=false
 Type=Application
-Categories=Qt;KDE;System;FileTools;FileManager;
+Categories=Qt;System;
 GenericName=Settings Manager
 StartupNotify=true
 Icon=preferences-system

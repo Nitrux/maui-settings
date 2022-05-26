@@ -43,15 +43,18 @@ include_directories(
 set(mauimanserver_HDRS
     src/server.h
     src/modules/background.h
+    src/modules/theme.h
     )
 
 set(mauimanserver_SRCS
     src/main.cpp
     src/server.cpp
     src/modules/background.cpp
+    src/modules/theme.cpp
     )
 
 qt5_add_dbus_adaptor(DBUS_SOURCES src/modules/org.mauiman.Background.xml src/modules/background.h Background)
+qt5_add_dbus_adaptor(DBUS_SOURCES src/modules/org.mauiman.Theme.xml src/modules/theme.h Theme)
 
 set_source_files_properties(${DBUS_SOURCES} PROPERTIES SKIP_AUTOGEN ON)
 

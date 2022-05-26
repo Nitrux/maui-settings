@@ -45,6 +45,7 @@ set(modulesHDRS
 
 set(modulesRSCRS
     modules/background/src/resources.qrc
+    modules/theme/resources.qrc
     )
 
 add_executable(${PROJECT_NAME}

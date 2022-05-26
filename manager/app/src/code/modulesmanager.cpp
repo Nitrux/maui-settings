@@ -1,9 +1,5 @@
 #include "modulesmanager.h"
 
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusConnectionInterface>
-#include <QtDBus/QDBusServiceWatcher>
-
 #include <QDir>
 #include <QDebug>
 #include <QQmlEngine>
@@ -11,37 +7,20 @@
 //modules
 #include "modules/background/src/code/backgroundmodule.h"
 #include "modules/theme/code/thememodule.h"
-
-static const QString mauimanInterface(QStringLiteral("org.mauiman.Manager"));
-
+#include "code/mauimanutils.h"
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
   ,m_model(new ModulesModel(this))
 {
-//    QString path = MAUIMAN_MODULES_IMPORT_PATH;
-//    QQmlEngine engine;
-    const QDBusConnection bus = QDBusConnection::sessionBus();
-    const auto registeredServices = bus.interface()->registeredServiceNames();
+    //    QString path = MAUIMAN_MODULES_IMPORT_PATH;
+    //    QQmlEngine engine;
+    auto server = new MauiManUtils(this);
+    m_serverRunning = server->serverRunning();
 
-    if (registeredServices.isValid())
+    connect(server, &MauiManUtils::serverRunningChanged, [this](bool state)
     {
-        m_serverRunning = registeredServices.value().contains(mauimanInterface);
-    }
-
-    auto watcher = new QDBusServiceWatcher(mauimanInterface, QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration, this);
-
-    connect(watcher, &QDBusServiceWatcher::serviceRegistered, [=](const QString &name) {
-        qDebug() << "Found MauiMan server" << name;
-        m_serverRunning = true;
-emit serverRunningChanged(m_serverRunning);
-    });
-
-    connect(watcher, &QDBusServiceWatcher::serviceUnregistered, [=](const QString &name) {
-        qDebug() << "Found MauiMan server" << name;
-        m_serverRunning = false;
+        m_serverRunning = state;
         emit serverRunningChanged(m_serverRunning);
-
-
     });
 
     m_model->appendModule(new BackgroundModule);

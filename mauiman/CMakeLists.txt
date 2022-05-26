@@ -79,6 +79,8 @@ set(mauiman_HDRS
     code/dbusmodulesyncer.h
     code/settingsstore.h
     code/modules/backgroundmanager.h
+    code/modules/thememanager.h
+    code/mauimanutils.h
     )
 
 set(mauiman_SRCS
@@ -86,6 +88,8 @@ set(mauiman_SRCS
     code/dbusmodulesyncer.cpp
     code/settingsstore.cpp
     code/modules/backgroundmanager.cpp
+    code/modules/thememanager.cpp
+    code/mauimanutils.cpp
     )
 
 add_library(${PROJECT_NAME}

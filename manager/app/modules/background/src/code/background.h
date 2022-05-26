@@ -5,7 +5,7 @@
 
 #include "code/modules/backgroundmanager.h"
 
-class Background: public MauiMan::BackgroundManager
+class Background : public MauiMan::BackgroundManager
 {
     Q_OBJECT
     Q_PROPERTY(QString wallpaperSourceDir READ wallpaperSourceDir WRITE setWallpaperSourceDir NOTIFY wallpaperSourceDirChanged)

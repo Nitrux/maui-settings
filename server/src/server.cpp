@@ -2,6 +2,7 @@
 #include <QDBusConnectionInterface>
 
 #include "src/modules/background.h"
+#include "src/modules/theme.h"
 
 Server::Server(int &argc, char **argv) : QCoreApplication(argc, argv)
 {
@@ -19,4 +20,5 @@ Server::Server(int &argc, char **argv) : QCoreApplication(argc, argv)
     }
 
     new Background(this);
+    new Theme(this);
 }

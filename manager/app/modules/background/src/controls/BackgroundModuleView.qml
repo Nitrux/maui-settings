@@ -222,21 +222,6 @@ Maui.Page
 
                         Maui.SettingTemplate
                         {
-                            label1.text: i18n("Adaptive Colors")
-                            label2.text: i18n("Use wallpaper to ste the shell color scheme")
-
-                            Switch
-                            {
-                                checked: control.manager.adaptiveColorScheme
-                                onToggled:
-                                {
-                                    control.manager.adaptiveColorScheme = !control.manager.adaptiveColorScheme
-                                }
-                            }
-                        }
-
-                        Maui.SettingTemplate
-                        {
                             label1.text: i18n("Dim Wallpaper")
                             label2.text: i18n("On dark mode the wallpaper will be dimmed")
 

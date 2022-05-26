@@ -5,10 +5,11 @@
 #include <QQmlEngine>
 #include <QDBusInterface>
 
-class Theme : public QObject
+#include "code/modules/thememanager.h"
+
+class Theme : public MauiMan::ThemeManager
 {
     Q_OBJECT
-
 public:
     explicit Theme(QObject * parent = nullptr);
 

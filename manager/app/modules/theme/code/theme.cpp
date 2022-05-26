@@ -1,12 +1,10 @@
 #include "theme.h"
 
-
 #include <QDebug>
 
-Theme::Theme(QObject *parent) : QObject(parent)
-
+Theme::Theme(QObject *parent) : MauiMan::ThemeManager(parent)
 {
-    qDebug( " INIT BACKGORUND MANAGER");
+    qDebug( " INIT THEME MANAGER");
 
 }
 
