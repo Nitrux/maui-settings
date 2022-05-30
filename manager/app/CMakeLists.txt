@@ -61,11 +61,11 @@ add_executable(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
-
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
     MauiKit
     MauiMan
+    MauiSettingsLib
     Qt5::DBus
     Qt5::Quick
     Qt5::Qml
@@ -80,6 +80,6 @@ target_link_libraries(${PROJECT_NAME}
 install(TARGETS ${PROJECT_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
 install(FILES assets/nxmanager.svg DESTINATION ${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps)
-install(FILES data/org.maui.manager.desktop DESTINATION ${XDG_APPS_INSTALL_DIR})
-install(FILES data/org.maui.manager.appdata.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
-install(FILES data/org.maui.manager.notifyrc DESTINATION ${KNOTIFYRC_INSTALL_DIR})
+install(FILES data/org.maui.settings.desktop DESTINATION ${XDG_APPS_INSTALL_DIR})
+install(FILES data/org.maui.settings.appdata.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+install(FILES data/org.maui.settings.notifyrc DESTINATION ${KNOTIFYRC_INSTALL_DIR})

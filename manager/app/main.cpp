@@ -14,12 +14,12 @@
 #include <KAboutData>
 #include <KI18n/KLocalizedString>
 
-#include "../mauimanager_version.h"
+#include "../mauisettings_version.h"
 
 #include "src/code/modulesmanager.h"
 #include "src/code/modulesmodel.h"
 
-#define MAUIMANAGER_URI "org.maui.manager"
+#define MAUISETTINGS_URI "org.maui.settings"
 
 int main(int argc, char *argv[])
 {
@@ -33,20 +33,19 @@ int main(int argc, char *argv[])
 
     MauiApp::instance()->setIconName("qrc:/nxmanager.svg");
 
-    KLocalizedString::setApplicationDomain("manager");
+    KLocalizedString::setApplicationDomain("settings");
 
-    KAboutData about(QStringLiteral("manager"), i18n("Maui Manager"), MAUIMANAGER_VERSION_STRING, i18n("Maui Settings Manager."),
+    KAboutData about(QStringLiteral("manager"), i18n("Maui Settings"), MAUISETTINGS_VERSION_STRING, i18n("Maui Settings Manager."),
                      KAboutLicense::LGPL_V3, i18n("© 2019-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
 
     about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
     about.setHomepage("https://nxos.org");
     about.setProductName("maui/manager");
     about.setBugAddress("https://github.com/nitrux/nxmanager");
-    about.setOrganizationDomain(MAUIMANAGER_URI);
+    about.setOrganizationDomain(MAUISETTINGS_URI);
     about.setProgramLogo(app.windowIcon());
 
     KAboutData::setApplicationData(about);
-
 
     ModulesManager manager;
     QCommandLineParser parser;
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
 
     }
 
-    qmlRegisterAnonymousType<ModulesModel>(MAUIMANAGER_URI, 1);
+    qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("ModulesManager", &manager);

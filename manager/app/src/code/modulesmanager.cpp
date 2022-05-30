@@ -7,7 +7,7 @@
 //modules
 #include "modules/background/src/code/backgroundmodule.h"
 #include "modules/theme/code/thememodule.h"
-#include "code/mauimanutils.h"
+#include <MauiMan/mauimanutils.h>
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
   ,m_model(new ModulesModel(this))

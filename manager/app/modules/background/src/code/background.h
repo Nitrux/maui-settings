@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QString>
 
-#include "code/modules/backgroundmanager.h"
+#include <MauiMan/backgroundmanager.h>
 
 class Background : public MauiMan::BackgroundManager
 {

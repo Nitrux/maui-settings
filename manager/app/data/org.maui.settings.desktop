@@ -7,8 +7,8 @@
 [Desktop Entry]
 Name=Maui Manager
 Comment=Maui Settings Manager
-TryExec=MauiManager
-Exec=MauiManager %U
+TryExec=MauiSettings
+Exec=MauiSettings %U
 Terminal=false
 Type=Application
 Categories=Qt;System;

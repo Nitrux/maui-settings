@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop">
+  <id>org.kde.index.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-3.0</project_license>
+  <name>Maui Settings</name>
+  <summary>Maui Settings Manager</summary>
+  <description>
+    <p>Maui Settings Manager configure mmaui projects global preferences.</p>
+   </description>
+  <url type="homepage">https://mauikit.org/</url>
+  <url type="bugtracker">https://invent.kde.org/maui/index-fm/-/issues</url>
+  <url type="donation">https://www.kde.org/community/donations</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Index file manager</caption>
+      <caption xml:lang="ca">Gestor de fitxers Índex</caption>
+      <caption xml:lang="ca-valencia">Gestor de fitxers Índex</caption>
+      <caption xml:lang="cs">Správce souborů indexů</caption>
+      <caption xml:lang="de">Index-Dateiverwaltung</caption>
+      <caption xml:lang="el">Index διαχειριστής αρχείων</caption>
+      <caption xml:lang="en-GB">Index file manager</caption>
+      <caption xml:lang="es">Administrador de archivos Index</caption>
+      <caption xml:lang="eu">Index fitxategi-kudeatzailea</caption>
+      <caption xml:lang="fi">Index-tiedostonhallinta</caption>
+      <caption xml:lang="fr">Gestionnaire de fichiers Index</caption>
+      <caption xml:lang="hi">निर्देशिका (Index) फ़ाइल प्रबंधक</caption>
+      <caption xml:lang="hu">Index fájlkezelő</caption>
+      <caption xml:lang="id">Pengelola file indeks</caption>
+      <caption xml:lang="it">Gestore dei file Index</caption>
+      <caption xml:lang="ko">Index 파일 관리자</caption>
+      <caption xml:lang="nl">Indexbestandsbeheerder</caption>
+      <caption xml:lang="nn">Index filhandsamar</caption>
+      <caption xml:lang="pa">ਇੰਡੈਕਸ ਫਾਇਲ ਮੈਨੇਜਰ</caption>
+      <caption xml:lang="pl">Przeglądarka do indeksowania plików</caption>
+      <caption xml:lang="pt">Gestor de ficheiros Índice</caption>
+      <caption xml:lang="pt-BR">Gerenciador de arquivos Index</caption>
+      <caption xml:lang="ro">Gestionarul de fișiere Index</caption>
+      <caption xml:lang="sk">Správca súborov Index</caption>
+      <caption xml:lang="sl">Upravljalnik indeksa datotek</caption>
+      <caption xml:lang="sv">Index filhanterare</caption>
+      <caption xml:lang="uk">Програма для керування файлами Index</caption>
+      <caption xml:lang="x-test">xxIndex file managerxx</caption>
+      <image type="source" width="2899" height="2326">
+       https://cdn.kde.org/screenshots/index/index.png
+      </image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>index</binary>
+  </provides>
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </recommends>
+  <content_rating type="oars-1.0"/>
+  <project_group>KDE</project_group>
+  <releases>
+    <release version="1.2.2" date="2021-05-11">
+      <url>https://nxos.org/maui/maui-1-2-2-release/</url>
+    </release>
+    <release version="1.1.1" date="2020-05-17"/>
+  </releases>
+</component>

@@ -1,6 +1,6 @@
 #include "background.h"
 
-#include "code/settingsstore.h"
+#include <MauiMan/settingsstore.h>
 
 #include <QDebug>
 

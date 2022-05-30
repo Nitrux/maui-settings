@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(MAUIMAN_VERSION 1.0.0)
+set(MAUISETTINGS_VERSION 1.0.0)
 
 #include_directories(src/mauiman)
 
-add_subdirectory(mauiman) #add mauiman libs
-
-#add_subdirectory(modules)
-#add_library(MauiMan2 INTERFACE)
-#add_library(MauiMan2::MauiMan2 ALIAS MauiMan2)
-#target_link_libraries(MauiMan2
-#  INTERFACE
-#    MauiMan:MauiMan
-#)
-add_subdirectory(server)
+add_subdirectory(lib)
 add_subdirectory(manager)

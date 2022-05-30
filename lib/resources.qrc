@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/maui/settings/lib">
+        <file alias="SettingsPage.qml">controls/SettingsPage.qml</file>
+        <file alias="SettingsLayout.qml">controls/SettingsLayout.qml</file>
+        <file alias="GraphicButton.qml">controls/GraphicButton.qml</file>
+    </qresource>
+</RCC>

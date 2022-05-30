@@ -5,7 +5,7 @@
 #include <QQmlEngine>
 #include <QDBusInterface>
 
-#include "code/modules/thememanager.h"
+#include <MauiMan/thememanager.h>
 
 class Theme : public MauiMan::ThemeManager
 {

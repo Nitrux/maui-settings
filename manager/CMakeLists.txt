@@ -13,7 +13,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-project(MauiManager VERSION ${MAUIMAN_VERSION})
+project(MauiSettings VERSION ${MAUISETTINGS_VERSION})
 
 set(REQUIRED_QT_VERSION 5.15.2)
 set(REQUIRED_KF5_VERSION 5.40.0)
@@ -43,6 +43,7 @@ find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Q
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons)
 
 find_package(MauiKit REQUIRED)
+find_package(MauiMan REQUIRED)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
@@ -64,13 +65,13 @@ if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
 
 else()
-    add_definitions(-DGIT_COMMIT_HASH="${MAUIMAN_VERSION}")
+    add_definitions(-DGIT_COMMIT_HASH="${MAUISETTINGS_VERSION}")
     add_definitions(-DGIT_BRANCH="Stable")
 endif()
 
-ecm_setup_version(${MAUIMAN_VERSION}
-    VARIABLE_PREFIX MAUIMANAGER
-    VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauimanager_version.h"
+ecm_setup_version(${MAUISETTINGS_VERSION}
+    VARIABLE_PREFIX MAUISETTINGS
+    VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauisettings_version.h"
     )
 
 add_subdirectory(app)

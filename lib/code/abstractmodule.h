@@ -3,9 +3,9 @@
 #include <QObject>
 #include <QUrl>
 
-#include "mauiman_export.h"
+#include "mauisettingslib_export.h"
 
-class MAUIMAN_EXPORT AbstractModule : public QObject
+class MAUISETTINGSLIB_EXPORT AbstractModule : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
