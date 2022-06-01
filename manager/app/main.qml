@@ -10,6 +10,7 @@ Maui.ApplicationWindow
 {
     id: root
     title: qsTr("Maui Manager")
+
     headBar.visible: false
 
     HomeView

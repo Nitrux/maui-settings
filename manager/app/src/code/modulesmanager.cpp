@@ -36,3 +36,8 @@ bool ModulesManager::serverRunning() const
 {
     return m_serverRunning;
 }
+
+void ModulesManager::startServer()
+{
+    MauiManUtils::startServer();
+}

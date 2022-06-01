@@ -54,7 +54,7 @@ ManLib.SettingsPage
                         Layout.minimumWidth: 100
                         text: "Light"
                         imageSource: "qrc:/light_mode.png"
-
+                        imageWidth: 80
                         onClicked: control.manager.styleType = 0
                     }
 
@@ -67,6 +67,8 @@ ManLib.SettingsPage
                         checked: control.manager.styleType === 1
                         imageSource: "qrc:/dark_mode.png"
                         text: "Dark"
+                        imageWidth: 80
+
                         onClicked: control.manager.styleType = 1
                     }
 
@@ -79,6 +81,7 @@ ManLib.SettingsPage
                         checked: control.manager.styleType === 2
                         text: "Adaptive"
                         imageSource: "qrc:/adaptive_mode.png"
+                        imageWidth: 80
 
                         onClicked: control.manager.styleType = 2
                     }
@@ -91,6 +94,8 @@ ManLib.SettingsPage
                         Layout.minimumWidth: 100
                         checked: control.manager.styleType === 3
                         text:"Auto"
+                        imageWidth: 80
+
                         onClicked: control.manager.styleType = 3
                     }
                 }
@@ -104,8 +109,8 @@ ManLib.SettingsPage
             Maui.ColorsRow
             {
                 width: parent.parent.width
-                size: Maui.Style.iconSizes.medium
-                colors: ["#26c6da", "#2C3E50", "#1976d2", "#212121", "#8e24aa", "#16A085"]
+                size: Maui.Style.iconSizes.medium*1.5
+                colors: ["#26c6da", "#2C3E50", "#1976d2", "#212121", "#8e24aa", "#16A085", "#BBCDE5", "#E6BCC3", "#FEF9A7", "#00FFAB", "#2A2550", "#827397", "#FF6363", "#F900BF", "#FFF56D"]
                 currentColor: control.manager.accentColor
 
                 onColorPicked:

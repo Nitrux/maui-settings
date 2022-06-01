@@ -32,6 +32,9 @@ T.ItemDelegate
     property string imageSource
     property string iconSource
 
+    property int imageWidth :  -1
+//    property int imageHeight : -1
+
     Component
     {
         id: _defaultGraphic
@@ -42,6 +45,7 @@ T.ItemDelegate
             imageSource: control.imageSource
             fillMode: control.fillMode
             maskRadius: control.radius
+            imageSizeHint: control.imageWidth
         }
     }
 

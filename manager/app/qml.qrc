@@ -2,6 +2,5 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>src/controls/HomeView.qml</file>
-        <file>modules/theme/controls/ThemeModuleView.qml</file>
     </qresource>
 </RCC>

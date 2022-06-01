@@ -16,7 +16,7 @@ public:
     bool serverRunning() const;
 
 public slots:
-
+void startServer();
 
 private:
     ModulesModel * m_model;

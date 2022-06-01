@@ -51,11 +51,16 @@ StackView
         Maui.ListBrowser
         {
             anchors.fill: parent
-            enabled: ModulesManager.serverRunning
+//            enabled: ModulesManager.serverRunning
             holder.visible: count === 0 || !ModulesManager.serverRunning
             holder.title: !ModulesManager.serverRunning ? i18n("Not server!") : i18n("No Modules!")
             holder.body: !ModulesManager.serverRunning ? i18n("MauiMan server is not running") : i18n("No modules avaliable!")
             holder.emoji: "face-confused-symbolic"
+            holder.actions: Action
+            {
+                text: i18n("Start server")
+                onTriggered: ModulesManager.startServer()
+            }
 
             model : ModulesManager.model
             currentIndex : -1
