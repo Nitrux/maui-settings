@@ -41,22 +41,24 @@ ManLib.SettingsPage
             spacing: Maui.Style.space.big
 
 
-                ManLib.GraphicButton
-                {
-                    id: _imgDesktop
+            ManLib.GraphicButton
+            {
+                id: _imgDesktop
+                flat: true
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                imageVisible: control.manager.showWallpaper
 
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
+                radius: fillMode  === Image.PreserveAspectFit ? 0 : 8
 
-                    radius: 8
-                    color: "#333"
-                    fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
-                    imageSource: control.manager.wallpaperSource
-                    text: i18n("Workspace")
+                color: control.manager.solidColor
+                fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
+                imageSource: control.manager.wallpaperSource
+                text: i18n("Workspace")
 
-                    onClicked: control.stackView.push(_wallpapersGridViewComponent)
+                onClicked: control.stackView.push(_wallpapersGridViewComponent)
 
-                }
+            }
 
 
 

@@ -5,7 +5,7 @@ import org.mauikit.filebrowsing 1.3 as FB
 
 import org.mauikit.controls 1.3 as Maui
 
-StackView
+Maui.StackView
 {
     id: control
 

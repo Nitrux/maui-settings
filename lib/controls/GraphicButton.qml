@@ -32,6 +32,8 @@ T.ItemDelegate
     property string imageSource
     property string iconSource
 
+    property bool imageVisible : true
+
     property int imageWidth :  -1
 //    property int imageHeight : -1
 
@@ -59,6 +61,7 @@ T.ItemDelegate
 
             Loader
             {
+                visible: control.imageVisible
                 anchors.fill: parent
                 asynchronous: true
                 sourceComponent: control.iconComponent
@@ -78,7 +81,7 @@ T.ItemDelegate
 
             readonly property color m_color : Qt.tint(Qt.lighter(Maui.Theme.textColor), Qt.rgba(Maui.Theme.backgroundColor.r, Maui.Theme.backgroundColor.g, Maui.Theme.backgroundColor.b, 0.9))
 
-            color: control.flat ? "transparent" : (control.checked || control.pressed ? Maui.Theme.highlightColor : ( control.hovered ? Maui.Theme.hoverColor : ( Qt.rgba(m_color.r, m_color.g, m_color.b, 0.4))))
+            color: control.flat ? control.color : (control.checked || control.pressed ? Maui.Theme.highlightColor : ( control.hovered ? Maui.Theme.hoverColor : ( Qt.rgba(m_color.r, m_color.g, m_color.b, 0.4))))
 
 
             Behavior on color

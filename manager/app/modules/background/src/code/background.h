@@ -17,7 +17,6 @@ public:
     void setWallpaperSourceDir(QString wallpaperSourceDir);
 
 signals:
-
     void wallpaperSourceDirChanged(QString wallpaperSourceDir);
 
 private:
