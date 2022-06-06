@@ -95,6 +95,23 @@ ManLib.SettingsPage
             }
         }
 
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Border Radius")
+            label2.text: i18n("Custom border radius.")
+            Slider
+            {
+                width: parent.parent.width
+                from: 0
+                to: 20
+                value: control.manager.borderRadius
+                snapMode: Slider.SnapAlways
+                stepSize: 1
+                orientation:Qt.Horizontal
+                onMoved: control.manager.borderRadius = value
+
+            }
+        }
     }
 
     Maui.SettingsSection
@@ -167,7 +184,7 @@ ManLib.SettingsPage
                                 padding: Maui.Style.space.medium
                                 background: Rectangle
                                 {
-                                    radius: model.radius
+                                    radius: Maui.Style.radiusV
                                     color: Maui.Theme.backgroundColor
                                 }
 

@@ -14,7 +14,6 @@ class Decoration
 public:
     QString name;
     QString source;
-    int radius;
 };
 
 class WindowDecorationsModel : public QAbstractListModel
@@ -25,7 +24,6 @@ public:
     {
         Name,
         Source,
-        Radius
     };
 
     explicit WindowDecorationsModel(Theme *parent);

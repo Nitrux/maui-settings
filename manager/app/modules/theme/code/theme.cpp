@@ -44,14 +44,13 @@ QVariant WindowDecorationsModel::data(const QModelIndex &index, int role) const
     {
     case Name: return QVariant(deco.name);
     case Source: return QVariant(deco.source);
-    case Radius:
-    default: return QVariant(deco.radius);
+    default: return QVariant();
     }
 }
 
 QHash<int, QByteArray> WindowDecorationsModel::roleNames() const
 {
-    return {{Roles::Name, "name"}, {Roles::Source, "source"}, {Roles::Radius, "radius"}};
+    return {{Roles::Name, "name"}, {Roles::Source, "source"}};
 }
 
 void WindowDecorationsModel::getDecorations()
@@ -82,7 +81,6 @@ void WindowDecorationsModel::getDecorations()
         QSettings conf (confFile, QSettings::IniFormat);
         conf.beginGroup ("Decoration");
         auto source = QUrl::fromLocalFile(currentDir.absolutePath()).toString()+"/"+ conf.value("Source", "undefined.qml").toString();
-        auto radius = conf.value ("BorderRadius", 8).toInt();
         conf.endGroup ();
 
         if(!QFileInfo(QUrl(source).toLocalFile()).exists())
@@ -90,6 +88,6 @@ void WindowDecorationsModel::getDecorations()
             continue;
         }
 
-        m_decos << Decoration{name, source, radius};
+        m_decos << Decoration{name, source};
     }
 }
