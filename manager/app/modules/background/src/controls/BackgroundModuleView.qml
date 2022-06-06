@@ -48,7 +48,6 @@ ManLib.SettingsPage
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 imageVisible: control.manager.showWallpaper
-
                 radius: fillMode  === Image.PreserveAspectFit ? 0 : 8
 
                 color: control.manager.solidColor

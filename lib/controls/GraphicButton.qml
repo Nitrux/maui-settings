@@ -33,7 +33,6 @@ T.ItemDelegate
     property string iconSource
 
     property bool imageVisible : true
-
     property int imageWidth :  -1
 //    property int imageHeight : -1
 
@@ -67,8 +66,9 @@ T.ItemDelegate
                 sourceComponent: control.iconComponent
             }
 
-            Maui.CheckBoxItem
+            CheckBox
             {
+                autoExclusive: control.autoExclusive
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.margins: Maui.Style.space.medium

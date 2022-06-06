@@ -22,87 +22,84 @@ ManLib.SettingsPage
     title: module.name
 
 
+    ButtonGroup
+    {
+        id: _styleGroup
+    }
+
     Maui.SettingsSection
     {
-        title: i18n("Color Scheme")
+        title: i18n("Style")
+        description: i18n("Pick a style variant.")
 
         Maui.SettingTemplate
         {
-            label1.text: i18n("Style")
-            label2.text: i18n("Pick a style variant.")
+            label1.text: i18n("Light")
+            label2.text: i18n("Light colors tinted by the accent color.")
+            template.imageSource: "qrc:/light_mode.png"
 
-            Item
+            RadioButton
             {
-                width: parent.parent.width
-                height: _flow.implicitHeight
-
-                GridLayout
-                {
-                    id: _flow
-                    width: Math.min(implicitWidth, parent.width)
-                    anchors.centerIn: parent
-                    columns: 2
-                    rows: 2
-                    flow:GridLayout.TopToBottom
-                    columnSpacing:  Maui.Style.space.medium
-                    rowSpacing: columnSpacing
-
-                    property int itemSize : 160
-                    ManLib.GraphicButton
-                    {
-                        checked: control.manager.styleType === 0
-                        implicitWidth: _flow.itemSize
-                        implicitHeight: _flow.itemSize
-                        Layout.fillWidth: true
-                        text: "Light"
-                        imageSource: "qrc:/light_mode.png"
-                        imageWidth: 80
-                        onClicked: control.manager.styleType = 0
-                    }
-
-                    ManLib.GraphicButton
-                    {
-                        implicitWidth: _flow.itemSize
-                        implicitHeight: _flow.itemSize
-                        Layout.fillWidth: true
-
-                        checked: control.manager.styleType === 1
-                        imageSource: "qrc:/dark_mode.png"
-                        text: "Dark"
-                        imageWidth: 80
-
-                        onClicked: control.manager.styleType = 1
-                    }
-
-                    ManLib.GraphicButton
-                    {
-                        implicitWidth: _flow.itemSize
-                        implicitHeight: _flow.itemSize
-                        Layout.fillWidth: true
-
-                        checked: control.manager.styleType === 2
-                        text: "Adaptive"
-                        imageSource: "qrc:/adaptive_mode.png"
-                        imageWidth: 80
-
-                        onClicked: control.manager.styleType = 2
-                    }
-
-                    ManLib.GraphicButton
-                    {
-                        implicitWidth: _flow.itemSize
-                        implicitHeight: _flow.itemSize
-                        Layout.fillWidth: true
-
-                        checked: control.manager.styleType === 3
-                        text:"Auto"
-                        imageWidth: 80
-
-                        onClicked: control.manager.styleType = 3
-                    }
-                }
+                //                autoExclusive: true
+                checked: control.manager.styleType === 0
+                ButtonGroup.group: _styleGroup
+                onToggled: control.manager.styleType = 0
             }
         }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Dark")
+            label2.text: i18n("Dark colors tinted by the accent color.")
+            template.imageSource: "qrc:/dark_mode.png"
+
+            RadioButton
+            {
+                //                autoExclusive: true
+                checked: control.manager.styleType === 1
+                ButtonGroup.group: _styleGroup
+                onToggled: control.manager.styleType = 1
+            }
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Adaptive")
+            label2.text: i18n("Light colors tinted by the accent color.")
+            template.imageSource: "qrc:/adaptive_mode.png"
+
+            RadioButton
+            {
+                autoExclusive: true
+                checked: control.manager.styleType === 2
+                ButtonGroup.group: _styleGroup
+                onToggled: control.manager.styleType = 2
+
+
+            }
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Auto")
+            label2.text: i18n("Light colors tinted by the accent color.")
+            template.imageSource: "qrc:/auto_mode.png"
+
+            RadioButton
+            {
+                autoExclusive: true
+                checked: control.manager.styleType === 3
+                ButtonGroup.group: _styleGroup
+                onToggled: control.manager.styleType = 3
+
+            }
+        }
+
+    }
+
+    Maui.SettingsSection
+    {
+        title: i18n("Colors")
 
         Maui.SettingTemplate
         {
@@ -111,7 +108,7 @@ ManLib.SettingsPage
             Maui.ColorsRow
             {
                 width: parent.parent.width
-                size: Maui.Style.iconSizes.medium*1.5
+                size: Maui.Style.iconSizes.medium*1.2
                 colors: ["#26c6da", "#2C3E50", "#1976d2", "#212121", "#8e24aa", "#16A085", "#BBCDE5", "#E6BCC3", "#FEF9A7", "#00FFAB", "#2A2550", "#827397", "#FF6363", "#F900BF", "#FFF56D"]
                 currentColor: control.manager.accentColor
 
@@ -120,6 +117,14 @@ ManLib.SettingsPage
                     control.manager.accentColor = color
                 }
             }
+        }
+
+        Maui.Chip
+        {
+            visible: control.manager.styleType === 2
+            text: i18n("Accent color is not used with the Adaptive Style.")
+            color: Maui.Theme.neutralBackgroundColor
+            iconSource: "dialog-warning"
         }
     }
 
@@ -183,11 +188,11 @@ ManLib.SettingsPage
                                 text: model.name
                                 onClicked: control.manager.windowControlsTheme = model.name
                             }
-
                         }
 
-                        Maui.CheckBoxItem
+                        RadioButton
                         {
+                            autoExclusive: true
                             anchors.left: parent.left
                             anchors.top: parent.top
                             anchors.margins: Maui.Style.space.medium
@@ -211,5 +216,11 @@ ManLib.SettingsPage
                 onToggled: control.manager.enableCSD = !control.manager.enableCSD
             }
         }
+    }
+
+    Maui.SettingsSection
+    {
+        title: i18n("Fonts")
+
     }
 }
