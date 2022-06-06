@@ -99,17 +99,14 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Border Radius")
             label2.text: i18n("Custom border radius.")
-            Slider
+
+            SpinBox
             {
-                width: parent.parent.width
                 from: 0
                 to: 20
                 value: control.manager.borderRadius
-                snapMode: Slider.SnapAlways
                 stepSize: 1
-                orientation:Qt.Horizontal
-                onMoved: control.manager.borderRadius = value
-
+                onValueModified: control.manager.borderRadius = value
             }
         }
     }
@@ -154,6 +151,8 @@ ManLib.SettingsPage
     Maui.SettingsSection
     {
         title: i18n("Window Control Decorations")
+        visible: !Maui.Handy.isMobile
+
         Maui.SettingTemplate
         {
             label1.text: i18n("Style")
