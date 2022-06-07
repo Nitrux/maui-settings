@@ -95,21 +95,61 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
-        {
-            label1.text: i18n("Border Radius")
-            label2.text: i18n("Custom border radius.")
+    }
 
-            SpinBox
+    Maui.SettingsSection
+    {
+        title: i18n("Sizes")
+        description: i18n("Customize the size of elements.")
+
+    Maui.SettingTemplate
+    {
+        label1.text: i18n("Border Radius")
+        label2.text: i18n("Custom border radius.")
+
+        SpinBox
+        {
+            from: 0
+            to: 20
+            value: control.manager.borderRadius
+            stepSize: 1
+            onValueModified: control.manager.borderRadius = value
+        }
+    }
+
+    Maui.SettingTemplate
+    {
+        label1.text: i18n("Icon Size")
+        label2.text: i18n("Custom button icon sizes.")
+
+        Maui.ToolActions
+        {
+            autoExclusive: true
+            expanded: true
+
+            Action
             {
-                from: 0
-                to: 20
-                value: control.manager.borderRadius
-                stepSize: 1
-                onValueModified: control.manager.borderRadius = value
+                text: i18n("S")
+                checked: control.manager.iconSize === 16
+                onTriggered: control.manager.iconSize = 16
+            }
+
+            Action
+            {
+                text: i18n("M")
+                checked: control.manager.iconSize === 22
+                onTriggered: control.manager.iconSize = 22
+            }
+
+            Action
+            {
+                text: i18n("L")
+                checked: control.manager.iconSize === 32
+                onTriggered: control.manager.iconSize = 32
             }
         }
     }
+}
 
     Maui.SettingsSection
     {
