@@ -9,7 +9,7 @@ import "src/controls"
 Maui.ApplicationWindow
 {
     id: root
-    title: qsTr("Maui Manager")
+    title: initModule
 
     headBar.visible: false
 

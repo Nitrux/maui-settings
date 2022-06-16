@@ -21,7 +21,6 @@ ManLib.SettingsPage
     property var manager : control.module.manager
     title: module.name
 
-
     ButtonGroup
     {
         id: _styleGroup
@@ -102,54 +101,54 @@ ManLib.SettingsPage
         title: i18n("Sizes")
         description: i18n("Customize the size of elements.")
 
-    Maui.SettingTemplate
-    {
-        label1.text: i18n("Border Radius")
-        label2.text: i18n("Custom border radius.")
-
-        SpinBox
+        Maui.SettingTemplate
         {
-            from: 0
-            to: 20
-            value: control.manager.borderRadius
-            stepSize: 1
-            onValueModified: control.manager.borderRadius = value
-        }
-    }
+            label1.text: i18n("Border Radius")
+            label2.text: i18n("Custom border radius.")
 
-    Maui.SettingTemplate
-    {
-        label1.text: i18n("Icon Size")
-        label2.text: i18n("Custom button icon sizes.")
-
-        Maui.ToolActions
-        {
-            autoExclusive: true
-            expanded: true
-
-            Action
+            SpinBox
             {
-                text: i18n("S")
-                checked: control.manager.iconSize === 16
-                onTriggered: control.manager.iconSize = 16
-            }
-
-            Action
-            {
-                text: i18n("M")
-                checked: control.manager.iconSize === 22
-                onTriggered: control.manager.iconSize = 22
-            }
-
-            Action
-            {
-                text: i18n("L")
-                checked: control.manager.iconSize === 32
-                onTriggered: control.manager.iconSize = 32
+                from: 0
+                to: 20
+                value: control.manager.borderRadius
+                stepSize: 1
+                onValueModified: control.manager.borderRadius = value
             }
         }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Icon Size")
+            label2.text: i18n("Custom button icon sizes.")
+
+            Maui.ToolActions
+            {
+                autoExclusive: true
+                expanded: true
+
+                Action
+                {
+                    text: i18n("S")
+                    checked: control.manager.iconSize === 16
+                    onTriggered: control.manager.iconSize = 16
+                }
+
+                Action
+                {
+                    text: i18n("M")
+                    checked: control.manager.iconSize === 22
+                    onTriggered: control.manager.iconSize = 22
+                }
+
+                Action
+                {
+                    text: i18n("L")
+                    checked: control.manager.iconSize === 32
+                    onTriggered: control.manager.iconSize = 32
+                }
+            }
+        }
     }
-}
 
     Maui.SettingsSection
     {
@@ -184,8 +183,28 @@ ManLib.SettingsPage
 
     Maui.SettingsSection
     {
-        title: i18n("Icon Theme")
+        title: i18n("Icons")
 
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Theme")
+            label2.text: i18n("Pick the icon theme.")
+            Flow
+            {
+                width: parent.parent.width
+                spacing: Maui.Style.space.medium
+                Repeater
+                {
+                    model: control.manager.iconsModel
+                    delegate:  ItemDelegate
+                    {
+                        width: 100
+                        height: 64
+                        text: model.display
+                    }
+                }
+            }
+        }
     }
 
     Maui.SettingsSection

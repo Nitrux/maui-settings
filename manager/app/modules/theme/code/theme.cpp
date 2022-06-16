@@ -5,17 +5,26 @@
 #include <QDirIterator>
 #include <QSettings>
 
+#include "iconsmodel.h"
+
 Theme::Theme(QObject *parent) : MauiMan::ThemeManager(parent)
   ,m_windowDecorationsModel(new WindowDecorationsModel(this))
+  ,m_iconsModel(new IconsModel(this))
 {
     qDebug( " INIT THEME MANAGER");
-    qRegisterMetaType<WindowDecorationsModel *>("const WindowDecorationsModel*"); // this is needed for QML to know of FMList in the search method
+    qRegisterMetaType<WindowDecorationsModel *>("const WindowDecorationsModel*"); // this is needed for QML to know of WindowDecorations
+    qRegisterMetaType<IconsModel *>("const IconsModel*"); // this is needed for QML to know of WindowDecorations
 
 }
 
 WindowDecorationsModel *Theme::windowDecorationsModel() const
 {
     return m_windowDecorationsModel;
+}
+
+IconsModel *Theme::iconsModel() const
+{
+    return m_iconsModel;
 }
 
 

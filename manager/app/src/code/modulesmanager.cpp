@@ -3,6 +3,8 @@
 #include <QDir>
 #include <QDebug>
 #include <QQmlEngine>
+#include <QVector>
+#include "code/abstractmodule.h"
 
 //modules
 #include "modules/background/src/code/backgroundmodule.h"
@@ -40,4 +42,17 @@ bool ModulesManager::serverRunning() const
 void ModulesManager::startServer()
 {
     MauiManUtils::startServer();
+}
+
+AbstractModule* ModulesManager::sourceFor(const QString &moduleName)
+{
+    for(const auto &module : m_model->modules())
+    {
+        if(module->name() == moduleName)
+        {
+            return module;
+        }
+    }
+
+    return nullptr;
 }

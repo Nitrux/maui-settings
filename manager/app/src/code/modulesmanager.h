@@ -16,7 +16,8 @@ public:
     bool serverRunning() const;
 
 public slots:
-void startServer();
+    void startServer();
+    AbstractModule *sourceFor(const QString &moduleName);
 
 private:
     ModulesModel * m_model;

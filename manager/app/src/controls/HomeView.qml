@@ -89,6 +89,13 @@ Maui.StackView
         }
     }
 
+    Component.onCompleted:
+    {
+        console.log("ASK TO OPEN AT THE MODULE", initModule, ModulesManager.sourceFor(initModule))
+        if(initModule.length)
+        loadModule(ModulesManager.sourceFor(initModule))
+    }
+
     function loadModule(module)
     {
         console.log(module.qmlSource)

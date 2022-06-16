@@ -13,6 +13,7 @@ Maui.ScrollView
 {
     id: control
     default property alias content: _layout.data
+    padding: Maui.Style.space.medium
 
     contentWidth: availableWidth
     contentHeight: _layout.implicitHeight
@@ -27,6 +28,7 @@ Maui.ScrollView
         {
             id:  _layout
             width: parent.width
+            spacing: Maui.Style.space.huge
         }
     }
 }

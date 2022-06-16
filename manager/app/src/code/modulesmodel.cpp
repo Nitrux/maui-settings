@@ -46,3 +46,8 @@ void ModulesModel::appendModule(AbstractModule *module)
     m_modules << module;
     endInsertRows();
 }
+
+QVector<AbstractModule *> ModulesModel::modules() const
+{
+    return m_modules;
+}

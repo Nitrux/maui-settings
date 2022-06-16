@@ -9,7 +9,7 @@ class MAUISETTINGSLIB_EXPORT AbstractModule : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
-    Q_PROPERTY(QString  name READ name NOTIFY nameChanged)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
     Q_PROPERTY(QString category READ category NOTIFY categoryChanged)
     Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
     Q_PROPERTY(QStringList keywords READ keywords NOTIFY keywordsChanged)

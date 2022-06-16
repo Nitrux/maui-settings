@@ -15,6 +15,9 @@ public:
     QHash<int, QByteArray> roleNames() const override final;
 
     void appendModule(AbstractModule * module);
+
+    QVector<AbstractModule *> modules() const;
+
 private:
     QVector<AbstractModule*> m_modules;
 };

@@ -33,15 +33,10 @@ set(modulesSRCS
 
     modules/theme/code/thememodule.cpp
     modules/theme/code/theme.cpp
+
+    modules/theme/code/iconsmodel.cpp
     )
 
-set(modulesHDRS
-    modules/background/src/code/backgroundmodule.h
-    modules/background/src/code/background.h
-
-    modules/theme/code/thememodule.h
-    modules/theme/code/theme.h
-    )
 
 set(modulesRSCRS
     modules/background/src/resources.qrc
@@ -54,7 +49,6 @@ add_executable(${PROJECT_NAME}
     ${app_RSCRS}
 
     ${modulesSRCS}
-    ${modulesHDRS}
     ${modulesRSCRS}
     )
 
@@ -71,7 +65,8 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Qml
     Qt5::Widgets
     KF5::CoreAddons
-    KF5::I18n)
+    KF5::I18n
+    KF5::IconThemes)
 
 #set(MAUIMAN_MODULES_IMPORT_PATH "fuckery")
 #add_definitions(-DMAUIMAN_MODULES_IMPORT_PATH)

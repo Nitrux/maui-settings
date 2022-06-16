@@ -9,6 +9,8 @@
 #include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QPair>
+
 #include <MauiKit/Core/mauiapp.h>
 
 #include <KAboutData>
@@ -36,7 +38,7 @@ int main(int argc, char *argv[])
     KLocalizedString::setApplicationDomain("settings");
 
     KAboutData about(QStringLiteral("settings"), i18n("Maui Settings"), MAUISETTINGS_VERSION_STRING, i18n("Maui Settings Manager."),
-                     KAboutLicense::LGPL_V3, i18n("© 2019-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
+                     KAboutLicense::LGPL_V3, i18n("© 2022-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
 
     about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
     about.setHomepage("https://nxos.org");
@@ -67,21 +69,29 @@ int main(int argc, char *argv[])
     parser.process(app);
     about.processCommandLine(&parser);
 
+    QPair<QString, QVariant> arguments;
+
     if (parser.isSet(moduleOption))
     {
+        arguments.first = parser.value(moduleOption);
+    }    
 
-    }
-
-    qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
     QQmlApplicationEngine engine;
 
-    engine.rootContext()->setContextProperty("ModulesManager", &manager);
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+    engine.rootContext()->setContextProperty("initModule", arguments.first);
+    engine.rootContext()->setContextProperty("initData", arguments.second);
+
+    qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
+
+    engine.rootContext()->setContextProperty("ModulesManager", &manager);
+
     engine.load(url);
 
     return app.exec();
