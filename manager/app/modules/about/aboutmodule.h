@@ -2,14 +2,14 @@
 
 #include "code/abstractmodule.h"
 
-class Theme;
-class ThemeModule : public AbstractModule
+class AboutData;
+class AboutModule : public AbstractModule
 {
     Q_OBJECT
-    Q_PROPERTY(Theme* manager READ manager CONSTANT FINAL)
-public:
-    ThemeModule(QObject * parent = nullptr);
+    Q_PROPERTY(AboutData* manager READ manager CONSTANT FINAL)
 
+public:
+    AboutModule(QObject * parent = nullptr);
 
     // AbstractModule interface
 public:
@@ -22,10 +22,10 @@ public:
     QString description() const override final;
 
 
-    Theme* manager() const;
+    AboutData* manager();
 
 private:
-    Theme *m_manager;
+    AboutData *m_manager;
 
 
 };

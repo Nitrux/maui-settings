@@ -16,21 +16,28 @@ Maui.Page
     default property alias content: _template.content
     property alias stackView: _stackView
 
-    headBar.leftContent: ToolButton
-    {
-        icon.name: "go-previous"
-
-        onClicked:
+    headBar.leftContent:[ToolButton
         {
-            if(_stackView.depth > 1)
+            icon.name: "sidebar-collapse"
+
+            onClicked: toggleSideBar()
+        },
+        ToolButton
+        {
+            icon.name: "go-previous"
+
+            onClicked:
             {
-                _stackView.pop()
-            }else
-            {
-                control.StackView.view.pop()
+                if(_stackView.depth > 1)
+                {
+                    _stackView.pop()
+                }else
+                {
+                    control.StackView.view.pop()
+                }
             }
         }
-    }
+    ]
 
     Maui.StackView
     {

@@ -3,7 +3,7 @@
 
 
 ThemeModule::ThemeModule(QObject *parent) :AbstractModule(parent)
-  , m_manager(new Theme(this))
+  , m_manager(nullptr)
 {
     qRegisterMetaType<Theme *>("const Theme*"); // this is needed for QML to know of FMList in the search method
 
@@ -12,7 +12,7 @@ ThemeModule::ThemeModule(QObject *parent) :AbstractModule(parent)
 
 QString ThemeModule::qmlSource() const
 {
-    return ("qrc:/modules/theme/controls/ThemeModuleView.qml");
+    return ("qrc:/modules/theme/ThemeModuleView.qml");
 }
 
 QString ThemeModule::iconName() const
@@ -41,7 +41,12 @@ QString ThemeModule::description() const
     return "Accent colors, icon sets, adaptive colorscheme.";
 }
 
-Theme *ThemeModule::manager() const
+Theme *ThemeModule::manager()
 {
+    if(!m_manager)
+    {
+        m_manager = new Theme(this);
+    }
+
     return m_manager;
 }

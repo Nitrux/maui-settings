@@ -5,38 +5,42 @@ import org.mauikit.filebrowsing 1.3 as FB
 
 import org.mauikit.controls 1.3 as Maui
 
-Maui.StackView
+Maui.SideBarView
 {
     id: control
 
-    initialItem: Maui.Page
+    property string currentModule
+sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
+sideBar.preferredWidth: sideBar.minimumWidth
+    sideBarContent: Maui.Page
     {
-        showCSDControls: true
+        anchors.fill: parent
+//        showCSDControls: true
 
-        headBar.leftContent: [
-            Maui.ToolButtonMenu
-            {
-                icon.name: "application-menu"
+//        headBar.leftContent: [
+//            Maui.ToolButtonMenu
+//            {
+//                icon.name: "application-menu"
 
-                MenuItem
-                {
-                    text: i18n("Settings")
-                    icon.name: "settings-configure"
-                    onTriggered:
-                    {
-                        _dialogLoader.sourceComponent = _settingsDialogComponent
-                        dialog.open()
-                    }
-                }
+//                MenuItem
+//                {
+//                    text: i18n("Settings")
+//                    icon.name: "settings-configure"
+//                    onTriggered:
+//                    {
+//                        _dialogLoader.sourceComponent = _settingsDialogComponent
+//                        dialog.open()
+//                    }
+//                }
 
-                MenuItem
-                {
-                    text: i18n("About")
-                    icon.name: "documentinfo"
-                    onTriggered: root.about()
-                }
-            }
-        ]
+//                MenuItem
+//                {
+//                    text: i18n("About")
+//                    icon.name: "documentinfo"
+//                    onTriggered: root.about()
+//                }
+//            }
+//        ]
 
         headBar.middleContent: Maui.TextField
         {
@@ -51,7 +55,7 @@ Maui.StackView
         Maui.ListBrowser
         {
             anchors.fill: parent
-//            enabled: ModulesManager.serverRunning
+            //            enabled: ModulesManager.serverRunning
             holder.visible: count === 0 || !ModulesManager.serverRunning
             holder.title: !ModulesManager.serverRunning ? i18n("Not server!") : i18n("No Modules!")
             holder.body: !ModulesManager.serverRunning ? i18n("MauiMan server is not running") : i18n("No modules avaliable!")
@@ -76,6 +80,7 @@ Maui.StackView
             delegate: Maui.ListBrowserDelegate
             {
                 width: ListView.view.width
+                isCurrentItem: Module.name === control.currentModule
                 label1.text: Module.name
                 label2.text: Module.description
                 iconSource: Module.iconName
@@ -89,16 +94,31 @@ Maui.StackView
         }
     }
 
+    StackView
+    {
+        id: _viewLoader
+//        asynchronous: true
+        anchors.fill: parent
+    }
+
     Component.onCompleted:
     {
         console.log("ASK TO OPEN AT THE MODULE", initModule, ModulesManager.sourceFor(initModule))
         if(initModule.length)
-        loadModule(ModulesManager.sourceFor(initModule))
+            loadModule(ModulesManager.sourceFor(initModule))
+        else
+            loadModule(ModulesManager.sourceFor("About"))
     }
 
     function loadModule(module)
     {
         console.log(module.qmlSource)
-        control.push(module.qmlSource, ({'module': module}))
+        _viewLoader.push(module.qmlSource, ({'module': module}))
+        control.currentModule = module.name
+    }
+
+    function toggleSideBar()
+    {
+        control.sideBar.toggle()
     }
 }

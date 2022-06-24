@@ -7,8 +7,10 @@
 #include "code/abstractmodule.h"
 
 //modules
-#include "modules/background/src/code/backgroundmodule.h"
-#include "modules/theme/code/thememodule.h"
+#include "modules/background/backgroundmodule.h"
+#include "modules/theme/thememodule.h"
+#include "modules/about/aboutmodule.h"
+
 #include <MauiMan/mauimanutils.h>
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
@@ -24,6 +26,8 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
         m_serverRunning = state;
         emit serverRunningChanged(m_serverRunning);
     });
+
+    m_model->appendModule(new AboutModule);
 
     m_model->appendModule(new BackgroundModule);
     m_model->appendModule(new ThemeModule);

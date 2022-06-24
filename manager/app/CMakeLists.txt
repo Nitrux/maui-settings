@@ -28,19 +28,21 @@ set(app_RSCRS
     )
 
 set(modulesSRCS
-    modules/background/src/code/backgroundmodule.cpp
-    modules/background/src/code/background.cpp
+    modules/background/backgroundmodule.cpp
+    modules/background/background.cpp
 
-    modules/theme/code/thememodule.cpp
-    modules/theme/code/theme.cpp
+    modules/theme/thememodule.cpp
+    modules/theme/theme.cpp
 
-    modules/theme/code/iconsmodel.cpp
+    modules/theme/iconsmodel.cpp
+
+    modules/about/aboutmodule.cpp
+    modules/about/aboutdata.cpp
     )
 
 
 set(modulesRSCRS
-    modules/background/src/resources.qrc
-    modules/theme/resources.qrc
+    modules/modules.qrc
     )
 
 add_executable(${PROJECT_NAME}

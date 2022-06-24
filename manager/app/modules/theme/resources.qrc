@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/modules/theme">
-        <file>controls/ThemeModuleView.qml</file>
-    </qresource>
-</RCC>

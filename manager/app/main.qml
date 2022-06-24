@@ -11,8 +11,6 @@ Maui.ApplicationWindow
     id: root
     title: initModule
 
-    headBar.visible: false
-
     HomeView
     {
         id: _homeView
