@@ -2,6 +2,8 @@
 #define ABOUTDATA_H
 
 #include <QObject>
+#include <QString>
+#include <QVariantList>
 
 class AboutData : public QObject
 {
@@ -16,8 +18,9 @@ class AboutData : public QObject
     Q_PROPERTY(QString cpuInfo READ cpuInfo CONSTANT FINAL)
     Q_PROPERTY(QString userName READ userName CONSTANT FINAL)
     Q_PROPERTY(QString distroName READ distroName  CONSTANT FINAL)
-    Q_PROPERTY(QString distroWebPage READ distroWebPage  CONSTANT FINAL)
-    Q_PROPERTY(QString distroVersion READ distroVersion  CONSTANT FINAL)
+    Q_PROPERTY(QString distroWebPage READ distroWebPage CONSTANT FINAL)
+    Q_PROPERTY(QString distroVersion READ distroVersion CONSTANT FINAL)
+    Q_PROPERTY(QVariantList devices READ devices CONSTANT FINAL)
 
     QString m_cpuInfo;
 
@@ -28,6 +31,8 @@ class AboutData : public QObject
     QString m_distroName;
 
     QString m_distroVersion;
+
+    QVariantList m_devices;
 
 public:
     explicit AboutData(QObject *parent = nullptr);
@@ -55,6 +60,8 @@ public:
     QString distroName() const;
 
     QString distroVersion() const;
+
+    QVariantList devices() const;
 
 signals:
 

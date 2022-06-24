@@ -1,6 +1,8 @@
 #include "aboutdata.h"
 #include <QSysInfo>
 #include <QProcess>
+#include <QStorageInfo>
+
 #include <sys/utsname.h>
 
 AboutData::AboutData(QObject *parent) : QObject(parent)
@@ -16,13 +18,32 @@ AboutData::AboutData(QObject *parent) : QObject(parent)
     if (m_userName.isEmpty())
         m_userName = qgetenv("USERNAME");
 
-     utsname distroBuf;
-     if(uname(&distroBuf))
-     {
-         m_distroName = distroBuf.sysname;
-         m_distroVersion = distroBuf.version;
-         m_distroWebPage = distroBuf.domainname;
-     }
+    utsname distroBuf;
+    if(uname(&distroBuf))
+    {
+        m_distroName = distroBuf.sysname;
+        m_distroVersion = distroBuf.version;
+        m_distroWebPage = distroBuf.domainname;
+    }
+
+    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes())
+    {
+        if (storage.isValid() && storage.isReady())
+        {
+            if (!storage.isReadOnly())
+            {
+                QVariantMap device;
+                device.insert("name", storage.displayName());
+                device.insert("root", storage.rootPath());
+                device.insert("type", storage.fileSystemType());
+                device.insert("bytesAvailable", storage.bytesAvailable());
+                device.insert("bytesFree", storage.bytesFree());
+                device.insert("bytesTotal", storage.bytesTotal());
+                m_devices << device;
+
+            }
+        }
+    }
 }
 
 QString AboutData::productVersion() const
@@ -83,4 +104,9 @@ QString AboutData::distroName() const
 QString AboutData::distroVersion() const
 {
     return m_distroVersion;
+}
+
+QVariantList AboutData::devices() const
+{
+    return m_devices;
 }

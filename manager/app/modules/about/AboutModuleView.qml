@@ -49,8 +49,35 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Product")
             label2.text: manager.productName
-
         }
+
+    }
+
+    Maui.SettingsSection
+    {
+        title: i18n("Storage")
+        description: i18n("Storage device information")
+
+        Repeater
+        {
+            model: manager.devices
+
+            Maui.SettingTemplate
+            {
+                label1.text: modelData.name
+                label2.text: modelData.type
+
+                ProgressBar
+                {
+                    width: parent.parent.width
+                    from: 0
+                    to: modelData.bytesTotal
+                    value: modelData.bytesTotal - modelData.bytesAvailable
+                }
+            }
+        }
+
+
 
     }
 
@@ -63,45 +90,36 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroName
-
         }
-
 
         Maui.SettingTemplate
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroVersion
-
         }
-
 
         Maui.SettingTemplate
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroWebPage
-
         }
-
 
         Maui.SettingTemplate
         {
             label1.text: i18n("Arch")
             label2.text: manager.cpuArch
-
         }
 
         Maui.SettingTemplate
         {
             label1.text: i18n("CPU")
             label2.text: manager.cpuInfo
-
         }
 
         Maui.SettingTemplate
         {
             label1.text: i18n("Kernel")
             label2.text: manager.kernelType + " / " + manager.kernelVersion
-
         }
     }
 

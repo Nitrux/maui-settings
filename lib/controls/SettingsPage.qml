@@ -15,7 +15,8 @@ Maui.Page
     id: control
     default property alias content: _template.content
     property alias stackView: _stackView
-
+    showCSDControls: true
+    headBar.background: null
     headBar.leftContent:[ToolButton
         {
             icon.name: "sidebar-collapse"

@@ -9,38 +9,38 @@ Maui.SideBarView
 {
     id: control
 
-    property string currentModule
-sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
-sideBar.preferredWidth: sideBar.minimumWidth
+    property string currentModule : _viewLoader.currentItem.title
+    sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
+    sideBar.preferredWidth: Maui.Style.units.gridUnit * 18
     sideBarContent: Maui.Page
     {
         anchors.fill: parent
-//        showCSDControls: true
+        //        showCSDControls: true
 
-//        headBar.leftContent: [
-//            Maui.ToolButtonMenu
-//            {
-//                icon.name: "application-menu"
+        //        headBar.leftContent: [
+        //            Maui.ToolButtonMenu
+        //            {
+        //                icon.name: "application-menu"
 
-//                MenuItem
-//                {
-//                    text: i18n("Settings")
-//                    icon.name: "settings-configure"
-//                    onTriggered:
-//                    {
-//                        _dialogLoader.sourceComponent = _settingsDialogComponent
-//                        dialog.open()
-//                    }
-//                }
+        //                MenuItem
+        //                {
+        //                    text: i18n("Settings")
+        //                    icon.name: "settings-configure"
+        //                    onTriggered:
+        //                    {
+        //                        _dialogLoader.sourceComponent = _settingsDialogComponent
+        //                        dialog.open()
+        //                    }
+        //                }
 
-//                MenuItem
-//                {
-//                    text: i18n("About")
-//                    icon.name: "documentinfo"
-//                    onTriggered: root.about()
-//                }
-//            }
-//        ]
+        //                MenuItem
+        //                {
+        //                    text: i18n("About")
+        //                    icon.name: "documentinfo"
+        //                    onTriggered: root.about()
+        //                }
+        //            }
+        //        ]
 
         headBar.middleContent: Maui.TextField
         {
@@ -84,7 +84,7 @@ sideBar.preferredWidth: sideBar.minimumWidth
                 label1.text: Module.name
                 label2.text: Module.description
                 iconSource: Module.iconName
-
+                template.iconSizeHint: Maui.Style.iconSizes.medium
                 onClicked:
                 {
                     console.log(Module.qmlSource)
@@ -97,7 +97,7 @@ sideBar.preferredWidth: sideBar.minimumWidth
     StackView
     {
         id: _viewLoader
-//        asynchronous: true
+        //        asynchronous: true
         anchors.fill: parent
     }
 
@@ -114,7 +114,6 @@ sideBar.preferredWidth: sideBar.minimumWidth
     {
         console.log(module.qmlSource)
         _viewLoader.push(module.qmlSource, ({'module': module}))
-        control.currentModule = module.name
     }
 
     function toggleSideBar()
