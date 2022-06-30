@@ -9,6 +9,11 @@ jobs:
 
     runs-on: ubuntu-20.04
 
+    container:
+      image: ubuntu:focal
+      env:
+        DEBIAN_FRONTEND: noninteractive
+
     env:
           MAUIMAN_VERSION: master
           BRANCH_MAUIKIT: master
