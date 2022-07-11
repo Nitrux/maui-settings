@@ -33,11 +33,18 @@ set(modulesSRCS
 
     modules/theme/thememodule.cpp
     modules/theme/theme.cpp
-
     modules/theme/iconsmodel.cpp
 
     modules/about/aboutmodule.cpp
     modules/about/aboutdata.cpp
+
+    modules/screen/screenmodule.cpp
+    modules/screen/screen.cpp
+
+    modules/network/networkmodule.cpp
+    modules/bluetooth/bluetoothmodule.cpp
+    modules/audio/audiomodule.cpp
+    modules/shell/shellmodule.cpp
     )
 
 

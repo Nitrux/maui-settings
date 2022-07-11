@@ -3,5 +3,6 @@
         <file>theme/ThemeModuleView.qml</file>
         <file>about/AboutModuleView.qml</file>
         <file>background/BackgroundModuleView.qml</file>
+        <file>screen/ScreenModuleView.qml</file>
     </qresource>
 </RCC>

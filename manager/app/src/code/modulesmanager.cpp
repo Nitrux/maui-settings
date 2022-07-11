@@ -10,6 +10,12 @@
 #include "modules/background/backgroundmodule.h"
 #include "modules/theme/thememodule.h"
 #include "modules/about/aboutmodule.h"
+#include "modules/screen/screenmodule.h"
+#include "modules/audio/audiomodule.h"
+#include "modules/shell/shellmodule.h"
+#include "modules/network/networkmodule.h"
+#include "modules/bluetooth/bluetoothmodule.h"
+
 
 #include <MauiMan/mauimanutils.h>
 
@@ -31,6 +37,11 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
 
     m_model->appendModule(new BackgroundModule);
     m_model->appendModule(new ThemeModule);
+    m_model->appendModule(new ScreenModule);
+    m_model->appendModule(new BluetoothModule);
+    m_model->appendModule(new NetworkModule);
+    m_model->appendModule(new ShellModule);
+    m_model->appendModule(new AudioModule);
 }
 
 ModulesModel *ModulesManager::model() const
