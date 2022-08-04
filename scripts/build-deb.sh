@@ -26,7 +26,7 @@ DEBIAN_FRONTEND=noninteractive apt -qq -yy install --no-install-recommends \
 
 ### Download Source
 
-git clone --depth 1 --branch $MAUISETIINGS_BRANCH https://github.com/Nitrux/maui-settings.git
+git clone --depth 1 --branch $MAUISETTINGS_BRANCH https://github.com/Nitrux/maui-settings.git
 
 ### Compile Source
 
