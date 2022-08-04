@@ -9,6 +9,7 @@ fi
 $APT_COMMAND update -q
 $APT_COMMAND install -qy --no-install-recommends \
     build-essential \
+    checkinstall \
     cmake \
     curl \
     git \
