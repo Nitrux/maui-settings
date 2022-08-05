@@ -17,7 +17,7 @@ QString BluetoothModule::qmlSource() const
 
 QString BluetoothModule::iconName() const
 {
-    return "theme-config";
+    return "preferences-system-bluetooth";
 }
 
 QString BluetoothModule::name() const

@@ -17,7 +17,7 @@ QString AudioModule::qmlSource() const
 
 QString AudioModule::iconName() const
 {
-    return "theme-config";
+    return "preferences-desktop-sound";
 }
 
 QString AudioModule::name() const

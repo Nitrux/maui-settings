@@ -62,7 +62,7 @@ ManLib.SettingsPage
         {
             model: manager.devices
 
-            Maui.SettingTemplate
+            delegate: Maui.SettingTemplate
             {
                 label1.text: modelData.name
                 label2.text: modelData.type

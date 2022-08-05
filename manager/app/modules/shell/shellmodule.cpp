@@ -17,7 +17,7 @@ QString ShellModule::qmlSource() const
 
 QString ShellModule::iconName() const
 {
-    return "theme-config";
+    return "preferences-desktop";
 }
 
 QString ShellModule::name() const

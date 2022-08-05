@@ -17,7 +17,7 @@ QString NetworkModule::qmlSource() const
 
 QString NetworkModule::iconName() const
 {
-    return "theme-config";
+    return "preferences-system-network";
 }
 
 QString NetworkModule::name() const
