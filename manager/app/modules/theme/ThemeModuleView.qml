@@ -90,16 +90,26 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 3
                 ButtonGroup.group: _styleGroup
                 onToggled: control.manager.styleType = 3
-
             }
         }
-
     }
 
     Maui.SettingsSection
     {
-        title: i18n("Sizes")
-        description: i18n("Customize the size of elements.")
+        title: i18n("Feel")
+        description: i18n("Customize the look-and-feel of elements.")
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Effects")
+            label2.text: i18n("Enable effects.")
+
+            Switch
+            {
+                checked: control.manager.enableEffects
+                onToggled: control.manager.enableEffects = !control.manager.enableEffects
+            }
+        }
 
         Maui.SettingTemplate
         {

@@ -27,7 +27,6 @@ IconsModel *Theme::iconsModel() const
     return m_iconsModel;
 }
 
-
 WindowDecorationsModel::WindowDecorationsModel(Theme *parent) : QAbstractListModel(parent)
 {
     this->getDecorations();
