@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
 
+    engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+
     engine.rootContext()->setContextProperty("initModule", arguments.first);
     engine.rootContext()->setContextProperty("initData", arguments.second);
 

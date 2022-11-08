@@ -76,6 +76,8 @@ ecm_setup_version(${MAUISETTINGS_VERSION}
 
 add_subdirectory(app)
 
+ki18n_install(po)
+
 #set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/src/modules ${CMAKE_BINARY_DIR}/src/modules CACHE STRING "" FORCE)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
