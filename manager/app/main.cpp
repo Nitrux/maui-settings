@@ -33,9 +33,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("Maui"));
     app.setWindowIcon(QIcon(":/nxmanager.svg"));
 
-    MauiApp::instance()->setIconName("qrc:/nxmanager.svg");
-
-    KLocalizedString::setApplicationDomain("settings");
+    KLocalizedString::setApplicationDomain("maui-settings");
 
     KAboutData about(QStringLiteral("settings"), i18n("Maui Settings"), MAUISETTINGS_VERSION_STRING, i18n("Maui Settings Manager."),
                      KAboutLicense::LGPL_V3, i18n("© 2022-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
@@ -48,6 +46,7 @@ int main(int argc, char *argv[])
     about.setProgramLogo(app.windowIcon());
 
     KAboutData::setApplicationData(about);
+    MauiApp::instance()->setIconName("qrc:/nxmanager.svg");
 
     ModulesManager manager;
     QCommandLineParser parser;
