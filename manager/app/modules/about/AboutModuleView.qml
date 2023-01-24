@@ -16,6 +16,7 @@ import org.mauikit.filebrowsing 1.3 as FB
 
 import org.maui.settings 1.0 as Man
 import org.maui.settings.lib 1.0 as ManLib
+import QtSystemInfo 5.0
 
 ManLib.SettingsPage
 {
@@ -80,6 +81,50 @@ ManLib.SettingsPage
 
 
     }
+    DeviceInfo {
+        id: devinfo;
+    }
+    Maui.SettingsSection
+    {
+        title: i18n("Device")
+        description: i18n("Device Information")
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Manufacturer")
+            label2.text: devinfo.manufacturer()
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Product")
+            label2.text: devinfo.productName()
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Model")
+            label2.text: devinfo.model()
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Device ID")
+            label2.text: devinfo.uniqueDeviceID()
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("Firmware")
+            label2.text:  devinfo.version(DeviceInfo.Firmware)
+        }
+
+        Maui.SettingTemplate
+        {
+            label1.text: i18n("OS Version")
+            label2.text:  devinfo.version(DeviceInfo.Os)
+        }
+    }
 
     Maui.SettingsSection
     {
@@ -113,7 +158,7 @@ ManLib.SettingsPage
         Maui.SettingTemplate
         {
             label1.text: i18n("CPU")
-            label2.text: manager.cpuInfo
+//            label2.text: manager.cpuInfo
         }
 
         Maui.SettingTemplate

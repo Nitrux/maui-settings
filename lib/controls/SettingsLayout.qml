@@ -9,7 +9,7 @@ import QtQuick.Layouts 1.3
 
 import org.mauikit.controls 1.3 as Maui
 
-Maui.ScrollView
+ScrollView
 {
     id: control
     default property alias content: _layout.data

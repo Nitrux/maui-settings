@@ -12,7 +12,7 @@ NetworkModule::NetworkModule(QObject *parent) :AbstractModule(parent)
 
 QString NetworkModule::qmlSource() const
 {
-    return ("qrc:/modules/theme/NetworkModuleView.qml");
+    return ("qrc:/modules/network/NetworkModuleView.qml");
 }
 
 QString NetworkModule::iconName() const

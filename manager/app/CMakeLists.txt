@@ -45,8 +45,9 @@ set(modulesSRCS
     modules/bluetooth/bluetoothmodule.cpp
     modules/audio/audiomodule.cpp
     modules/shell/shellmodule.cpp
-    )
 
+    modules/formfactor/formfactormodule.cpp
+    )
 
 set(modulesRSCRS
     modules/modules.qrc
@@ -69,6 +70,8 @@ target_link_libraries(${PROJECT_NAME}
     MauiKit
     MauiMan
     MauiSettingsLib
+    MauiCore::Audio
+    MauiCore::Notifications
     Qt5::DBus
     Qt5::Quick
     Qt5::Qml

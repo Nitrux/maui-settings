@@ -44,6 +44,7 @@ find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons Ico
 
 find_package(MauiKit REQUIRED)
 find_package(MauiMan REQUIRED)
+find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(

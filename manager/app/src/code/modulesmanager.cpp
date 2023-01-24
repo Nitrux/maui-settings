@@ -15,7 +15,7 @@
 #include "modules/shell/shellmodule.h"
 #include "modules/network/networkmodule.h"
 #include "modules/bluetooth/bluetoothmodule.h"
-
+#include "modules/formfactor/formfactormodule.h"
 
 #include <MauiMan/mauimanutils.h>
 
@@ -42,6 +42,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     m_model->appendModule(new NetworkModule);
     m_model->appendModule(new ShellModule);
     m_model->appendModule(new AudioModule);
+    m_model->appendModule(new FormFactorModule);
 }
 
 ModulesModel *ModulesManager::model() const

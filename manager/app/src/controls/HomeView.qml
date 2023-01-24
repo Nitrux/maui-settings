@@ -42,7 +42,7 @@ Maui.SideBarView
         //            }
         //        ]
 
-        headBar.middleContent: Maui.TextField
+        headBar.middleContent: TextField
         {
             enabled: ModulesManager.serverRunning
 

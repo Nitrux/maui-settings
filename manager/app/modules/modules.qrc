@@ -4,5 +4,7 @@
         <file>about/AboutModuleView.qml</file>
         <file>background/BackgroundModuleView.qml</file>
         <file>screen/ScreenModuleView.qml</file>
+        <file>formfactor/FormFactorModuleView.qml</file>
+        <file>network/NetworkModuleView.qml</file>
     </qresource>
 </RCC>

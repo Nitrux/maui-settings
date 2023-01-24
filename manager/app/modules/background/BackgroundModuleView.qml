@@ -165,7 +165,7 @@ ManLib.SettingsPage
             label1.text: i18n("Sources")
             label2.text: i18n("Wallpaper source directory")
 
-            Maui.TextField
+            TextField
             {
                 width: parent.parent.width
                 //                                height: implicitHeight
