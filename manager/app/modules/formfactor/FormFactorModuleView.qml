@@ -26,12 +26,12 @@ ManLib.SettingsPage
     title: module.name
 
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Options")
         description: i18n("Optional configurations")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Preferred Mode")
             label2.text: i18n("Switch between the modes manually.")
@@ -74,7 +74,7 @@ ManLib.SettingsPage
 
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Information")
         description: i18n("Form factor information based on inputs.")
@@ -148,7 +148,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Best Mode")
             label2.text: i18n("Given the inputs this is the best mode.")
@@ -179,7 +179,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Deafult Mode")
             label2.text: i18n("This is the default mode intended by you distro.")

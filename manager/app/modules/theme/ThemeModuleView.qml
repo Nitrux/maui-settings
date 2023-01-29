@@ -26,12 +26,12 @@ ManLib.SettingsPage
         id: _styleGroup
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Style")
         description: i18n("Pick a style variant.")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Light")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -46,7 +46,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Dark")
             label2.text: i18n("Dark colors tinted by the accent color.")
@@ -61,7 +61,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Adaptive")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -78,7 +78,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Auto")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -94,12 +94,12 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Feel")
         description: i18n("Customize the look-and-feel of elements.")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Effects")
             label2.text: i18n("Enable effects.")
@@ -111,7 +111,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Border Radius")
             label2.text: i18n("Custom border radius.")
@@ -126,7 +126,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Icon Size")
             label2.text: i18n("Custom button icon sizes.")
@@ -160,11 +160,11 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Colors")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
@@ -191,11 +191,11 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Icons")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Theme")
             label2.text: i18n("Pick the icon theme.")
@@ -217,12 +217,12 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Window Control Decorations")
         visible: !Maui.Handy.isMobile
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Style")
             label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
@@ -290,7 +290,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Use CSD")
             label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
@@ -303,7 +303,7 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Fonts")
 

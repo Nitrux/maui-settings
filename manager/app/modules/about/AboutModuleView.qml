@@ -26,19 +26,19 @@ ManLib.SettingsPage
     property var manager : control.module.manager
     title: module.name
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("User")
         description: i18n("User information")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Name")
             label2.text: manager.userName
 
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Machine")
             label2.text: manager.machineName
@@ -46,7 +46,7 @@ ManLib.SettingsPage
         }
 
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Product")
             label2.text: manager.productName
@@ -54,7 +54,7 @@ ManLib.SettingsPage
 
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Storage")
         description: i18n("Storage device information")
@@ -63,7 +63,7 @@ ManLib.SettingsPage
         {
             model: manager.devices
 
-            delegate: Maui.SettingTemplate
+            delegate: Maui.SectionItem
             {
                 label1.text: modelData.name
                 label2.text: modelData.type
@@ -84,84 +84,84 @@ ManLib.SettingsPage
     DeviceInfo {
         id: devinfo;
     }
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Device")
         description: i18n("Device Information")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Manufacturer")
             label2.text: devinfo.manufacturer()
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Product")
             label2.text: devinfo.productName()
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Model")
             label2.text: devinfo.model()
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Device ID")
             label2.text: devinfo.uniqueDeviceID()
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Firmware")
             label2.text:  devinfo.version(DeviceInfo.Firmware)
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("OS Version")
             label2.text:  devinfo.version(DeviceInfo.Os)
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("System")
         description: i18n("System Information")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroName
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroVersion
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Distribution")
             label2.text: manager.distroWebPage
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Arch")
             label2.text: manager.cpuArch
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("CPU")
 //            label2.text: manager.cpuInfo
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Kernel")
             label2.text: manager.kernelType + " / " + manager.kernelVersion

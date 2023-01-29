@@ -22,12 +22,12 @@ ManLib.SettingsPage
     title: module.name
 
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Options")
         description: i18n("Screen configurations.")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Scale Factor")
             label2.text: i18n("Make UI elements larger or smaller by scaling them.")

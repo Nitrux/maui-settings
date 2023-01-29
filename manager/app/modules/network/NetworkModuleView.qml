@@ -21,7 +21,7 @@ ManLib.SettingsPage
     property var manager : control.module.manager
     title: module.name
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Fonts")
 

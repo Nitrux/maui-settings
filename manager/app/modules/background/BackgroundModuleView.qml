@@ -26,7 +26,7 @@ ManLib.SettingsPage
     title: module.name
 
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Wallpaper Image")
         description: i18n("Pick a new image")
@@ -77,12 +77,12 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Options")
         description: i18n("Configure look and feel")
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Dim Wallpaper")
             label2.text: i18n("On dark mode the wallpaper will be dimmed")
@@ -94,7 +94,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Fit Wallpaper")
             label2.text: i18n("Fill or fit wallpaper")
@@ -106,7 +106,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Show Wallpaper")
             label2.text: i18n("Show image or solid color")
@@ -119,10 +119,10 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SettingsSection
+    Maui.SectionGroup
     {
         title: i18n("Customize")
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             enabled: control.manager.showWallpaper
 
@@ -160,7 +160,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SettingTemplate
+        Maui.SectionItem
         {
             label1.text: i18n("Sources")
             label2.text: i18n("Wallpaper source directory")
