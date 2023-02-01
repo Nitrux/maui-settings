@@ -1,6 +1,7 @@
 #include "abstractmodule.h"
 
-AbstractModule::AbstractModule(QObject *parent) : QObject(parent)
+AbstractModule::AbstractModule(const QString &id, QObject *parent) : QObject(parent)
+  ,m_id(id)
 {
 
 }

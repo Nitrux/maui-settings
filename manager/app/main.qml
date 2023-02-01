@@ -9,11 +9,23 @@ import "src/controls"
 Maui.ApplicationWindow
 {
     id: root
-    title: initModule
+    title: _homeView.currentModule
 
     HomeView
     {
         id: _homeView
         anchors.fill: parent
     }
+
+
+    function isModuleOpen(module : String)
+    {
+       return _homeView.currentModule === module
+    }
+
+    function openModule(module : String)
+    {
+         _homeView.loadModule(ModulesManager.sourceFor(module))
+    }
+
 }

@@ -15,28 +15,17 @@ Maui.Page
     id: control
     default property alias content: _template.content
     property alias stackView: _stackView
+
+    property var module
+    readonly property string moduleId : module ? module.id : ""
+    title: module ? module.name : ""
+
     showCSDControls: true
-//    headBar.background: null
     headBar.leftContent:[ToolButton
         {
             icon.name: "sidebar-collapse"
 
             onClicked: toggleSideBar()
-        },
-        ToolButton
-        {
-            icon.name: "go-previous"
-
-            onClicked:
-            {
-                if(_stackView.depth > 1)
-                {
-                    _stackView.pop()
-                }else
-                {
-                    control.StackView.view.pop()
-                }
-            }
         }
     ]
 

@@ -14,9 +14,10 @@ class MAUISETTINGSLIB_EXPORT AbstractModule : public QObject
     Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
     Q_PROPERTY(QStringList keywords READ keywords NOTIFY keywordsChanged)
     Q_PROPERTY(QString qmlSource READ qmlSource NOTIFY qmlSourceChanged)
+    Q_PROPERTY(QString id READ id CONSTANT FINAL)
 
 public:
-    AbstractModule(QObject * parent = nullptr);
+    AbstractModule(const QString &id, QObject * parent = nullptr);
 
     virtual QString qmlSource() const = 0;
     virtual QString iconName() const = 0;
@@ -24,8 +25,13 @@ public:
     virtual QString category() const = 0;
     virtual QStringList keywords() const = 0;
     virtual QString description() const = 0;
+    virtual QString id() final
+    {
+        return m_id;
+    }
 
 private:
+    QString m_id;
 //    QUrl m_qmlSource;
 //    QString m_name;
 //    QString m_category;

@@ -13,7 +13,7 @@ ScrollView
 {
     id: control
     default property alias content: _layout.data
-    padding: Maui.Style.space.medium
+    padding: Maui.Style.contentMargins
 
     contentWidth: availableWidth
     contentHeight: _layout.implicitHeight

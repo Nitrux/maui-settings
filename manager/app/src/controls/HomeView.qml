@@ -9,7 +9,7 @@ Maui.SideBarView
 {
     id: control
 
-    property string currentModule : _viewLoader.currentItem.title
+    property string currentModule : _viewLoader.currentItem.moduleId
     sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
     sideBar.preferredWidth: Maui.Style.units.gridUnit * 18
     sideBarContent: Maui.Page
@@ -80,7 +80,7 @@ Maui.SideBarView
             delegate: Maui.ListBrowserDelegate
             {
                 width: ListView.view.width
-                isCurrentItem: Module.name === control.currentModule
+                isCurrentItem: Module.id === control.currentModule
                 label1.text: Module.name
                 label2.text: Module.description
                 iconSource: Module.iconName
@@ -101,18 +101,10 @@ Maui.SideBarView
         anchors.fill: parent
     }
 
-    Component.onCompleted:
-    {
-        console.log("ASK TO OPEN AT THE MODULE", initModule, ModulesManager.sourceFor(initModule))
-        if(initModule.length)
-            loadModule(ModulesManager.sourceFor(initModule))
-        else
-            loadModule(ModulesManager.sourceFor("About"))
-    }
 
     function loadModule(module)
     {
-        console.log(module.qmlSource)
+        _viewLoader.pop()
         _viewLoader.push(module.qmlSource, ({'module': module}))
     }
 

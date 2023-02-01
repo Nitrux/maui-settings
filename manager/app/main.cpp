@@ -18,8 +18,10 @@
 
 #include "../mauisettings_version.h"
 
-#include "src/code/modulesmanager.h"
-#include "src/code/modulesmodel.h"
+#include "src/modulesmanager.h"
+#include "src/modulesmodel.h"
+
+#include "src/server/server.h"
 
 #define MAUISETTINGS_URI "org.maui.settings"
 
@@ -73,21 +75,35 @@ int main(int argc, char *argv[])
     if (parser.isSet(moduleOption))
     {
         arguments.first = parser.value(moduleOption);
-    }    
+    }else
+    {
+        arguments.first = "about";
+    }
+
+    if (AppInstance::attachToExistingInstance(arguments.first))
+    {
+        // Successfully attached to existing instance of Nota
+        return 0;
+    }
+
+    AppInstance::registerService();
+
+    auto server =  std::make_unique<Server>();
 
     QQmlApplicationEngine engine;
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
+                     &app, [url, &server, &arguments](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
+
+        server->setQmlObject(obj);
+
+        server->openModule(arguments.first);
     }, Qt::QueuedConnection);
 
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
-
-    engine.rootContext()->setContextProperty("initModule", arguments.first);
-    engine.rootContext()->setContextProperty("initData", arguments.second);
 
     qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
 

@@ -39,7 +39,7 @@ include(ECMSetupVersion)
 include(ECMGenerateQmlTypes)
 include(CMakePackageConfigHelpers)
 
-find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets)
+find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets DBus)
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes)
 
 find_package(MauiKit REQUIRED)
