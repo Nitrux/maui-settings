@@ -3,42 +3,18 @@
 
 #include <MauiMan/accessibilitymanager.h>
 
-AccessibilityModule::AccessibilityModule(QObject *parent) : AbstractModule("accessibility", parent)
+AccessibilityModule::AccessibilityModule(QObject *parent) : AbstractModule("accessibility",
+                                                                           i18n("Accessibility"),
+                                                                            i18n("System"),
+                                                                           "qrc:/modules/accessibility/AccessibilityModuleView.qml",
+                                                                           "preferences-desktop-accessibility",
+                                                                            i18n("Customize accessibility features."),
+                                                                           {i18n("accessibility"), i18n("click")},
+                                                                           parent)
   ,m_manager(nullptr)
 {
     qRegisterMetaType<MauiMan::AccessibilityManager*>("const MauiMan::AccessibilityManager*"); // this is needed for QML to know of AccessibilityManager
 
-}
-
-
-QString AccessibilityModule::qmlSource() const
-{
-    return ("qrc:/modules/accessibility/AccessibilityModuleView.qml");
-}
-
-QString AccessibilityModule::iconName() const
-{
-    return "preferences-desktop-accessibility";
-}
-
-QString AccessibilityModule::name() const
-{
-    return i18n("Accessibility");
-}
-
-QString AccessibilityModule::category() const
-{
-    return i18n("System");
-}
-
-QStringList AccessibilityModule::keywords() const
-{
-    return{i18n("accessibility"), i18n("click")};
-}
-
-QString AccessibilityModule::description() const
-{
-    return i18n("Customize accessibility features.");
 }
 
 MauiMan::AccessibilityManager *AccessibilityModule::manager()

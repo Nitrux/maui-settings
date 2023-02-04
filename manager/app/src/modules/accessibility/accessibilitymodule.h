@@ -16,18 +16,6 @@ class AccessibilityModule : public AbstractModule
 public:
     explicit AccessibilityModule(QObject *parent = nullptr);
 
-signals:
-
-
-    // AbstractModule interface
-public:
-    QString qmlSource() const override final;
-    QString iconName() const override final;
-    QString name() const override final;
-    QString category() const override final;
-    QStringList keywords() const override final;
-    QString description() const override final;
-
     MauiMan::AccessibilityManager* manager();
 
 private:

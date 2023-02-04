@@ -1,45 +1,20 @@
 #include "screenmodule.h"
 #include "screen.h"
+#include <KI18n/KLocalizedString>
 
-ScreenModule::ScreenModule(QObject *parent) :AbstractModule("screen", parent)
+ScreenModule::ScreenModule(QObject *parent) :AbstractModule("screen",
+                                                            i18n("Screen"),
+                                                            i18n("System"),
+                                                            "qrc:/modules/screen/ScreenModuleView.qml",
+                                                            "cs-screen",
+                                                            i18n("Screen properties."),
+                                                            {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+                                                            parent)
   , m_manager(nullptr)
 {
     qRegisterMetaType<Screen *>("const Screen*"); // this is needed for QML to know of FMList in the search method
 
 }
-
-
-QString ScreenModule::qmlSource() const
-{
-    return ("qrc:/modules/screen/ScreenModuleView.qml");
-}
-
-QString ScreenModule::iconName() const
-{
-    return "cs-screen";
-}
-
-QString ScreenModule::name() const
-{
-    return "Screen";
-}
-
-QString ScreenModule::category() const
-{
-    return "System";
-}
-
-QStringList ScreenModule::keywords() const
-{
-    return {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"};
-}
-
-
-QString ScreenModule::description() const
-{
-    return "Screen properties.";
-}
-
 
 Screen *ScreenModule::manager()
 {

@@ -15,6 +15,9 @@ Maui.SideBarView
     sideBarContent: Maui.Page
     {
         anchors.fill: parent
+
+Maui.Theme.colorSet: Maui.Theme.Window
+Maui.Theme.inherit: false
         //        showCSDControls: true
 
         //        headBar.leftContent: [
@@ -91,15 +94,27 @@ Maui.SideBarView
                     control.loadModule(Module)
                 }
             }
+
+            flickable.header: Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.isMauiSession
+                    text: i18n("A Maui session has not been detected. Most of the settings won't be applied correctly or won't work as expected. For full and integrated support launch a full Maui session. The session detected is %1", ModulesManager.currentDesktopSession)
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
         }
     }
 
-    StackView
-    {
-        id: _viewLoader
-        //        asynchronous: true
-        anchors.fill: parent
-    }
+
+        StackView
+        {
+            id: _viewLoader
+            anchors.fill: parent
+
+        }
 
 
     function loadModule(module)

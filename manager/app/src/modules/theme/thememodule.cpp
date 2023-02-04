@@ -1,43 +1,20 @@
 #include "thememodule.h"
 #include "theme.h"
 
+#include <KI18n/KLocalizedString>
 
-ThemeModule::ThemeModule(QObject *parent) :AbstractModule("theme", parent)
+
+ThemeModule::ThemeModule(QObject *parent) :AbstractModule("theme",
+                                                          i18n("Theme"),
+                                                          i18n("Apperance"),
+                                                          "qrc:/modules/theme/ThemeModuleView.qml",
+                                                          "preferences-desktop-theme",
+                                                          i18n("Accent colors, icon sets, adaptive colorscheme."),
+                                                          {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+                                                          parent)
   , m_manager(nullptr)
 {
     qRegisterMetaType<Theme *>("const Theme*"); // this is needed for QML to know of Theme
-}
-
-
-QString ThemeModule::qmlSource() const
-{
-    return ("qrc:/modules/theme/ThemeModuleView.qml");
-}
-
-QString ThemeModule::iconName() const
-{
-    return "preferences-desktop-theme";
-}
-
-QString ThemeModule::name() const
-{
-    return "Theme";
-}
-
-QString ThemeModule::category() const
-{
-    return "Apperance";
-}
-
-QStringList ThemeModule::keywords() const
-{
-    return {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"};
-}
-
-
-QString ThemeModule::description() const
-{
-    return "Accent colors, icon sets, adaptive colorscheme.";
 }
 
 Theme *ThemeModule::manager()

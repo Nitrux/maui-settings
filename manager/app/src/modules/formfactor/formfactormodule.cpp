@@ -4,41 +4,18 @@
 #include <KI18n/KLocalizedString>
 
 
-FormFactorModule::FormFactorModule(QObject *parent) :AbstractModule("formfactor", parent)
+FormFactorModule::FormFactorModule(QObject *parent) :AbstractModule("formfactor",
+                                                                    i18n("Form Factor"),
+                                                                    i18n("System"),
+                                                                    "qrc:/modules/formfactor/FormFactorModuleView.qml",
+                                                                    "preferences-desktop-wallpaper",
+                                                                    i18n("Switch between desktop and mobile modes."),
+                                                                    {"form factor", "phone", "tablet", "mobile", "input"},
+                                                                    parent)
   , m_manager(nullptr)
 {
     qRegisterMetaType<MauiMan::FormFactorManager*>("const MauiMan::FormFactorManager*"); // this is needed for QML to know of FormFactorManager
 
-}
-
-QString FormFactorModule::qmlSource() const
-{
-    return ("qrc:/modules/formfactor/FormFactorModuleView.qml");
-}
-
-QString FormFactorModule::iconName() const
-{
-    return "preferences-desktop-wallpaper";
-}
-
-QString FormFactorModule::name() const
-{
-    return i18n("Form Factor");
-}
-
-QString FormFactorModule::category() const
-{
-    return i18n("System");
-}
-
-QStringList FormFactorModule::keywords() const
-{
-    return {"form factor", "phone", "tablet", "mobile", "input"};
-}
-
-QString FormFactorModule::description() const
-{
-    return i18n("Switch between desktop and mobile modes.");
 }
 
 MauiMan::FormFactorManager *FormFactorModule::manager()

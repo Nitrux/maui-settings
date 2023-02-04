@@ -23,6 +23,13 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
+    headBar.leftContent: ToolButton
+    {
+        icon.name: "go-previous"
+        onClicked: control.stackView.pop()
+        visible:  control.stackView.depth > 1
+    }
+
     Maui.SectionGroup
     {
         title: i18n("Wallpaper Image")
@@ -34,6 +41,7 @@ ManLib.SettingsPage
             Layout.fillHeight: false
             Layout.preferredHeight: 180
             Layout.preferredWidth: 400
+Layout.maximumWidth: 800
             Layout.alignment: Qt.AlignCenter
             spacing: Maui.Style.space.big
 
@@ -182,7 +190,7 @@ ManLib.SettingsPage
             //            implicitHeight: contentHeight
             currentIndex :-1
 
-            itemSize: Math.floor(width/3)
+            itemSize: Math.min(Math.floor(_wallpapersGridView.width/3), 200)
 
             model: Maui.BaseModel
             {

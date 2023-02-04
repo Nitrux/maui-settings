@@ -19,6 +19,8 @@ struct IconsModelData {
     QString display;
     QString themeName;
     QString description;
+    QString screenshot;
+    QStringList icons;
     bool removable;
     bool pendingDeletion;
 };
@@ -37,6 +39,8 @@ public:
         DescriptionRole,
         RemovableRole,
         PendingDeletionRole,
+        ScreenshotRole,
+        IconsRole
     };
 
     int rowCount(const QModelIndex &parent) const override;

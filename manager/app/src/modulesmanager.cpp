@@ -57,6 +57,16 @@ bool ModulesManager::serverRunning() const
     return m_serverRunning;
 }
 
+bool ModulesManager::isMauiSession() const
+{
+    return MauiManUtils::isMauiSession();
+}
+
+QString ModulesManager::currentDesktopSession() const
+{
+    return MauiManUtils::currentDesktopSession();
+}
+
 void ModulesManager::startServer()
 {
     MauiManUtils::startServer();

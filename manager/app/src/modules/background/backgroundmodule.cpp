@@ -1,43 +1,20 @@
 #include "backgroundmodule.h"
 #include "background.h"
+#include <KI18n/KLocalizedString>
 
 
-BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule("background", parent)
+BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule("background",
+                                                                    i18n("Background"),
+                                                                    i18n("Apperance"),
+                                                                    "qrc:/modules/background/BackgroundModuleView.qml",
+                                                                    "preferences-desktop-wallpaper",
+                                                                    i18n("Wallpaper color, sources, aspect and more"),
+                                                                     {"look", "wallpaper", "apperance", "background"},
+                                                                    parent)
   , m_manager(nullptr)
 {
     qRegisterMetaType<Background*>("const Background*"); // this is needed for QML to know of FMList in the search method
 
-}
-
-QString BackgroundModule::qmlSource() const
-{
-    return ("qrc:/modules/background/BackgroundModuleView.qml");
-}
-
-QString BackgroundModule::iconName() const
-{
-    return "preferences-desktop-wallpaper";
-}
-
-QString BackgroundModule::name() const
-{
-    return "Background";
-}
-
-QString BackgroundModule::category() const
-{
-    return "Apperance";
-}
-
-QStringList BackgroundModule::keywords() const
-{
-    return {"look", "wallpaper", "apperance", "background"};
-}
-
-
-QString BackgroundModule::description() const
-{
-    return "Wallpaper color, sources, aspect and more";
 }
 
 Background *BackgroundModule::manager()

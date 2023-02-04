@@ -71,8 +71,6 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 2
                 ButtonGroup.group: _styleGroup
                 onToggled: control.manager.styleType = 2
-
-
             }
         }
 
@@ -287,19 +285,62 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Theme")
             label2.text: i18n("Pick the icon theme.")
-            Flow
+            Maui.GridBrowser
             {
+
                 width: parent.parent.width
-                spacing: Maui.Style.space.medium
-                Repeater
+
+                itemSize: 144
+                itemHeight: 120
+
+                model: control.manager.iconsModel
+                delegate: Item
                 {
-                    model: control.manager.iconsModel
-                    delegate:  ItemDelegate
+
+                    width: GridView.view.cellWidth
+                    height: GridView.view.itemHeight
+
+                    Maui.GridBrowserDelegate
                     {
-                        width: 100
-                        height: 64
-                        text: model.display
+                        id: _iconsDelegate
+                        property var iconsModel : model.icons
+checked:  Maui.Style.currentIconTheme === model.themeName
+                        anchors.fill: parent
+                        anchors.margins: Maui.Style.space.medium
+
+                        flat: false
+
+                        template.iconComponent: GridLayout
+                        {
+                            rows: 2
+                            columns: 3
+                            columnSpacing: Maui.Style.space.small
+                            rowSpacing: Maui.Style.space.small
+
+                            Repeater
+                            {
+                                model: _iconsDelegate.iconsModel
+                                delegate: Image
+                                {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    sourceSize.height: 48
+                                    sourceSize.width: 48
+                                    fillMode: Image.PreserveAspectFit
+
+                                    asynchronous: true
+                                    source: modelData
+
+
+                                }
+                            }
+                        }
+
+                        onClicked: control.manager.iconTheme = model.themeName
+
+                        label1.text: model.display
                     }
+
                 }
             }
         }

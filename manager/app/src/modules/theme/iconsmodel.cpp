@@ -17,6 +17,8 @@
 
 #include <KIconTheme>
 
+#include <QUrl>
+
 
 IconsModel::IconsModel( QObject *parent)
     : QAbstractListModel(parent)
@@ -54,6 +56,10 @@ QVariant IconsModel::data(const QModelIndex &index, int role) const
         return item.removable;
     case PendingDeletionRole:
         return item.pendingDeletion;
+    case ScreenshotRole:
+        return item.screenshot;
+            case IconsRole:
+            return item.icons;
     }
 
     return QVariant();
@@ -68,7 +74,8 @@ QHash<int, QByteArray> IconsModel::roleNames() const
         {ThemeNameRole, QByteArrayLiteral("themeName")},
         {RemovableRole, QByteArrayLiteral("removable")},
         {PendingDeletionRole, QByteArrayLiteral("pendingDeletion")},
-    };
+        {IconsRole, QByteArrayLiteral("icons")},
+        {ScreenshotRole, QByteArrayLiteral("screenshot")}};
 }
 
 void IconsModel::load()
@@ -90,12 +97,32 @@ void IconsModel::load()
             continue;
         }
 
+        auto lookupIcons = QStringList{"folder", "application-text", "preferences-mail", "preferences-color", "preferences-desktop-emoticons", "office-calendar", "audio-speakers", "computer", "joystick", "network-wired",  "weather-clear", "image-png", "vvave",  "application-x-project"   };
+        QStringList icons;
+
+        uint i = 0;
+        for(const auto &iconName : lookupIcons)
+        {
+            auto url  = QUrl::fromLocalFile(theme.iconPathByName(iconName, 48, KIconLoader::MatchBest, 1));
+
+            if(!url.isEmpty())
+            {
+                icons << url.toString();
+                i++;
+            }
+
+            if(i == 3)
+                break;
+        }
+
         IconsModelData item{
             theme.name(),
-            themeName,
-            theme.description(),
-            themeName != KIconTheme::defaultThemeName() && QFileInfo(theme.dir()).isWritable(),
-            false // pending deletion
+                    themeName,
+                    theme.description(),
+                    theme.screenshot(),
+                    icons,
+                    themeName != KIconTheme::defaultThemeName() && QFileInfo(theme.dir()).isWritable(),
+                    false // pending deletion
         };
 
         m_data.append(item);
