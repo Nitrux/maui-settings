@@ -244,6 +244,45 @@ ManLib.SettingsPage
                 onClicked: control.manager.marginSize = undefined
             }
         }
+
+        Maui.SectionItem
+        {
+            label1.text: i18n("Content Spacing")
+            label2.text: i18n("Spacing between elements, such as list, tab buttons.")
+
+            Maui.ToolActions
+            {
+                autoExclusive: true
+                expanded: true
+
+                Action
+                {
+                    text: i18n("S")
+                    checked: control.manager.spacingSize === 4
+                    onTriggered: control.manager.spacingSize = 4
+                }
+
+                Action
+                {
+                    text: i18n("M")
+                    checked: control.manager.spacingSize === 6
+                    onTriggered: control.manager.spacingSize = 6
+                }
+
+                Action
+                {
+                    text: i18n("L")
+                    checked: control.manager.spacingSize === 8
+                    onTriggered: control.manager.spacingSize = 8
+                }
+            }
+
+            Button
+            {
+                text: i18n("Reset")
+                onClicked: control.manager.spacingSize = undefined
+            }
+        }
     }
 
     Maui.SectionGroup
