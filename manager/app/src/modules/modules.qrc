@@ -7,5 +7,6 @@
         <file>formfactor/FormFactorModuleView.qml</file>
         <file>network/NetworkModuleView.qml</file>
         <file>accessibility/AccessibilityModuleView.qml</file>
+        <file>screenshot/ScreenshotModuleView.qml</file>
     </qresource>
 </RCC>

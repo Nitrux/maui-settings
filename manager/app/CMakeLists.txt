@@ -42,6 +42,8 @@ set(modulesSRCS
     src/modules/shell/shellmodule.cpp
     src/modules/formfactor/formfactormodule.cpp
     src/modules/accessibility/accessibilitymodule.cpp
+    src/modules/screenshot/screenshotmodule.cpp
+    src/modules/screenshot/screenshothandler.cpp
     )
 
 set(modulesRSCRS
@@ -70,6 +72,7 @@ target_link_libraries(${PROJECT_NAME}
     MauiKit
     MauiMan
     MauiSettingsLib
+    CaskServer::CaskServerLib
     MauiCore::Audio
     MauiCore::Notifications
     Qt5::DBus
@@ -78,6 +81,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     KF5::CoreAddons
     KF5::I18n
+    KF5::ConfigCore
     KF5::IconThemes)
 
 #set(MAUIMAN_MODULES_IMPORT_PATH "fuckery")

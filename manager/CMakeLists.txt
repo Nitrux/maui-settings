@@ -40,11 +40,12 @@ include(ECMGenerateQmlTypes)
 include(CMakePackageConfigHelpers)
 
 find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets DBus)
-find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes)
+find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes Config)
 
 find_package(MauiKit REQUIRED)
 find_package(MauiMan REQUIRED)
 find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
+find_package(CaskServer)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(

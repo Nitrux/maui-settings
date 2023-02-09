@@ -17,6 +17,7 @@
 #include "modules/bluetooth/bluetoothmodule.h"
 #include "modules/formfactor/formfactormodule.h"
 #include "modules/accessibility/accessibilitymodule.h"
+#include "modules/screenshot/screenshotmodule.h"
 
 #include <MauiMan/mauimanutils.h>
 
@@ -45,6 +46,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     m_model->appendModule(new AudioModule);
     m_model->appendModule(new FormFactorModule);
     m_model->appendModule(new AccessibilityModule);
+    m_model->appendModule(new ScreenshotModule);
 }
 
 ModulesModel *ModulesManager::model() const

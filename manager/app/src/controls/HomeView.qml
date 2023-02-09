@@ -80,13 +80,13 @@ Maui.Theme.inherit: false
 
             section.property: "Module.category"
 
-            delegate: Maui.ListBrowserDelegate
+            delegate: Maui.ListDelegate
             {
                 width: ListView.view.width
                 isCurrentItem: Module.id === control.currentModule
-                label1.text: Module.name
-                label2.text: Module.description
-                iconSource: Module.iconName
+                label: Module.name
+                label2: Module.description
+                iconName: Module.iconName
                 template.iconSizeHint: Maui.Style.iconSizes.medium
                 onClicked:
                 {

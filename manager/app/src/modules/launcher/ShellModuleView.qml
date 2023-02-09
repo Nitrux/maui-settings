@@ -10,25 +10,28 @@ import QtQuick.Layouts 1.3
 
 import org.mauikit.controls 1.3 as Maui
 
+import org.maui.settings 1.0 as Man
 import org.maui.settings.lib 1.0 as ManLib
 
 ManLib.SettingsPage
 {
     id: control
 
+    property var module
     property var manager : control.module.manager
+    title: module.name
 
     ButtonGroup
     {
         id: _styleGroup
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
         title: i18n("Style")
         description: i18n("Pick a style variant.")
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Light")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -43,7 +46,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Dark")
             label2.text: i18n("Dark colors tinted by the accent color.")
@@ -58,7 +61,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Adaptive")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -70,10 +73,12 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 2
                 ButtonGroup.group: _styleGroup
                 onToggled: control.manager.styleType = 2
+
+
             }
         }
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Auto")
             label2.text: i18n("Light colors tinted by the accent color.")
@@ -85,28 +90,18 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 3
                 ButtonGroup.group: _styleGroup
                 onToggled: control.manager.styleType = 3
+
             }
         }
+
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
-        title: i18n("Units and Preferences")
-        description: i18n("Customize the look-and-feel of elements.")
+        title: i18n("Sizes")
+        description: i18n("Customize the size of elements.")
 
-        Maui.SectionItem
-        {
-            label1.text: i18n("Effects")
-            label2.text: i18n("Enable effects.")
-
-            Switch
-            {
-                checked: control.manager.enableEffects
-                onToggled: control.manager.enableEffects = !control.manager.enableEffects
-            }
-        }
-
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Border Radius")
             label2.text: i18n("Custom border radius.")
@@ -119,15 +114,9 @@ ManLib.SettingsPage
                 stepSize: 1
                 onValueModified: control.manager.borderRadius = value
             }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.borderRadius = undefined
-            }
         }
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Icon Size")
             label2.text: i18n("Custom button icon sizes.")
@@ -158,137 +147,14 @@ ManLib.SettingsPage
                     onTriggered: control.manager.iconSize = 32
                 }
             }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.iconSize = undefined
-            }
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Elements Size")
-            label2.text: i18n("Size of the UI elements.")
-
-            Maui.ToolActions
-            {
-                autoExclusive: true
-                expanded: true
-
-                Action
-                {
-                    text: i18n("S")
-                    checked: control.manager.paddingSize === 4
-                    onTriggered: control.manager.paddingSize = 4
-                }
-
-                Action
-                {
-                    text: i18n("M")
-                    checked: control.manager.paddingSize === 6
-                    onTriggered: control.manager.paddingSize = 6
-                }
-
-                Action
-                {
-                    text: i18n("L")
-                    checked: control.manager.paddingSize === 8
-                    onTriggered: control.manager.paddingSize = 8
-                }
-            }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.paddingSize = undefined
-            }
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Content Margins")
-            label2.text: i18n("Margins of the views.")
-
-            Maui.ToolActions
-            {
-                autoExclusive: true
-                expanded: true
-
-                Action
-                {
-                    text: i18n("S")
-                    checked: control.manager.marginSize === 4
-                    onTriggered: control.manager.marginSize = 4
-                }
-
-                Action
-                {
-                    text: i18n("M")
-                    checked: control.manager.marginSize === 6
-                    onTriggered: control.manager.marginSize = 6
-                }
-
-                Action
-                {
-                    text: i18n("L")
-                    checked: control.manager.marginSize === 8
-                    onTriggered: control.manager.marginSize = 8
-                }
-            }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.marginSize = undefined
-            }
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Content Spacing")
-            label2.text: i18n("Spacing between elements, such as list, tab buttons.")
-
-            Maui.ToolActions
-            {
-                autoExclusive: true
-                expanded: true
-
-                Action
-                {
-                    text: i18n("S")
-                    checked: control.manager.spacingSize === 4
-                    onTriggered: control.manager.spacingSize = 4
-                }
-
-                Action
-                {
-                    text: i18n("M")
-                    checked: control.manager.spacingSize === 6
-                    onTriggered: control.manager.spacingSize = 6
-                }
-
-                Action
-                {
-                    text: i18n("L")
-                    checked: control.manager.spacingSize === 8
-                    onTriggered: control.manager.spacingSize = 8
-                }
-            }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.spacingSize = undefined
-            }
         }
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
         title: i18n("Colors")
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
@@ -315,81 +181,38 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
         title: i18n("Icons")
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Theme")
             label2.text: i18n("Pick the icon theme.")
-            Maui.GridBrowser
+            Flow
             {
-
                 width: parent.parent.width
-
-                itemSize: 144
-                itemHeight: 120
-
-                model: control.manager.iconsModel
-                delegate: Item
+                spacing: Maui.Style.space.medium
+                Repeater
                 {
-
-                    width: GridView.view.cellWidth
-                    height: GridView.view.itemHeight
-
-                    Maui.GridBrowserDelegate
+                    model: control.manager.iconsModel
+                    delegate:  ItemDelegate
                     {
-                        id: _iconsDelegate
-                        property var iconsModel : model.icons
-checked:  Maui.Style.currentIconTheme === model.themeName
-                        anchors.fill: parent
-                        anchors.margins: Maui.Style.space.medium
-
-                        flat: false
-
-                        template.iconComponent: GridLayout
-                        {
-                            rows: 2
-                            columns: 3
-                            columnSpacing: Maui.Style.space.small
-                            rowSpacing: Maui.Style.space.small
-
-                            Repeater
-                            {
-                                model: _iconsDelegate.iconsModel
-                                delegate: Image
-                                {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    sourceSize.height: 48
-                                    sourceSize.width: 48
-                                    fillMode: Image.PreserveAspectFit
-
-                                    asynchronous: true
-                                    source: modelData
-
-
-                                }
-                            }
-                        }
-
-                        onClicked: control.manager.iconTheme = model.themeName
-
-                        label1.text: model.display
+                        width: 100
+                        height: 64
+                        text: model.display
                     }
-
                 }
             }
         }
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
         title: i18n("Window Control Decorations")
         visible: !Maui.Handy.isMobile
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Style")
             label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
@@ -457,7 +280,7 @@ checked:  Maui.Style.currentIconTheme === model.themeName
             }
         }
 
-        Maui.SectionItem
+        Maui.SettingTemplate
         {
             label1.text: i18n("Use CSD")
             label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
@@ -470,7 +293,7 @@ checked:  Maui.Style.currentIconTheme === model.themeName
         }
     }
 
-    Maui.SectionGroup
+    Maui.SettingsSection
     {
         title: i18n("Fonts")
 
