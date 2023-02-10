@@ -10,8 +10,11 @@ Maui.SideBarView
     id: control
 
     property string currentModule : _viewLoader.currentItem.moduleId
-    sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
-    sideBar.preferredWidth: Maui.Style.units.gridUnit * 18
+    property string title : _viewLoader.currentItem.title
+property alias sideBarWidth :  control.sideBar.preferredWidth
+
+    sideBar.minimumWidth: 200
+    sideBar.preferredWidth: 300
     sideBarContent: Maui.Page
     {
         anchors.fill: parent
@@ -85,7 +88,7 @@ Maui.Theme.inherit: false
                 width: ListView.view.width
                 isCurrentItem: Module.id === control.currentModule
                 label: Module.name
-                label2: Module.description
+                //label2: Module.description
                 iconName: Module.iconName
                 template.iconSizeHint: Maui.Style.iconSizes.medium
                 onClicked:
@@ -101,7 +104,8 @@ Maui.Theme.inherit: false
 height: visible ? implicitHeight : 0
 
                     visible: !ModulesManager.isMauiSession
-                    text: i18n("A Maui session has not been detected. Most of the settings won't be applied correctly or won't work as expected. For full and integrated support launch a full Maui session. The session detected is %1", ModulesManager.currentDesktopSession)
+                    text: i18n("A Maui session has not been detected. The session detected is %1", ModulesManager.currentDesktopSession)
+ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For full and integrated support launch a full Maui session.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                 }
