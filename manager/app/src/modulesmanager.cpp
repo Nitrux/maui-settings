@@ -20,6 +20,7 @@
 #include "modules/screenshot/screenshotmodule.h"
 
 #include <MauiMan/mauimanutils.h>
+#include <CaskServer/serverutils.h>
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
   ,m_model(new ModulesModel(this))
@@ -34,6 +35,16 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
         m_serverRunning = state;
         emit serverRunningChanged(m_serverRunning);
     });
+
+    auto caskServer = new ServerUtils(this);
+    m_caskServerRunning = caskServer->serverRunning();
+
+    connect(caskServer, &ServerUtils::serverRunningChanged, [this](bool state)
+    {
+        m_caskServerRunning = state;
+        emit caskServerRunningChanged(m_caskServerRunning);
+    });
+
 
     m_model->appendModule(new AboutModule);
 
@@ -67,6 +78,11 @@ bool ModulesManager::isMauiSession() const
 QString ModulesManager::currentDesktopSession() const
 {
     return MauiManUtils::currentDesktopSession();
+}
+
+bool ModulesManager::caskServerRunning() const
+{
+    return m_caskServerRunning;
 }
 
 void ModulesManager::startServer()

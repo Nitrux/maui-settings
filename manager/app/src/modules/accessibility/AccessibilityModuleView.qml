@@ -12,9 +12,7 @@ import QtGraphicalEffects 1.0
 import QtQuick.Dialogs 1.3
 
 import org.mauikit.controls 1.3 as Maui
-import org.mauikit.filebrowsing 1.3 as FB
 
-import org.maui.settings 1.0 as Man
 import org.maui.settings.lib 1.0 as ManLib
 
 ManLib.SettingsPage

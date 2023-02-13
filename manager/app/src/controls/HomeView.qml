@@ -62,15 +62,15 @@ Maui.Theme.inherit: false
         {
             anchors.fill: parent
             //            enabled: ModulesManager.serverRunning
-            holder.visible: count === 0 || !ModulesManager.serverRunning
-            holder.title: !ModulesManager.serverRunning ? i18n("Not server!") : i18n("No Modules!")
-            holder.body: !ModulesManager.serverRunning ? i18n("MauiMan server is not running") : i18n("No modules avaliable!")
+            holder.visible: count === 0
+            holder.title:i18n("No Modules!")
+            holder.body: i18n("No modules avaliable!")
             holder.emoji: "face-confused-symbolic"
-            holder.actions: Action
-            {
-                text: i18n("Start server")
-                onTriggered: ModulesManager.startServer()
-            }
+//            holder.actions: Action
+//            {
+//                text: i18n("Start server")
+//                onTriggered: ModulesManager.startServer()
+//            }
 
             model : ModulesManager.model
             currentIndex : -1
@@ -98,7 +98,12 @@ Maui.Theme.inherit: false
                 }
             }
 
-            flickable.header: Maui.Chip
+            flickable.header: Column
+                      {
+                          width: parent.width
+                          spacing: Maui.Style.defaultSpacing
+
+            Maui.Chip
                 {
                     width: parent.width
 height: visible ? implicitHeight : 0
@@ -109,6 +114,31 @@ ToolTip.text: i18n("Most of the settings won't be applied correctly or won't wor
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                 }
+
+            Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.serverRunning
+                    text:i18n("MauiMan server is offline.")
+ToolTip.text: i18n("Changes in the setting preferences won't be applied live to other apps if the server is off. Changes will take effcet after restarting the apps.")
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
+
+            Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.caskServerRunning
+                    text: i18n("Cask server is offline.")
+ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
+                      }
         }
     }
 
