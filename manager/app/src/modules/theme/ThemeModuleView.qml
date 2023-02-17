@@ -18,6 +18,78 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
+    Component
+    {
+        id: _iconsPageComponent
+
+        Maui.ScrollColumn
+        {
+            Maui.SectionItem
+            {
+                label1.text: i18n("Theme")
+                label2.text: i18n("Pick the icon theme.")
+                Maui.GridBrowser
+                {
+
+                    width: parent.parent.width
+
+                    itemSize: 144
+                    itemHeight: 120
+
+                    model: control.manager.iconsModel
+                    delegate: Item
+                    {
+
+                        width: GridView.view.cellWidth
+                        height: GridView.view.itemHeight
+
+                        Maui.GridBrowserDelegate
+                        {
+                            id: _iconsDelegate
+                            property var iconsModel : model.icons
+                            checked:  Maui.Style.currentIconTheme === model.themeName
+                            anchors.fill: parent
+                            anchors.margins: Maui.Style.space.medium
+
+                            flat: false
+
+                            template.iconComponent: GridLayout
+                            {
+                                rows: 2
+                                columns: 3
+                                columnSpacing: Maui.Style.space.small
+                                rowSpacing: Maui.Style.space.small
+
+                                Repeater
+                                {
+                                    model: _iconsDelegate.iconsModel
+                                    delegate: Image
+                                    {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        sourceSize.height: 48
+                                        sourceSize.width: 48
+                                        fillMode: Image.PreserveAspectFit
+
+                                        asynchronous: true
+                                        source: modelData
+
+
+                                    }
+                                }
+                            }
+
+                            onClicked: control.manager.iconTheme = model.themeName
+
+                            label1.text: model.display
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
     ButtonGroup
     {
         id: _styleGroup
@@ -127,44 +199,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
-        {
-            label1.text: i18n("Icon Size")
-            label2.text: i18n("Custom button icon sizes.")
 
-            Maui.ToolActions
-            {
-                autoExclusive: true
-                expanded: true
-
-                Action
-                {
-                    text: i18n("S")
-                    checked: control.manager.iconSize === 16
-                    onTriggered: control.manager.iconSize = 16
-                }
-
-                Action
-                {
-                    text: i18n("M")
-                    checked: control.manager.iconSize === 22
-                    onTriggered: control.manager.iconSize = 22
-                }
-
-                Action
-                {
-                    text: i18n("L")
-                    checked: control.manager.iconSize === 32
-                    onTriggered: control.manager.iconSize = 32
-                }
-            }
-
-            Button
-            {
-                text: i18n("Reset")
-                onClicked: control.manager.iconSize = undefined
-            }
-        }
 
         Maui.SectionItem
         {
@@ -321,65 +356,52 @@ ManLib.SettingsPage
 
         Maui.SectionItem
         {
+            label1.text: i18n("Icon Size")
+            label2.text: i18n("Custom button icon sizes.")
+
+            Maui.ToolActions
+            {
+                autoExclusive: true
+                expanded: true
+
+                Action
+                {
+                    text: i18n("S")
+                    checked: control.manager.iconSize === 16
+                    onTriggered: control.manager.iconSize = 16
+                }
+
+                Action
+                {
+                    text: i18n("M")
+                    checked: control.manager.iconSize === 22
+                    onTriggered: control.manager.iconSize = 22
+                }
+
+                Action
+                {
+                    text: i18n("L")
+                    checked: control.manager.iconSize === 32
+                    onTriggered: control.manager.iconSize = 32
+                }
+            }
+
+            Button
+            {
+                text: i18n("Reset")
+                onClicked: control.manager.iconSize = undefined
+            }
+        }
+
+        Maui.SectionItem
+        {
             label1.text: i18n("Theme")
             label2.text: i18n("Pick the icon theme.")
-            Maui.GridBrowser
+            ToolButton
             {
-
-                width: parent.parent.width
-
-                itemSize: 144
-                itemHeight: 120
-
-                model: control.manager.iconsModel
-                delegate: Item
-                {
-
-                    width: GridView.view.cellWidth
-                    height: GridView.view.itemHeight
-
-                    Maui.GridBrowserDelegate
-                    {
-                        id: _iconsDelegate
-                        property var iconsModel : model.icons
-checked:  Maui.Style.currentIconTheme === model.themeName
-                        anchors.fill: parent
-                        anchors.margins: Maui.Style.space.medium
-
-                        flat: false
-
-                        template.iconComponent: GridLayout
-                        {
-                            rows: 2
-                            columns: 3
-                            columnSpacing: Maui.Style.space.small
-                            rowSpacing: Maui.Style.space.small
-
-                            Repeater
-                            {
-                                model: _iconsDelegate.iconsModel
-                                delegate: Image
-                                {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    sourceSize.height: 48
-                                    sourceSize.width: 48
-                                    fillMode: Image.PreserveAspectFit
-
-                                    asynchronous: true
-                                    source: modelData
-
-
-                                }
-                            }
-                        }
-
-                        onClicked: control.manager.iconTheme = model.themeName
-
-                        label1.text: model.display
-                    }
-
-                }
+                checkable: true
+                icon.name: "go-next"
+                onToggled: control.stackView.push(_iconsPageComponent)
             }
         }
     }

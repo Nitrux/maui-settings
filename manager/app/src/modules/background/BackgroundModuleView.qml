@@ -23,12 +23,6 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
-    headBar.leftContent: ToolButton
-    {
-        icon.name: "go-previous"
-        onClicked: control.stackView.pop()
-        visible:  control.stackView.depth > 1
-    }
 
     Maui.SectionGroup
     {

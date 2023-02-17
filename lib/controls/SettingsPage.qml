@@ -26,17 +26,27 @@ Maui.Page
             icon.name: "sidebar-collapse"
 
             onClicked: toggleSideBar()
-        }
+        },
+
+        ToolButton
+            {
+                icon.name: "go-previous"
+                onClicked: _stackView.pop()
+                visible:  _stackView.depth > 1
+            }
     ]
+
 
     StackView
     {
         id: _stackView
         anchors.fill: parent
 
-        initialItem: ManLib.SettingsLayout
+        initialItem: Maui.ScrollColumn
         {
             id: _template
+            spacing: Maui.Style.space.huge
+
         }
     }
 }
