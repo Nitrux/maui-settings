@@ -9,12 +9,18 @@ Maui.SideBarView
 {
     id: control
 
-    property string currentModule : _viewLoader.currentItem.title
-    sideBar.minimumWidth: Maui.Style.units.gridUnit * 14
-    sideBar.preferredWidth: Maui.Style.units.gridUnit * 18
+    property string currentModule : _viewLoader.currentItem.moduleId
+    property string title : _viewLoader.currentItem.title
+property alias sideBarWidth :  control.sideBar.preferredWidth
+
+    sideBar.minimumWidth: 200
+    sideBar.preferredWidth: 300
     sideBarContent: Maui.Page
     {
         anchors.fill: parent
+
+Maui.Theme.colorSet: Maui.Theme.Window
+Maui.Theme.inherit: false
         //        showCSDControls: true
 
         //        headBar.leftContent: [
@@ -42,7 +48,7 @@ Maui.SideBarView
         //            }
         //        ]
 
-        headBar.middleContent: Maui.TextField
+        headBar.middleContent: TextField
         {
             enabled: ModulesManager.serverRunning
 
@@ -56,15 +62,15 @@ Maui.SideBarView
         {
             anchors.fill: parent
             //            enabled: ModulesManager.serverRunning
-            holder.visible: count === 0 || !ModulesManager.serverRunning
-            holder.title: !ModulesManager.serverRunning ? i18n("Not server!") : i18n("No Modules!")
-            holder.body: !ModulesManager.serverRunning ? i18n("MauiMan server is not running") : i18n("No modules avaliable!")
+            holder.visible: count === 0
+            holder.title:i18n("No Modules!")
+            holder.body: i18n("No modules avaliable!")
             holder.emoji: "face-confused-symbolic"
-            holder.actions: Action
-            {
-                text: i18n("Start server")
-                onTriggered: ModulesManager.startServer()
-            }
+//            holder.actions: Action
+//            {
+//                text: i18n("Start server")
+//                onTriggered: ModulesManager.startServer()
+//            }
 
             model : ModulesManager.model
             currentIndex : -1
@@ -77,13 +83,13 @@ Maui.SideBarView
 
             section.property: "Module.category"
 
-            delegate: Maui.ListBrowserDelegate
+            delegate: Maui.ListDelegate
             {
                 width: ListView.view.width
-                isCurrentItem: Module.name === control.currentModule
-                label1.text: Module.name
-                label2.text: Module.description
-                iconSource: Module.iconName
+                isCurrentItem: Module.id === control.currentModule
+                label: Module.name
+                //label2: Module.description
+                iconName: Module.iconName
                 template.iconSizeHint: Maui.Style.iconSizes.medium
                 onClicked:
                 {
@@ -91,28 +97,63 @@ Maui.SideBarView
                     control.loadModule(Module)
                 }
             }
+
+            flickable.header: Column
+                      {
+                          width: parent.width
+                          spacing: Maui.Style.defaultSpacing
+
+            Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.isMauiSession
+                    text: i18n("A Maui session has not been detected. The session detected is %1", ModulesManager.currentDesktopSession)
+ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For full and integrated support launch a full Maui session.")
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
+
+            Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.serverRunning
+                    text:i18n("MauiMan server is offline.")
+ToolTip.text: i18n("Changes in the setting preferences won't be applied live to other apps if the server is off. Changes will take effcet after restarting the apps.")
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
+
+            Maui.Chip
+                {
+                    width: parent.width
+height: visible ? implicitHeight : 0
+
+                    visible: !ModulesManager.caskServerRunning
+                    text: i18n("Cask server is offline.")
+ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
+                    color: Maui.Theme.neutralBackgroundColor
+                    iconSource: "dialog-warning"
+                }
+                      }
         }
     }
 
-    StackView
-    {
-        id: _viewLoader
-        //        asynchronous: true
-        anchors.fill: parent
-    }
 
-    Component.onCompleted:
-    {
-        console.log("ASK TO OPEN AT THE MODULE", initModule, ModulesManager.sourceFor(initModule))
-        if(initModule.length)
-            loadModule(ModulesManager.sourceFor(initModule))
-        else
-            loadModule(ModulesManager.sourceFor("About"))
-    }
+        StackView
+        {
+            id: _viewLoader
+            anchors.fill: parent
+
+        }
+
 
     function loadModule(module)
     {
-        console.log(module.qmlSource)
+        _viewLoader.pop()
         _viewLoader.push(module.qmlSource, ({'module': module}))
     }
 

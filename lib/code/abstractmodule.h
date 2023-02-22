@@ -8,29 +8,60 @@
 class MAUISETTINGSLIB_EXPORT AbstractModule : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
-    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
-    Q_PROPERTY(QString category READ category NOTIFY categoryChanged)
-    Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
-    Q_PROPERTY(QStringList keywords READ keywords NOTIFY keywordsChanged)
-    Q_PROPERTY(QString qmlSource READ qmlSource NOTIFY qmlSourceChanged)
+    Q_PROPERTY(QString iconName READ iconName CONSTANT FINAL)
+    Q_PROPERTY(QString name READ name CONSTANT FINAL)
+    Q_PROPERTY(QString category READ category CONSTANT FINAL)
+    Q_PROPERTY(QString description READ description CONSTANT FINAL)
+    Q_PROPERTY(QStringList keywords READ keywords CONSTANT FINAL)
+    Q_PROPERTY(QString qmlSource READ qmlSource CONSTANT FINAL)
+    Q_PROPERTY(QString id READ id CONSTANT FINAL)
 
 public:
-    AbstractModule(QObject * parent = nullptr);
+    AbstractModule(const QString &id, const QString &name, const QString &category, const QString &qmlSource, const QString &iconName = "preferences", const QString &description = "", const QStringList &keywords = {}, QObject * parent = nullptr);
 
-    virtual QString qmlSource() const = 0;
-    virtual QString iconName() const = 0;
-    virtual QString name() const = 0;
-    virtual QString category() const = 0;
-    virtual QStringList keywords() const = 0;
-    virtual QString description() const = 0;
+    QString qmlSource() const
+    {
+        return m_qmlSource;
+    }
+
+    QString iconName() const
+    {
+        return m_iconName;
+    }
+
+    QString name() const
+    {
+        return m_name;
+    }
+
+    QString category() const
+    {
+        return m_category;
+    }
+
+    QStringList keywords() const
+    {
+        return m_keywords;
+    }
+
+    QString description()  const
+    {
+        return m_description;
+    }
+
+    QString id() const
+    {
+        return m_id;
+    }
 
 private:
-//    QUrl m_qmlSource;
-//    QString m_name;
-//    QString m_category;
-//    QStringList m_keywords;
-//    QString m_iconName;
+    QString m_id;
+    QString m_qmlSource;
+    QString m_name;
+    QString m_category;
+    QStringList m_keywords;
+    QString m_iconName;
+    QString m_description;
 
 signals:
     void iconNameChanged();

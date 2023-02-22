@@ -10,55 +10,58 @@ include_directories(
 
 set(app_SRCS
     main.cpp
-    src/code/modulesmanager.cpp
-    src/code/modulesmodel.cpp
-    src/code/moduleitem.cpp
-    )
-
-set(app_HDRS
-    src/code/modulesmanager.h
-    src/code/modulesmodel.h
-    src/code/moduleitem.h
+    src/modulesmanager.cpp
+    src/modulesmodel.cpp
+    src/moduleitem.cpp
+    src/server/server.cpp
     )
 
 set(app_RSCRS
-     qml.qrc
+    qml.qrc
     data/data.qrc
     assets/assets.qrc
     )
 
 set(modulesSRCS
-    modules/background/backgroundmodule.cpp
-    modules/background/background.cpp
+    src/modules/background/backgroundmodule.cpp
+    src/modules/background/background.cpp
 
-    modules/theme/thememodule.cpp
-    modules/theme/theme.cpp
-    modules/theme/iconsmodel.cpp
+    src/modules/theme/thememodule.cpp
+    src/modules/theme/theme.cpp
+    src/modules/theme/iconsmodel.cpp
 
-    modules/about/aboutmodule.cpp
-    modules/about/aboutdata.cpp
+    src/modules/about/aboutmodule.cpp
+    src/modules/about/aboutdata.cpp
 
-    modules/screen/screenmodule.cpp
-    modules/screen/screen.cpp
+    src/modules/screen/screenmodule.cpp
+    src/modules/screen/screen.cpp
 
-    modules/network/networkmodule.cpp
-    modules/bluetooth/bluetoothmodule.cpp
-    modules/audio/audiomodule.cpp
-    modules/shell/shellmodule.cpp
+    src/modules/network/networkmodule.cpp
+    src/modules/bluetooth/bluetoothmodule.cpp
+    src/modules/audio/audiomodule.cpp
+    src/modules/shell/shellmodule.cpp
+    src/modules/formfactor/formfactormodule.cpp
+    src/modules/accessibility/accessibilitymodule.cpp
+    src/modules/screenshot/screenshotmodule.cpp
+    src/modules/screenshot/screenshothandler.cpp
     )
-
 
 set(modulesRSCRS
-    modules/modules.qrc
+    src/modules/modules.qrc
     )
+
+qt_generate_dbus_interface(src/server/server.h org.maui.Settings.xml)
+qt_add_dbus_adaptor(app_dbus_SRCS ${CMAKE_CURRENT_BINARY_DIR}/org.maui.Settings.xml src/server/server.h Server)
+qt_add_dbus_interface(app_dbus_SRCS ${CMAKE_CURRENT_BINARY_DIR}/org.maui.Settings.xml serverinterface)
 
 add_executable(${PROJECT_NAME}
     ${app_SRCS}
-    ${app_HDRS}
     ${app_RSCRS}
 
     ${modulesSRCS}
     ${modulesRSCRS}
+
+    ${app_dbus_SRCS}
     )
 
 target_compile_definitions(${PROJECT_NAME}
@@ -69,12 +72,16 @@ target_link_libraries(${PROJECT_NAME}
     MauiKit
     MauiMan
     MauiSettingsLib
+    CaskServer::CaskServerLib
+    MauiCore::Audio
+    MauiCore::Notifications
     Qt5::DBus
     Qt5::Quick
     Qt5::Qml
     Qt5::Widgets
     KF5::CoreAddons
     KF5::I18n
+    KF5::ConfigCore
     KF5::IconThemes)
 
 #set(MAUIMAN_MODULES_IMPORT_PATH "fuckery")
