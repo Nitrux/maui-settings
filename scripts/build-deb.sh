@@ -18,7 +18,8 @@ apt -qq update
 
 DEBIAN_FRONTEND=noninteractive apt -qq -yy install --no-install-recommends \
 	mauikit-git \
-	maui-core-git
+	maui-core-git \
+	cask-server-git
 
 ### Download Source
 
