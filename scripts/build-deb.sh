@@ -17,9 +17,10 @@ apt -qq update
 ### Install Package Build Dependencies #2
 
 DEBIAN_FRONTEND=noninteractive apt -qq -yy install --no-install-recommends \
+	cask-server-git \
 	mauikit-git \
 	maui-core-git \
-	cask-server-git
+	mauikit-filebrowsing-git
 
 ### Download Source
 
@@ -66,7 +67,7 @@ checkinstall -D -y \
 	--pakdir=. \
 	--maintainer=uri_herrera@nxos.org \
 	--provides=maui-settings \
-	--requires="libc6,libqt5core5a,maui-core-git \(\>= 2.2.2+git\),mauikit-git \(\>= 2.2.2+git\)" \
+	--requires="libc6,libqt5core5a,maui-core-git \(\>= 2.2.2+git\),mauikit-filebrowsing-git \(\>= 2.2.2+git\),mauikit-git \(\>= 2.2.2+git\)" \
 	--nodoc \
 	--strip=no \
 	--stripso=yes \
