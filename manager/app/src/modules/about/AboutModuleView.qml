@@ -24,59 +24,126 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
-    Maui.SectionGroup
-    {
-        title: i18n("User")
-        description: i18n("User information")
 
-        Maui.SectionItem
+    GridLayout
+    {
+        Layout.fillWidth: true
+        columns: root.isWide ? 3 : 1
+        columnSpacing: Maui.Style.space.big
+        rowSpacing: Maui.Style.space.big
+
+        Maui.SectionGroup
         {
-            label1.text: i18n("Name")
-            label2.text: manager.userName
-            iconSource: "user-identity"
+            Layout.alignment: Qt.AlignTop
+            title: i18n("User")
+            description: i18n("User information")
+//            template.template.iconSource: "user-identity"
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Name")
+                label2.text: manager.userName
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Machine")
+                label2.text: manager.machineName
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Arch")
+                label2.text: manager.cpuArch
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Kernel")
+                label2.text: manager.kernelType + " / " + manager.kernelVersion
+            }
         }
 
-        Maui.SectionItem
+        Maui.SectionGroup
         {
-            label1.text: i18n("Machine")
-            label2.text: manager.machineName
-            iconSource: "computer"
+            Layout.alignment: Qt.AlignTop
+
+            title: i18n("Shell")
+            description: i18n("Shell information")
+//            template.template.iconSource: "desktop"
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Desktop Name")
+                label2.text: "Maui Shell"
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Compositor")
+                label2.text: "Cask"
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Version")
+                label2.text: "0.6.0"
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("License")
+                label2.text: "LGPL v3"
+            }
+        }
+
+        Maui.SectionGroup
+        {
+            Layout.alignment: Qt.AlignTop
+
+            title: i18n("Device")
+            description: i18n("Device Information")
+//            template.template.iconSource: "computer"
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Manufacturer")
+                label2.text: devinfo.manufacturer()
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Product")
+                label2.text: devinfo.productName()
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Model")
+                label2.text: devinfo.model()
+            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("Device ID")
+                label2.text: devinfo.uniqueDeviceID()
+            }
+
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("Firmware")
+//                label2.text:  devinfo.version(DeviceInfo.Firmware)
+//            }
+
+            Maui.SectionItem
+            {
+                label1.text: i18n("OS Version")
+                label2.text:  devinfo.version(DeviceInfo.Os)
+            }
         }
     }
 
-    Maui.SectionGroup
-    {
-        title: i18n("Shell")
-        description: i18n("Shell information")
 
-        Maui.SectionItem
-        {
-            label1.text: i18n("Desktop Name")
-            label2.text: "Maui Shell"
-            iconSource: "desktop"
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Compositor")
-            label2.text: "Cask"
-            iconSource: "window-manager"
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Version")
-            label2.text: "0.6.0"
-            iconSource: "code"
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("License")
-            label2.text: "LGPL v3"
-            iconSource: "license"
-        }
-    }
 
     Maui.SectionGroup
     {
@@ -106,71 +173,6 @@ ManLib.SettingsPage
 
     DeviceInfo {
         id: devinfo;
-    }
-    Maui.SectionGroup
-    {
-        title: i18n("Device")
-        description: i18n("Device Information")
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Manufacturer")
-            label2.text: devinfo.manufacturer()
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Product")
-            label2.text: devinfo.productName()
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Model")
-            label2.text: devinfo.model()
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Device ID")
-            label2.text: devinfo.uniqueDeviceID()
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Firmware")
-            label2.text:  devinfo.version(DeviceInfo.Firmware)
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("OS Version")
-            label2.text:  devinfo.version(DeviceInfo.Os)
-        }
-    }
-
-    Maui.SectionGroup
-    {
-        title: i18n("System")
-        description: i18n("System Information")
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Arch")
-            label2.text: manager.cpuArch
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("CPU")
-            //            label2.text: manager.cpuInfo
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Kernel")
-            label2.text: manager.kernelType + " / " + manager.kernelVersion
-        }
     }
 
     Maui.SectionGroup

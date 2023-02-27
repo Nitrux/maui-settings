@@ -45,18 +45,26 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
         emit caskServerRunningChanged(m_caskServerRunning);
     });
 
-
+//general
     m_model->appendModule(new AboutModule);
 
+    //apperance
     m_model->appendModule(new BackgroundModule);
     m_model->appendModule(new ThemeModule);
-    m_model->appendModule(new ScreenModule);
+
+    //network
     m_model->appendModule(new BluetoothModule);
     m_model->appendModule(new NetworkModule);
-    m_model->appendModule(new ShellModule);
+
+    //system
+    m_model->appendModule(new ScreenModule);
+
     m_model->appendModule(new AudioModule);
     m_model->appendModule(new FormFactorModule);
     m_model->appendModule(new AccessibilityModule);
+
+    //shell
+    m_model->appendModule(new ShellModule);
     m_model->appendModule(new ScreenshotModule);
 }
 
