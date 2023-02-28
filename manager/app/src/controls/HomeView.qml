@@ -109,8 +109,8 @@ Maui.Theme.inherit: false
 height: visible ? implicitHeight : 0
 
                     visible: !ModulesManager.isMauiSession
-                    text: i18n("A Maui session has not been detected. The session detected is %1", ModulesManager.currentDesktopSession)
-ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For full and integrated support launch a full Maui session.")
+                    text: i18n("Unable to detect a Cask session. The current session is %1", ModulesManager.currentDesktopSession)
+ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For complete support start a Maui session.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                 }
@@ -125,6 +125,7 @@ height: visible ? implicitHeight : 0
 ToolTip.text: i18n("Changes in the setting preferences won't be applied live to other apps if the server is off. Changes will take effcet after restarting the apps.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
+                    onClicked: ModulesManager.startMauiManServer()
                 }
 
             Maui.Chip
@@ -137,6 +138,7 @@ height: visible ? implicitHeight : 0
 ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
+                    onClicked: ModulesManager.startCaskServer()
                 }
                       }
         }

@@ -26,7 +26,9 @@ public:
     bool caskServerRunning() const;
 
 public slots:
-    void startServer();
+    void startMauiManServer();
+    void startCaskServer();
+
     AbstractModule *sourceFor(const QString &moduleId);
 
 private:

@@ -93,7 +93,12 @@ bool ModulesManager::caskServerRunning() const
     return m_caskServerRunning;
 }
 
-void ModulesManager::startServer()
+void ModulesManager::startCaskServer()
+{
+    ServerUtils::startServer();
+}
+
+void ModulesManager::startMauiManServer()
 {
     MauiManUtils::startServer();
 }
