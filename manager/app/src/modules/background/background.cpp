@@ -5,6 +5,7 @@
 #include <QDebug>
 
 Background::Background(QObject *parent) : MauiMan::BackgroundManager(parent)
+,m_wallpaperSourceDir(m_defaultWallpaperSourceDir)
 {
     MauiMan::SettingsStore setting;
     setting.beginModule("Background");
@@ -28,4 +29,9 @@ void Background::setWallpaperSourceDir(QString wallpaperSourceDir)
     setting.save("SourceDir", m_wallpaperSourceDir);
     setting.endModule();
     emit wallpaperSourceDirChanged(m_wallpaperSourceDir);
+}
+
+void Background::resetWallpaperSourceDir()
+{
+    setWallpaperSourceDir(m_defaultWallpaperSourceDir);
 }

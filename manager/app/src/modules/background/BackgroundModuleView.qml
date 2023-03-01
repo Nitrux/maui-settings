@@ -162,12 +162,28 @@ Layout.maximumWidth: 800
             label1.text: i18n("Sources")
             label2.text: i18n("Wallpaper source directory")
 
+            RowLayout
+            {
+                  width: parent.parent.width
+                  spacing: Maui.Style.space.medium
             TextField
             {
-                width: parent.parent.width
-                //                                height: implicitHeight
-                //                                iconSource: "folder"
+                id: _sourceDirField
+              Layout.fillWidth: true
                 text: control.manager.wallpaperSourceDir
+
+                actions: Action
+                {
+                    icon.name: "checkbox"
+                    onTriggered: control.manager.wallpaperSourceDir = _sourceDirField.text
+                }
+            }
+
+            Button
+            {
+                text: i18n("Reset")
+               onClicked: control.manager.wallpaperSourceDir = undefined
+            }
             }
         }
     }
