@@ -28,10 +28,12 @@ ManLib.SettingsPage
             {
                 label1.text: i18n("Theme")
                 label2.text: i18n("Pick the icon theme.")
+                columns: 1
+
                 Maui.GridBrowser
                 {
 
-                    width: parent.parent.width
+                    Layout.fillWidth: true
 
                     itemSize: 144
                     itemHeight: 120
@@ -182,6 +184,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Border Radius")
             label2.text: i18n("Custom border radius.")
+            columns : 3
 
             SpinBox
             {
@@ -200,11 +203,11 @@ ManLib.SettingsPage
         }
 
 
-
         Maui.SectionItem
         {
             label1.text: i18n("Elements Size")
             label2.text: i18n("Size of the UI elements.")
+            columns : 3
 
             Maui.ToolActions
             {
@@ -244,6 +247,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Content Margins")
             label2.text: i18n("Margins of the views.")
+            columns : 3
 
             Maui.ToolActions
             {
@@ -283,6 +287,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Content Spacing")
             label2.text: i18n("Spacing between elements, such as list, tab buttons.")
+            columns : 3
 
             Maui.ToolActions
             {
@@ -327,9 +332,9 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
+
             Maui.ColorsRow
             {
-                width: parent.parent.width
                 size: Maui.Style.iconSizes.medium*1.2
                 colors: ["#26c6da", "#2C3E50", "#1976d2", "#212121", "#8e24aa", "#16A085", "#BBCDE5", "#E6BCC3", "#FEF9A7", "#00FFAB", "#2A2550", "#827397", "#FF6363", "#F900BF", "#FFF56D"]
                 currentColor: control.manager.accentColor
@@ -358,6 +363,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Icon Size")
             label2.text: i18n("Custom button icon sizes.")
+            columns : 3
 
             Maui.ToolActions
             {
@@ -415,9 +421,11 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Style")
             label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
+            columns : 1
+
             Flow
             {
-                width: parent.parent.width
+                Layout.fillWidth: true
                 spacing: Maui.Style.space.medium
 
                 Repeater

@@ -24,6 +24,32 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
+    Rectangle
+    {
+        Layout.fillWidth: true
+        implicitHeight: 200
+
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        Rectangle
+        {
+            height: 100
+            width: 100
+            anchors.centerIn: parent
+
+            color: Maui.Theme.textColor
+            radius: Maui.Style.radiusV
+            Maui.Icon
+            {
+                id: name
+                source: "qrc:///assets/mauikit.svg"
+               height: 64
+               width: 64
+                anchors.centerIn: parent
+                color: Maui.Theme.backgroundColor
+            }
+        }
+    }
 
     GridLayout
     {

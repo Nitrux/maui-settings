@@ -8,3 +8,4 @@ set(MAUISETTINGS_VERSION 1.0.2)
 
 add_subdirectory(lib)
 add_subdirectory(manager)
+add_subdirectory(qpa_theme)
