@@ -71,6 +71,18 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
   ,m_theme(new MauiMan::ThemeManager(this))
   ,m_accessibility(new MauiMan::AccessibilityManager(this))
 {
+
+
+    m_defaultFont = new QFont{"Noto Sans", 10, QFont::Normal};
+    m_defaultFont->setStyleHint(QFont::SansSerif);
+
+    m_smallFont = new QFont{"Noto Sans", 8, QFont::Normal};
+    m_smallFont->setStyleHint(QFont::SansSerif);
+
+    m_monospaceFont = new QFont{"Hack", 8, QFont::Normal};
+    m_monospaceFont->setStyleHint(QFont::Monospace);
+
+
     loadSettings();
 
     // explicitly not KWindowSystem::isPlatformWayland to not include the kwin process
@@ -92,7 +104,7 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
     QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, false);
     setQtQuickControlsTheme();
 
-//    QMetaObject::invokeMethod(this, "setupIconLoader", Qt::QueuedConnection);
+    //    QMetaObject::invokeMethod(this, "setupIconLoader", Qt::QueuedConnection);
     QMetaObject::invokeMethod(this, "applySettings", Qt::QueuedConnection);
 
     connect(m_accessibility, &MauiMan::AccessibilityManager::singleClickChanged, [this](bool value)
@@ -105,27 +117,37 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
         m_iconTheme = value;
 
 
-        QIconLoader::instance()->updateSystemTheme(); //apply icons
-
-        //        iconChanged();
-
+        //         QIconLoader::instance()->updateSystemTheme(); //apply icons
+        //
+        //         //        iconChanged();
+        //
         QApplication *app = qobject_cast<QApplication *>(QCoreApplication::instance());
         if (!app)
         {
             return;
         }
+        //
+        //         for(QWidget *w : qApp->allWidgets())
+        //         {
+        //             QEvent e(QEvent::ThemeChange);
+        //             QApplication::sendEvent(w, &e);
+        //
+        //             QEvent event(QEvent::StyleChange);
+        //             QApplication::sendEvent(w, &event);
+        //         }
+        //
+        //         QGuiApplication::setPalette(*m_palette);
+        //
 
-        for(QWidget *w : qApp->allWidgets())
-        {
-            QEvent e(QEvent::ThemeChange);
-            QApplication::sendEvent(w, &e);
+        QIcon::setThemeName(m_iconTheme);
 
-            QEvent event(QEvent::StyleChange);
-            QApplication::sendEvent(w, &event);
+        QIcon icon = app->windowIcon();
+        app->setWindowIcon(QIcon::fromTheme(icon.name()));
+        // update all widgets for repaint new themed icons.
+        for (auto widget : QApplication::allWidgets()) {
+            widget->update();
         }
-
         app->setStyle(m_style);
-        QGuiApplication::setPalette(*m_palette);
 
     });
 
@@ -141,11 +163,28 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
         //        }
 
     });
+
+    connect(m_theme, &MauiMan::ThemeManager::defaultFontChanged, [this](QString font)
+    {
+        if(!m_defaultFont->fromString(m_theme->defaultFont()))
+        {
+            qWarning() << "Failed to set the default font" << m_theme->defaultFont();
+            return;
+        }
+
+        if(hasWidgets())
+        {
+            qApp->setFont(*m_defaultFont);
+
+        }
+
+        QGuiApplication::setFont(*m_defaultFont);
+    });
 }
 
 void MauiPlatformTheme::setupIconLoader()
 {
-//    QObject::connect(KIconLoader::global(), &KIconLoader::iconChanged, this, &MauiPlatformTheme::iconChanged);
+    //    QObject::connect(KIconLoader::global(), &KIconLoader::iconChanged, this, &MauiPlatformTheme::iconChanged);
 }
 
 void MauiPlatformTheme::iconChanged()
@@ -235,6 +274,8 @@ QVariant MauiPlatformTheme::themeHint(QPlatformTheme::ThemeHint hintType) const
         return m_buttonBoxLayout;
     case QPlatformTheme::ToolBarIconSize:
         return m_iconSize;
+    case QPlatformTheme::SystemIconFallbackThemeName:
+        return "breeze";
     case QPlatformTheme::ItemViewActivateItemOnSingleClick:
         return m_singleClick;
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
@@ -272,6 +313,8 @@ void MauiPlatformTheme::applySettings()
 
 #endif
 
+    QCoreApplication::setAttribute(Qt::AA_DontShowIconsInMenus, !m_showIconsInMenus);
+
 #ifdef QT_WIDGETS_LIB
     if(hasWidgets())
     {
@@ -283,6 +326,7 @@ void MauiPlatformTheme::applySettings()
         qApp->setWheelScrollLines(m_wheelScrollLines);
 
         qApp->setStyle(m_style); //recreate style object
+
 
         if(!m_palette)
             m_palette = new QPalette(qApp->style()->standardPalette());
@@ -363,17 +407,26 @@ void MauiPlatformTheme::loadSettings()
     m_palette = new QPalette(loadColorScheme("BreezeLight"));
     //     m_palette = new QPalette(qApp->style()->standardPalette());
 
-    m_style = "Breeze";
+    m_style = "breeze";
     m_iconTheme = m_theme->iconTheme();
     m_iconSize = m_theme->iconSize();
-    m_defaultFont = new QFont{"Noto Sans", 10, QFont::Normal};
-    m_defaultFont->setStyleHint(QFont::SansSerif);
 
-    m_smallFont = new QFont{"Noto Sans", 8, QFont::Normal};
-    m_smallFont->setStyleHint(QFont::SansSerif);
 
-    m_monospaceFont = new QFont{"Hack", 8, QFont::Normal};
-    m_monospaceFont->setStyleHint(QFont::Monospace);
+    if(!m_defaultFont->fromString(m_theme->defaultFont()))
+    {
+        qWarning() << "Failed to set the default font" << m_theme->defaultFont();
+    }
+
+    if(! m_smallFont->fromString(m_theme->smallFont()))
+    {
+        qWarning() << "Failed to set the small font" << m_theme->defaultFont();
+    }
+
+    if(!m_monospaceFont->fromString(m_theme->monospacedFont()))
+    {
+        qWarning() << "Failed to set the monospaced font" << m_theme->defaultFont();
+    }
+
 
     m_doubleClickInterval = QPlatformTheme::themeHint(QPlatformTheme::MouseDoubleClickInterval).toInt();
     //    m_doubleClickInterval = settings.value("double_click_interval", m_doubleClickInterval).toInt();

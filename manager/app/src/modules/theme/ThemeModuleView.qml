@@ -500,9 +500,131 @@ ManLib.SettingsPage
         }
     }
 
-    Maui.SectionGroup
+    Maui.SectionItem
     {
-        title: i18n("Fonts")
+        label1.text: i18n("Fonts")
+        label2.text: i18n("Pick the system fonts.")
+        ToolButton
+        {
+            checkable: true
+            icon.name: "go-next"
+            onToggled: control.stackView.push(_fontsPageComponent)
+        }
+    }
 
+    Component
+    {
+        id: _fontsPageComponent
+        Maui.SettingsPage
+        {
+            title: i18n ("Fonts")
+
+            Maui.SectionGroup
+            {
+                title: i18n("System Fonts")
+                description: i18n ("Pick the default system fonts to be used.")
+
+                Maui.SectionItem
+                {
+                    id: _defaultFontSection
+                    label1.text: i18n("Default Font")
+                    label2.text: defaultFont.family
+                    columns: 3
+                    property font defaultFont : control.module.getFont(control.manager.defaultFont)
+
+                    Button
+                    {
+                        text: _defaultFontSection.defaultFont.family
+                        onClicked:
+                        {
+                            _fontEditDialog.mfont = control.module.getFont(control.manager.defaultFont)
+                            _fontEditDialog.open()
+                        }
+                    }
+
+                    Button
+                    {
+                        text: i18n("Reset")
+                        onClicked: control.manager.defaultFont = undefined
+                    }
+                }
+            }
+        }
+    }
+
+    Maui.Dialog
+    {
+        id: _fontEditDialog
+        property font mfont : control.module.getFont(control.manager.defaultFont)
+        property var styles : control.module.fontStyles(mfont)
+        property var sizes: control.module.fontPointSizes(mfont)
+
+        Maui.FontsComboBox
+        {
+            Layout.fillWidth: true
+            Component.onCompleted: currentIndex = find(_fontEditDialog.mfont.family, Qt.MatchExactly)
+            onActivated:
+            {
+                let newFont = _fontEditDialog.mfont
+                newFont.family = currentText
+
+
+                _fontEditDialog.mfont = newFont
+                //                _fontEditDialog.styles = control.module.fontStyles(_fontEditDialog.mfont)
+                //                _fontEditDialog.sizes = control.module.fontPointSizes(_fontEditDialog.mfont)
+            }
+        }
+
+        ComboBox
+        {
+            Layout.fillWidth: true
+            model: _fontEditDialog.styles
+            Component.onCompleted: currentIndex = find(_fontEditDialog.mfont.styleName, Qt.MatchExactly)
+            icon.source: "format-text-color"
+            onActivated:
+            {
+                let newFont = _fontEditDialog.mfont
+                newFont.styleName = currentText
+
+
+                _fontEditDialog.mfont = newFont
+            }
+        }
+
+        ComboBox
+        {
+            Layout.fillWidth: true
+            model: _fontEditDialog.sizes
+            Component.onCompleted: currentIndex = find(_fontEditDialog.mfont.pointSize, Qt.MatchExactly)
+            icon.source: "font-size-down"
+            onActivated:
+            {
+                let newFont = _fontEditDialog.mfont
+                newFont.pointSize = currentText
+
+
+                _fontEditDialog.mfont = newFont
+            }
+        }
+
+        TextArea
+        {
+            Layout.fillWidth: true
+            implicitHeight: contentHeight + topPadding + bottomPadding
+
+            text: i18n("The Quick Brown Fox Jumps Over The Lazy Dog")
+            font: _fontEditDialog.mfont
+        }
+
+        onAccepted:
+        {
+            let desc = control.module.fontToString(_fontEditDialog.mfont)
+            control.manager.defaultFont = desc
+        }
+
+        onRejected:
+        {
+            _fontEditDialog.close()
+        }
     }
 }
