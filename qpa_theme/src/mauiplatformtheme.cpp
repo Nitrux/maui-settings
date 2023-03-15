@@ -149,13 +149,7 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
     connect(m_theme, &MauiMan::ThemeManager::iconSizeChanged, [this](uint value)
     {
         m_iconSize = value;
-
-        //       QIconLoader::instance()->updateSystemTheme(); //apply icons
-
-        //        for (int i = 0; i <= 5; ++i) {
         iconChanged();
-        //        }
-
     });
 
     connect(m_theme, &MauiMan::ThemeManager::defaultFontChanged, [this](QString font)
@@ -166,13 +160,16 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
             return;
         }
 
-        if (qobject_cast<QApplication *>(QCoreApplication::instance())) {
+        if (qobject_cast<QApplication *>(QCoreApplication::instance()))
+        {
             QApplication::setFont(*m_defaultFont);
             QWidgetList widgets = QApplication::allWidgets();
-            for (QWidget *widget : widgets) {
+            for (QWidget *widget : widgets)
+            {
                 widget->setFont(*m_defaultFont);
             }
-        } else {
+        } else
+        {
             QGuiApplication::setFont(*m_defaultFont);
         }
 
@@ -194,6 +191,28 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
 
         //this is for now what maui qqc2 theme checks for updating the monospaced fonts, since there is not a qt signal to check for
         qApp->setStyle(m_style);
+
+    });
+
+    connect(m_theme, &MauiMan::ThemeManager::styleTypeChanged, [this](uint type)
+    {
+        if(!m_usePalette)
+            return;
+
+        bool isDarkPreferred = type== 1;
+
+        auto scheme  = isDarkPreferred ? "NitruxDark" : "Nitrux";
+        m_palette = new QPalette(loadColorScheme(scheme, m_schemePath));
+
+        qDebug() << "Setting color scheme" << scheme << m_schemePath;
+        qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
+
+        if(hasWidgets())
+        {
+            qApp->setPalette(*m_palette);
+        }
+
+        QGuiApplication::setPalette(*m_palette);
 
     });
 }
@@ -319,14 +338,12 @@ void MauiPlatformTheme::applySettings()
         return;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-
     //do not override application palette
     if(QCoreApplication::testAttribute(Qt::AA_SetPalette))
     {
         m_usePalette = false;
         qDebug() << "palette support is disabled";
     }
-
 #endif
 
     QCoreApplication::setAttribute(Qt::AA_DontShowIconsInMenus, !m_showIconsInMenus);
@@ -338,17 +355,17 @@ void MauiPlatformTheme::applySettings()
 
         //Qt 5.6 or higher should be use themeHint function on application startup.
         //So, there is no need to call this function first time. ??
-
         qApp->setWheelScrollLines(m_wheelScrollLines);
-
         qApp->setStyle(m_style); //recreate style object
-
 
         if(!m_palette)
             m_palette = new QPalette(qApp->style()->standardPalette());
 
         if(m_usePalette)
+        {
+            qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
             qApp->setPalette(*m_palette);
+        }
     }
 #endif
     QGuiApplication::setFont(*m_defaultFont); //apply font
@@ -420,8 +437,9 @@ const QFont *MauiPlatformTheme::font(Font type) const
 
 void MauiPlatformTheme::loadSettings()
 {
-    m_palette = new QPalette(loadColorScheme("BreezeLight"));
-    //     m_palette = new QPalette(qApp->style()->standardPalette());
+    bool isDarkPreferred = m_theme->styleType() == 1;
+
+    m_palette = new QPalette(loadColorScheme(isDarkPreferred ? "NitruxDark" : "Nitrux", m_schemePath));
 
     m_style = "breeze";
     m_iconTheme = m_theme->iconTheme();
@@ -668,9 +686,9 @@ void MauiPlatformTheme::setQtQuickControlsTheme()
     QQuickStyle::setStyle(QLatin1String("org.kde.desktop"));
 }
 
-QPalette MauiPlatformTheme::loadColorScheme(const QString &scheme)
+QPalette MauiPlatformTheme::loadColorScheme(const QString &scheme, QString&path)
 {
-    QString path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("color-schemes/") + scheme + QStringLiteral(".colors"));
+    path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("color-schemes/") + scheme + QStringLiteral(".colors"));
 
     if (path.isEmpty()) {
         qWarning() << "Could not find color scheme" << scheme << "falling back to BreezeLight";
@@ -680,14 +698,5 @@ QPalette MauiPlatformTheme::loadColorScheme(const QString &scheme)
     return QPalette(KColorScheme::createApplicationPalette(KSharedConfig::openConfig(path)));
 
 }
-
-//bool MauiPlatformTheme::useXdgDesktopPortal()
-//{
-//    static bool usePortal = qEnvironmentVariableIntValue("PLASMA_INTEGRATION_USE_PORTAL") == 1;
-//    return usePortal;
-//}
-
-
-
 
 #include "mauiplatformtheme.moc"

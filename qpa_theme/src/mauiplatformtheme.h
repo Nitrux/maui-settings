@@ -61,6 +61,7 @@ private:
     QString m_style;
     QString m_iconTheme;
 
+    QString m_schemePath;
     int m_doubleClickInterval;
     int m_cursorFlashTime;
     int m_iconSize;
@@ -81,7 +82,7 @@ private:
     QFont *m_monospaceFont;
 
     //helpers
-    QPalette loadColorScheme(const QString &scheme);
+    QPalette loadColorScheme(const QString &scheme, QString &path);
     bool hasWidgets();
     void setupIconLoader();
     void iconChanged();
