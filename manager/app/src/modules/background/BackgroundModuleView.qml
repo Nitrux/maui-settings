@@ -35,7 +35,7 @@ ManLib.SettingsPage
             Layout.fillHeight: false
             Layout.preferredHeight: 180
             Layout.preferredWidth: 400
-Layout.maximumWidth: 800
+            Layout.maximumWidth: 800
             Layout.alignment: Qt.AlignCenter
             spacing: Maui.Style.space.big
 
@@ -164,26 +164,26 @@ Layout.maximumWidth: 800
 
             RowLayout
             {
-                  width: parent.parent.width
-                  spacing: Maui.Style.space.medium
-            TextField
-            {
-                id: _sourceDirField
-              Layout.fillWidth: true
-                text: control.manager.wallpaperSourceDir
-
-                actions: Action
+                width: parent.parent.width
+                spacing: Maui.Style.space.medium
+                TextField
                 {
-                    icon.name: "checkbox"
-                    onTriggered: control.manager.wallpaperSourceDir = _sourceDirField.text
-                }
-            }
+                    id: _sourceDirField
+                    Layout.fillWidth: true
+                    text: control.manager.wallpaperSourceDir
 
-            Button
-            {
-                text: i18n("Reset")
-               onClicked: control.manager.wallpaperSourceDir = undefined
-            }
+                    actions: Action
+                    {
+                        icon.name: "checkbox"
+                        onTriggered: control.manager.wallpaperSourceDir = _sourceDirField.text
+                    }
+                }
+
+                Button
+                {
+                    text: i18n("Reset")
+                    onClicked: control.manager.wallpaperSourceDir = undefined
+                }
             }
         }
     }
@@ -196,7 +196,7 @@ Layout.maximumWidth: 800
         Maui.GridBrowser
         {
             id: _wallpapersGridView
-
+            property string title : i18n("Wallpapers")
             //            implicitHeight: contentHeight
             currentIndex :-1
 

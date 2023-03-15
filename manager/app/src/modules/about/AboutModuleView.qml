@@ -27,26 +27,62 @@ ManLib.SettingsPage
     Rectangle
     {
         Layout.fillWidth: true
-        implicitHeight: 200
+        implicitHeight: 160
 
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         Rectangle
         {
-            height: 100
-            width: 100
+            id: _logoItem
+            height: 80
+            width: 80
             anchors.centerIn: parent
 
             color: Maui.Theme.textColor
             radius: Maui.Style.radiusV
+
+            property int indexColor : 0
+            property var colors : ["#37306B", "#66347F", "#9E4784", "#D27685", "#3E54AC", "#655DBB"]
+
             Maui.Icon
             {
-                id: name
+                id: _logoIcon
                 source: "qrc:///assets/mauikit.svg"
-               height: 64
-               width: 64
+                height: 64
+                width: height
                 anchors.centerIn: parent
                 color: Maui.Theme.backgroundColor
+            }
+
+            Timer
+            {
+                interval: 400
+                running: _mouseArea.containsPress || _mouseArea.containsMouse
+                repeat: true
+                onTriggered: _logoItem.nextColor()
+            }
+
+            MouseArea
+            {
+                id: _mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                //                onClicked: _logoItem.nextColor()
+                onExited: _logoItem.color = Maui.Theme.textColor
+
+            }
+
+            function nextColor()
+            {
+                if(indexColor >= colors.length)
+                {
+                    indexColor = 0
+                    _logoItem.color = Maui.Theme.textColor
+                }else
+                {
+                    _logoItem.color = colors[indexColor]
+                    indexColor++
+                }
             }
         }
     }
@@ -63,7 +99,7 @@ ManLib.SettingsPage
             Layout.alignment: Qt.AlignTop
             title: i18n("User")
             description: i18n("User information")
-//            template.template.iconSource: "user-identity"
+            //            template.template.iconSource: "user-identity"
 
             Maui.SectionItem
             {
@@ -96,7 +132,7 @@ ManLib.SettingsPage
 
             title: i18n("Shell")
             description: i18n("Shell information")
-//            template.template.iconSource: "desktop"
+            //            template.template.iconSource: "desktop"
 
             Maui.SectionItem
             {
@@ -129,7 +165,7 @@ ManLib.SettingsPage
 
             title: i18n("Device")
             description: i18n("Device Information")
-//            template.template.iconSource: "computer"
+            //            template.template.iconSource: "computer"
 
             Maui.SectionItem
             {
@@ -155,11 +191,11 @@ ManLib.SettingsPage
                 label2.text: devinfo.uniqueDeviceID()
             }
 
-//            Maui.SectionItem
-//            {
-//                label1.text: i18n("Firmware")
-//                label2.text:  devinfo.version(DeviceInfo.Firmware)
-//            }
+            //            Maui.SectionItem
+            //            {
+            //                label1.text: i18n("Firmware")
+            //                label2.text:  devinfo.version(DeviceInfo.Firmware)
+            //            }
 
             Maui.SectionItem
             {
@@ -211,7 +247,10 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Version")
             label2.text: Maui.App.about.version
+            flat: false
+
         }
+
         Maui.SectionItem
         {
             label1.text: i18n("Authors")
@@ -219,10 +258,13 @@ ManLib.SettingsPage
 
             template.isMask: true
             template.iconSizeHint: Maui.Style.iconSize
+            columns: 1
+            flat: false
+
             Column
             {
                 spacing: Maui.Style.space.medium
-                width: parent.parent.width
+                Layout.fillWidth: true
 
                 Repeater
                 {
@@ -260,11 +302,14 @@ ManLib.SettingsPage
             iconSource: "folder-language"
             template.isMask: true
             template.iconSizeHint: Maui.Style.iconSize
+            columns: 1
+            flat: false
+
             Column
             {
                 id: _translators
                 spacing: Maui.Style.space.medium
-                width: parent.parent.width
+                Layout.fillWidth: true
 
                 Repeater
                 {
@@ -303,12 +348,14 @@ ManLib.SettingsPage
 
             label1.text: i18n("Licenses")
             // label2.text: `Maui.App.about.copyrightStatement
+            columns: 1
+            flat: false
 
             Column
             {
                 id: _licenses
                 spacing: Maui.Style.space.medium
-                width: parent.parent.width
+                Layout.fillWidth: true
 
                 Repeater
                 {
@@ -332,11 +379,13 @@ ManLib.SettingsPage
             template.iconSizeHint: Maui.Style.iconSize
 
             label1.text: ("Components")
+            columns: 1
+            flat: false
 
             Column
             {
                 spacing: Maui.Style.space.medium
-                width: parent.parent.width
+                Layout.fillWidth: true
 
                 Repeater
                 {
@@ -363,8 +412,6 @@ ManLib.SettingsPage
                     }
                 }
             }
-
         }
-
     }
 }

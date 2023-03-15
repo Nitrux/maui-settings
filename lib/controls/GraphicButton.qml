@@ -58,8 +58,12 @@ T.ItemDelegate
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            implicitWidth: _loader.implicitWidth
+            implicitHeight: _loader.implicitHeight
+
             Loader
             {
+                id: _loader
                 visible: control.imageVisible
                 anchors.fill: parent
                 asynchronous: true

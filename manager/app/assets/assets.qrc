@@ -4,5 +4,9 @@
         <file>light_mode.png</file>
         <file>dark_mode.png</file>
         <file>adaptive_mode.png</file>
+        <file>adaptive.svg</file>
+        <file>dark.svg</file>
+        <file>light.svg</file>
+        <file>custom.svg</file>
     </qresource>
 </RCC>

@@ -18,8 +18,7 @@ Maui.Page
 
     property var module
     readonly property string moduleId : module ? module.id : ""
-    title: module ? module.name : ""
-
+title: _stackView.currentItem.title ? _stackView.currentItem.title : ""
     showCSDControls: true
     headBar.leftContent:[ToolButton
         {
@@ -42,10 +41,11 @@ Maui.Page
         id: _stackView
         anchors.fill: parent
 
-        initialItem: Maui.ScrollColumn
+        initialItem: Maui.SettingsPage
         {
             id: _template
             spacing: Maui.Style.space.huge
+            title: module ? module.name : ""
 
         }
     }

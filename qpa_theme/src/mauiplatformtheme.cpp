@@ -116,37 +116,31 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
     {
         m_iconTheme = value;
 
-
-        //         QIconLoader::instance()->updateSystemTheme(); //apply icons
-        //
-        //         //        iconChanged();
-        //
         QApplication *app = qobject_cast<QApplication *>(QCoreApplication::instance());
         if (!app)
         {
             return;
         }
-        //
-        //         for(QWidget *w : qApp->allWidgets())
-        //         {
-        //             QEvent e(QEvent::ThemeChange);
-        //             QApplication::sendEvent(w, &e);
-        //
-        //             QEvent event(QEvent::StyleChange);
-        //             QApplication::sendEvent(w, &event);
-        //         }
-        //
-        //         QGuiApplication::setPalette(*m_palette);
-        //
 
         QIcon::setThemeName(m_iconTheme);
 
         QIcon icon = app->windowIcon();
         app->setWindowIcon(QIcon::fromTheme(icon.name()));
+
         // update all widgets for repaint new themed icons.
-        for (auto widget : QApplication::allWidgets()) {
+        for (auto widget : QApplication::allWidgets())
+        {
+            //this is taken from ukui imp. Supossedly request all widgets to be repainted
             widget->update();
+
+            //this is taken from kde platform theme integration. it only sends signal event to some widgets
+            if (qobject_cast<QToolBar *>(widget) || qobject_cast<QMainWindow *>(widget)) {
+                QEvent event(QEvent::StyleChange);
+                QApplication::sendEvent(widget, &event);
+            }
         }
+
+        //this is for now what maui qqc2 theme checks for updating icons
         app->setStyle(m_style);
 
     });
@@ -166,19 +160,41 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
 
     connect(m_theme, &MauiMan::ThemeManager::defaultFontChanged, [this](QString font)
     {
-        if(!m_defaultFont->fromString(m_theme->defaultFont()))
+        if(!m_defaultFont->fromString(font))
         {
-            qWarning() << "Failed to set the default font" << m_theme->defaultFont();
+            qWarning() << "Failed to set the default font" << font;
             return;
         }
 
-        if(hasWidgets())
-        {
-            qApp->setFont(*m_defaultFont);
-
+        if (qobject_cast<QApplication *>(QCoreApplication::instance())) {
+            QApplication::setFont(*m_defaultFont);
+            QWidgetList widgets = QApplication::allWidgets();
+            for (QWidget *widget : widgets) {
+                widget->setFont(*m_defaultFont);
+            }
+        } else {
+            QGuiApplication::setFont(*m_defaultFont);
         }
 
-        QGuiApplication::setFont(*m_defaultFont);
+    });
+
+    connect(m_theme, &MauiMan::ThemeManager::monospacedFontChanged, [this](QString font)
+    {
+        if(!m_monospaceFont->fromString(font))
+        {
+            qWarning() << "Failed to set the default font" << font;
+            return;
+        }
+
+        QApplication *app = qobject_cast<QApplication *>(QCoreApplication::instance());
+        if (!app)
+        {
+            return;
+        }
+
+        //this is for now what maui qqc2 theme checks for updating the monospaced fonts, since there is not a qt signal to check for
+        qApp->setStyle(m_style);
+
     });
 }
 
