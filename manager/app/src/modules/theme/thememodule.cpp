@@ -53,7 +53,7 @@ ThemeModule::ThemeModule(QObject *parent) :AbstractModule(QStringLiteral("theme"
                                                           QStringLiteral("qrc:/modules/theme/ThemeModuleView.qml"),
                                                           QStringLiteral("preferences-desktop-theme"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                          QStringList{"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+                                                          QStringList{"look", "theme", "color", "icons", "dark mode", "fonts", "dark", "adaptive", "color scheme", "csd", "window controls", "style"},
                                                           parent)
   , m_manager(nullptr)
 {

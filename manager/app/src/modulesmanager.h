@@ -6,7 +6,7 @@
 class ModulesManager : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(ModulesModel * model READ model CONSTANT FINAL)
+    Q_PROPERTY(ModulesProxyModel * model READ model CONSTANT FINAL)
     Q_PROPERTY(bool serverRunning READ serverRunning NOTIFY serverRunningChanged)
     Q_PROPERTY(bool isMauiSession READ isMauiSession CONSTANT FINAL)
     Q_PROPERTY(bool caskServerRunning READ caskServerRunning NOTIFY caskServerRunningChanged)
@@ -15,7 +15,7 @@ class ModulesManager : public QObject
 public:
     explicit ModulesManager(QObject *parent = nullptr);
 
-    ModulesModel * model() const;
+    ModulesProxyModel * model() const;
 
     bool serverRunning() const;
 
@@ -32,7 +32,7 @@ public slots:
     AbstractModule *sourceFor(const QString &moduleId);
 
 private:
-    ModulesModel * m_model;
+    ModulesProxyModel * m_model;
 
     bool m_serverRunning = false;
 

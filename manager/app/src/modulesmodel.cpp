@@ -1,6 +1,7 @@
 #include "modulesmodel.h"
 
-ModulesModel::ModulesModel(QObject *parent) : QAbstractListModel(parent)
+ModulesModel::ModulesModel(ModulesProxyModel *parent) : QAbstractListModel(parent)
+  ,m_proxy(parent)
 {
 
 }
@@ -50,4 +51,55 @@ void ModulesModel::appendModule(AbstractModule *module)
 QVector<AbstractModule *> ModulesModel::modules() const
 {
     return m_modules;
+}
+
+ModulesProxyModel::ModulesProxyModel(QObject *parent) :  QSortFilterProxyModel(parent)
+  ,m_model(new ModulesModel(this))
+{
+    this->setSourceModel(m_model);
+    setFilterCaseSensitivity(Qt::CaseInsensitive);
+}
+
+void ModulesProxyModel::setFilter(QString filter)
+{
+    if (this->m_filter == filter)
+        return;
+
+    this->m_filter = filter;
+    this->setFilterFixedString(this->m_filter);
+    Q_EMIT this->filterChanged(this->m_filter);
+}
+
+QString ModulesProxyModel::filter() const
+{
+    return m_filter;
+}
+
+void ModulesProxyModel::resetFilter()
+{
+    this->setFilterRegExp("");
+    this->invalidateFilter();
+}
+
+ModulesModel *ModulesProxyModel::model() const
+{
+    return m_model;
+}
+
+int ModulesProxyModel::count() const
+{
+    return m_model->rowCount(QModelIndex());
+}
+
+bool ModulesProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
+    const auto module = qvariant_cast<AbstractModule*>( this->sourceModel()->data(index, 0));
+    return module->checkFilter(this->filterRegExp());
+
+}
+
+bool ModulesProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+{
+    return true;
 }

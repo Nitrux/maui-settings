@@ -21,7 +21,7 @@ Maui.SideBarView
         Maui.Theme.colorSet: Maui.Theme.Window
         Maui.Theme.inherit: false
 
-        headBar.middleContent: TextField
+        headBar.middleContent: Maui.SearchField
         {
             enabled: ModulesManager.serverRunning
 
@@ -29,15 +29,18 @@ Maui.SideBarView
             Layout.maximumWidth: 500
             Layout.fillWidth: true
             placeholderText: i18n("Search configs")
+            onAccepted: ModulesManager.model.filter = text
+            onCleared: ModulesManager.model.filter = undefined
         }
 
         Maui.ListBrowser
         {
             anchors.fill: parent
             holder.visible: count === 0
-            holder.title:i18n("No Modules!")
-            holder.body: i18n("No modules avaliable!")
-            holder.emoji: "face-confused-symbolic"
+            holder.title:  ModulesManager.model.count ===0 ? i18n("No Modules!") : i18n("No Matches!")
+            holder.body:  ModulesManager.model.count === 0 ? i18n("No modules avaliable!") : i18n("Try with another keyword.")
+            holder.emoji: "emblem-warning"
+            holder.isMask: false
 
             model : ModulesManager.model
             currentIndex : -1
@@ -104,12 +107,30 @@ Maui.SideBarView
                     text: i18n("Cask server is offline.")
                     ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
                     color: Maui.Theme.neutralBackgroundColor
-                    iconSource: "dialog-warning"
+                    iconSource: "dialog-warn    ing"
                     onClicked: ModulesManager.startCaskServer()
                 }
             }
         }
     }
+
+    Component
+    {
+        id: _errorComponent
+
+        Pane
+        {
+            Maui.Holder
+            {
+                anchors.fill: parent
+                emoji: "emblem-error"
+                isMask: false
+                title: i18n("Error!")
+                body: i18n("Failed to create the module %1.", control.currentModule)
+            }
+        }
+    }
+
 
 
     StackView
@@ -126,8 +147,20 @@ Maui.SideBarView
             return;
         }
 
-        _viewLoader.pop()
-        _viewLoader.push(module.qmlSource, ({'module': module}))
+         _viewLoader.pop()
+        control.currentModule = module.id
+
+        var component = Qt.createComponent(module.qmlSource)
+
+        if (component.status == Component.Ready)
+        {
+            _viewLoader.push(component, ({'module': module}))
+
+        }else
+        {
+            _viewLoader.push(_errorComponent)
+        }
+
     }
 
     function toggleSideBar()

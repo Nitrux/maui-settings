@@ -24,7 +24,7 @@
 #include <CaskServer/serverutils.h>
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
-  ,m_model(new ModulesModel(this))
+  ,m_model(new ModulesProxyModel(this))
 {
     //    QString path = MAUIMAN_MODULES_IMPORT_PATH;
     //    QQmlEngine engine;
@@ -47,30 +47,30 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     });
 
     //general
-    m_model->appendModule(new AboutModule);
+    m_model->model()->appendModule(new AboutModule);
 
     //apperance
-    m_model->appendModule(new BackgroundModule);
-    m_model->appendModule(new ThemeModule);
+    m_model->model()->appendModule(new BackgroundModule);
+    m_model->model()->appendModule(new ThemeModule);
 
     //network
-    m_model->appendModule(new BluetoothModule);
-    m_model->appendModule(new NetworkModule);
+    m_model->model()->appendModule(new BluetoothModule);
+    m_model->model()->appendModule(new NetworkModule);
 
     //system
-    m_model->appendModule(new ScreenModule);
+    m_model->model()->appendModule(new ScreenModule);
 
-    m_model->appendModule(new AudioModule);
-    m_model->appendModule(new InputDevicesModule);
-    m_model->appendModule(new FormFactorModule);
-    m_model->appendModule(new AccessibilityModule);
+    m_model->model()->appendModule(new AudioModule);
+    m_model->model()->appendModule(new InputDevicesModule);
+    m_model->model()->appendModule(new FormFactorModule);
+    m_model->model()->appendModule(new AccessibilityModule);
 
     //shell
-    m_model->appendModule(new ShellModule);
-    m_model->appendModule(new ScreenshotModule);
+    m_model->model()->appendModule(new ShellModule);
+    m_model->model()->appendModule(new ScreenshotModule);
 }
 
-ModulesModel *ModulesManager::model() const
+ModulesProxyModel *ModulesManager::model() const
 {
     return m_model;
 }
@@ -107,7 +107,7 @@ void ModulesManager::startMauiManServer()
 
 AbstractModule* ModulesManager::sourceFor(const QString &moduleId)
 {
-    for(const auto &module : m_model->modules())
+    for(const auto &module : m_model->model()->modules())
     {
         if(module->id() == moduleId)
         {

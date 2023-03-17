@@ -11,3 +11,19 @@ AbstractModule::AbstractModule(const QString &id, const QString &name, const QSt
 {
 
 }
+
+bool AbstractModule::checkFilter(const QRegExp &filter)
+{
+    bool keywordContains = false;
+
+    for(const auto &keyword : m_keywords)
+    {
+        if(keyword.contains(filter))
+        {
+            keywordContains = true;
+            break;
+        }
+    }
+
+    return m_name.contains(filter) || m_category.contains(filter) || m_description.contains(filter) || m_id.contains(filter) || keywordContains;
+}

@@ -54,6 +54,8 @@ public:
         return m_id;
     }
 
+    bool checkFilter(const QRegExp &filter);
+
 private:
     QString m_id;
     QString m_qmlSource;

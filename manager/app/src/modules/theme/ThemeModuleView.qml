@@ -654,7 +654,7 @@ ManLib.SettingsPage
                             }
                         }
 
-                        Item
+                        ItemHa
                         {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
