@@ -7,6 +7,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
+import QtQuick.Window 2.2
 
 import org.mauikit.controls 1.3 as Maui
 
@@ -22,75 +23,73 @@ ManLib.SettingsPage
     {
         id: _iconsPageComponent
 
-        Maui.SettingsPage
+
+        Maui.GridBrowser
         {
-            title: i18n("Icon Theme")
-            Maui.SectionItem
+            property string title: i18n("Icon Theme")
+
+            property Component searchFieldComponent  :  Maui.SearchField
             {
-                label1.text: i18n("Theme")
-                label2.text: i18n("Pick the icon theme.")
-                columns: 1
+                placeholderText: i18n ("Filter")
+                onAccepted: control.manager.iconsModel.filter = text
+                onCleared: control.manager.iconsModel.filter = undefined
+            }
 
-                Maui.GridBrowser
+            itemSize: 144
+            itemHeight: 120
+
+            model: control.manager.iconsModel
+            delegate: Item
+            {
+
+                width: GridView.view.cellWidth
+                height: GridView.view.itemHeight
+
+                Maui.GridBrowserDelegate
                 {
+                    id: _iconsDelegate
+                    property var iconsModel : model.icons
+                    checked:  Maui.Style.currentIconTheme === model.themeName
+                    anchors.fill: parent
+                    anchors.margins: Maui.Style.space.medium
 
-                    Layout.fillWidth: true
+                    flat: false
 
-                    itemSize: 144
-                    itemHeight: 120
-
-                    model: control.manager.iconsModel
-                    delegate: Item
+                    template.iconComponent: GridLayout
                     {
+                        rows: 2
+                        columns: 3
+                        columnSpacing: Maui.Style.space.small
+                        rowSpacing: Maui.Style.space.small
 
-                        width: GridView.view.cellWidth
-                        height: GridView.view.itemHeight
-
-                        Maui.GridBrowserDelegate
+                        Repeater
                         {
-                            id: _iconsDelegate
-                            property var iconsModel : model.icons
-                            checked:  Maui.Style.currentIconTheme === model.themeName
-                            anchors.fill: parent
-                            anchors.margins: Maui.Style.space.medium
-
-                            flat: false
-
-                            template.iconComponent: GridLayout
+                            model: _iconsDelegate.iconsModel
+                            delegate: Image
                             {
-                                rows: 2
-                                columns: 3
-                                columnSpacing: Maui.Style.space.small
-                                rowSpacing: Maui.Style.space.small
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                sourceSize.height: 48
+                                sourceSize.width: 48
+                                fillMode: Image.PreserveAspectFit
 
-                                Repeater
-                                {
-                                    model: _iconsDelegate.iconsModel
-                                    delegate: Image
-                                    {
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-                                        sourceSize.height: 48
-                                        sourceSize.width: 48
-                                        fillMode: Image.PreserveAspectFit
-
-                                        asynchronous: true
-                                        source: modelData
+                                asynchronous: true
+                                source: modelData
 
 
-                                    }
-                                }
                             }
-
-                            onClicked: control.manager.iconTheme = model.themeName
-
-                            label1.text: model.display
                         }
-
                     }
+
+                    onClicked: control.manager.iconTheme = model.themeName
+
+                    label1.text: model.display
                 }
+
             }
         }
+
+
     }
 
     Component
@@ -356,10 +355,17 @@ ManLib.SettingsPage
         {
             readonly property string title: "Color Schemes"
 
-            model: control.module.colorSchemeModel
+            property Component searchFieldComponent:  Maui.SearchField
+            {
+                placeholderText: i18n ("Filter")
+                onAccepted: control.manager.colorSchemeModel.filter = text
+                onCleared: control.manager.colorSchemeModel.filter = undefined
+            }
+
+            model: control.manager.colorSchemeModel
 
             itemSize: 120
-            itemHeight: 100
+            itemHeight: 140
 
             delegate: Maui.GridBrowserDelegate
             {
@@ -378,7 +384,7 @@ ManLib.SettingsPage
 
                     background: Rectangle
                     {
-                        color: Maui.Theme.alternateBackgroundColor
+                        color: _delegate.colors[0] //first color is the window background color
                         radius: Maui.Style.radiusV
                     }
 
@@ -386,19 +392,38 @@ ManLib.SettingsPage
                     {
                         id:_layout
                         spacing: 2
-                        Repeater
+
+                        Label
                         {
-                            model: _delegate.colors
-
-                                delegate:  Rectangle
-                            {
-                                radius: 2
-                                height: 8
-                                width: parent.width
-                                color: modelData
-                            }
-
+                            width: parent.width
+                            text: i18n ("Hello")
+                            color: _delegate.colors[1]
                         }
+
+                        Rectangle
+                        {
+                            radius: 2
+                            height: 16
+                            width: parent.width
+                            color: _delegate.colors[2]
+                        }
+
+                        Rectangle
+                        {
+                            radius: 2
+                            height: 6
+                            width: parent.width
+                            color: _delegate.colors[4]
+                        }
+
+                        Rectangle
+                        {
+                            radius: 2
+                            height: 26
+                            width: parent.width
+                            color: _delegate.colors[3]
+                        }
+
                     }
                 }
 
@@ -431,8 +456,72 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 0
                 onClicked: control.manager.styleType = 0
                 ButtonGroup.group: _styleGroup
-                imageSource: "qrc:/light.svg"
-                imageWidth: 100
+
+                iconComponent: Control
+                {
+                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
+                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+
+                    padding: Maui.Style.space.medium
+
+                    background: Rectangle
+                    {
+                        color: Maui.Theme.backgroundColor
+                        radius: Maui.Style.radiusV
+                        Maui.IconItem
+                        {
+                            anchors.fill: parent
+
+                            imageSource:  control.manager.wallpaper
+                            fillMode: Image.PreserveAspectCrop
+                            maskRadius: 10
+                        }
+                    }
+
+                    contentItem: ColumnLayout
+                    {
+                        Button
+                        {
+                            Layout.fillWidth: true
+                            icon.name: "love"
+                            icon.color: "#333"
+
+                            background: Rectangle
+                            {
+                                radius: 10
+                                color: "#fafafa"
+                                opacity: 0.5
+                            }
+                        }
+
+                        Item
+                        {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        Rectangle
+                        {
+                            color: control.manager.accentColor
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 24
+                            Layout.preferredHeight: 24
+
+                            radius: 10
+                        }
+
+                        Rectangle
+                        {
+                            color: "#fafafa"
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 64
+                            Layout.preferredHeight: 48
+                            radius: 10
+                        }
+                    }
+                }
             }
 
             ManLib.GraphicButton
@@ -441,8 +530,72 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 1
                 onClicked: control.manager.styleType = 1
                 ButtonGroup.group: _styleGroup
-                imageSource: "qrc:/dark.svg"
-                imageWidth: 100
+                iconComponent: Control
+                {
+                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
+                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+
+                    padding: Maui.Style.space.medium
+
+                    background: Rectangle
+                    {
+                        color: Maui.Theme.backgroundColor
+                        radius: Maui.Style.radiusV
+                        Maui.IconItem
+                        {
+                            anchors.fill: parent
+
+                            imageSource:  control.manager.wallpaper
+                            fillMode: Image.PreserveAspectCrop
+                            maskRadius: 10
+                        }
+                    }
+
+                    contentItem: ColumnLayout
+                    {
+                        Button
+                        {
+                            Layout.fillWidth: true
+                            icon.name: "love"
+                            icon.color: "#fafafa"
+
+                            background: Rectangle
+                            {
+                                radius: 10
+                                color: "#333"
+                                opacity: 0.5
+                            }
+                        }
+
+                        Item
+                        {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        Rectangle
+                        {
+                            color: control.manager.accentColor
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 24
+                            Layout.preferredHeight: 24
+
+                            radius: 10
+                        }
+
+                        Rectangle
+                        {
+                            color: "#333"
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 64
+                            Layout.preferredHeight: 48
+
+                            radius: 10
+                        }
+                    }
+                }
             }
 
             ManLib.GraphicButton
@@ -451,8 +604,84 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 2
                 onClicked: control.manager.styleType = 2
                 ButtonGroup.group: _styleGroup
-                imageSource: "qrc:/adaptive.svg"
-                imageWidth: 100
+                iconComponent: Control
+                {
+                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
+                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+
+                    padding: Maui.Style.space.medium
+
+                    Maui.ImageColors
+                        {
+                            id: _imgColors
+                            source: control.manager.wallpaper.replace("file://", "")
+                            onPaletteChanged:
+                            {
+                                console.log(_imgColors.average)
+                            }
+                        }
+
+
+
+                    background: Rectangle
+                    {
+                        color: Maui.Theme.backgroundColor
+                        radius: Maui.Style.radiusV
+                        Maui.IconItem
+                        {
+                            id: _iconWallpaper
+                            anchors.fill: parent
+
+                            imageSource:  control.manager.wallpaper
+                            fillMode: Image.PreserveAspectCrop
+                            maskRadius: 10
+                        }
+                    }
+
+                    contentItem: ColumnLayout
+                    {
+                        Button
+                        {
+                            Layout.fillWidth: true
+                            icon.name: "love"
+                            icon.color: _imgColors.foreground
+
+                            background: Rectangle
+                            {
+                                radius: 10
+                                color: _imgColors.background
+                                opacity: 0.5
+                            }
+                        }
+
+                        Item
+                        {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        Rectangle
+                        {
+                            color:  _imgColors.highlight
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 24
+                            Layout.preferredHeight: 24
+
+                            radius: 10
+                        }
+
+                        Rectangle
+                        {
+                            color: _imgColors.average
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 64
+                            Layout.preferredHeight: 48
+                            radius: 10
+                        }
+                    }
+                }
             }
 
             ManLib.GraphicButton
@@ -461,8 +690,70 @@ ManLib.SettingsPage
                 checked: control.manager.styleType === 3
                 onClicked: control.manager.styleType = 3
                 ButtonGroup.group: _styleGroup
-                imageSource: "qrc:/custom.svg"
-                imageWidth: 100
+                iconComponent: Control
+                {
+                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
+                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+
+                    padding: Maui.Style.space.medium
+
+                    background: Rectangle
+                    {
+                        color: Maui.Theme.backgroundColor
+                        radius: Maui.Style.radiusV
+                        Maui.IconItem
+                        {
+                            anchors.fill: parent
+
+                            imageSource:  control.manager.wallpaper
+                            fillMode: Image.PreserveAspectCrop
+                            maskRadius: 10
+                        }
+                    }
+
+                    contentItem: ColumnLayout
+                    {
+                        Button
+                        {
+                            Layout.fillWidth: true
+                            icon.name: "love"
+
+                            background: Rectangle
+                            {
+                                radius: 10
+                                color: Maui.Theme.backgroundColor
+                                opacity: 0.5
+                            }
+                        }
+
+                        Item
+                        {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        Rectangle
+                        {
+                            color: Maui.Theme.highlightColor
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 24
+                            Layout.preferredHeight: 24
+
+                            radius: 10
+                        }
+
+                        Rectangle
+                        {
+                            color: Maui.Theme.backgroundColor
+
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 64
+                            Layout.preferredHeight: 48
+
+                            radius: 10
+                        }
+                    }
+                }
             }
         }
     }
@@ -534,25 +825,34 @@ ManLib.SettingsPage
                     control.manager.accentColor = color
                 }
             }
-        }
 
-        Maui.Chip
-        {
-            visible: control.manager.styleType === 2
-            text: i18n("Accent color is not used with the Adaptive Style.")
-            color: Maui.Theme.neutralBackgroundColor
-            iconSource: "dialog-warning"
+            Maui.Chip
+            {
+                visible: control.manager.styleType === 2 || control.manager.styleType === 3
+                text: i18n("Accent color is not used with the Adaptive or Custom styles.")
+                color: Maui.Theme.neutralBackgroundColor
+                iconSource: "dialog-warning"
+            }
         }
 
         Maui.SectionItem
         {
             label1.text: i18n("Color Scheme")
             label2.text: i18n("Pick a custom color scheme.")
+            enabled: control.manager.styleType === 3
             ToolButton
             {
                 checkable: true
                 icon.name: "go-next"
                 onToggled: control.stackView.push(_colorSchemesPageComponent)
+            }
+
+            Maui.Chip
+            {
+                visible: control.manager.styleType !== 3
+                text: i18n("Enable the Custom style to be able to pick different schemes.")
+                color: Maui.Theme.neutralBackgroundColor
+                iconSource: "dialog-warning"
             }
         }
     }

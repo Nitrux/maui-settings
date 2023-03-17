@@ -128,14 +128,10 @@ ManLib.SettingsPage
 
             Button
             {
-                height: Maui.Style.rowHeight
-                width: height
-
-                background:Rectangle
+                background: Rectangle
                 {
                     radius: Maui.Style.radiusV
                     color: control.manager.solidColor
-                    border.color: Maui.Theme.textColor
                 }
 
                 onClicked: colorDialog.open()
@@ -161,11 +157,12 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Sources")
             label2.text: i18n("Wallpaper source directory")
-
+            columns: 1
             RowLayout
             {
                 width: parent.parent.width
                 spacing: Maui.Style.space.medium
+
                 TextField
                 {
                     id: _sourceDirField

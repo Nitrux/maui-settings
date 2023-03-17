@@ -21,7 +21,7 @@ signals:
 
 private:
 
-    QString m_defaultWallpaperSourceDir = "file:///usr/share/wallpapers/Cask";
+    QString m_defaultWallpaperSourceDir = QStringLiteral("file:///usr/share/wallpapers/Cask");
     QString m_wallpaperSourceDir;
 
 };

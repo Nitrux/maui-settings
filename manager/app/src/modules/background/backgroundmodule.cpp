@@ -3,13 +3,13 @@
 #include <KI18n/KLocalizedString>
 
 
-BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule("background",
+BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule(QStringLiteral("background"),
                                                                     i18n("Background"),
                                                                     i18n("Apperance"),
-                                                                    "qrc:/modules/background/BackgroundModuleView.qml",
-                                                                    "preferences-desktop-wallpaper",
+                                                                    QStringLiteral("qrc:/modules/background/BackgroundModuleView.qml"),
+                                                                    QStringLiteral("preferences-desktop-wallpaper"),
                                                                     i18n("Wallpaper color, sources, aspect and more"),
-                                                                     {"look", "wallpaper", "apperance", "background"},
+                                                                     QStringList{"look", "wallpaper", "apperance", "background"},
                                                                     parent)
   , m_manager(nullptr)
 {

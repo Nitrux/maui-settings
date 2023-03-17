@@ -14,7 +14,7 @@ import QtQuick.Dialogs 1.3
 import org.mauikit.controls 1.3 as Maui
 import QtQuick.Templates 2.15 as T
 
-T.ItemDelegate
+Button
 {
     id: control
 
@@ -24,7 +24,7 @@ T.ItemDelegate
     property alias button : _button
     property Component iconComponent : _defaultGraphic
 
-    property bool flat: false
+   flat: false
     property int radius: Maui.Style.radiusV
     property color color: "transparent"
     property int fillMode : Image.PreserveAspectFit
@@ -102,6 +102,7 @@ T.ItemDelegate
             Layout.fillWidth: true
             text: control.text
             onClicked: control.clicked()
+            autoExclusive: control.autoExclusive
         }
     }
 

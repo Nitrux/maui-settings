@@ -18,6 +18,7 @@
 #include "modules/formfactor/formfactormodule.h"
 #include "modules/accessibility/accessibilitymodule.h"
 #include "modules/screenshot/screenshotmodule.h"
+#include "modules/inputdevices/inputdevicesmodule.h"
 
 #include <MauiMan/mauimanutils.h>
 #include <CaskServer/serverutils.h>
@@ -45,7 +46,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
         emit caskServerRunningChanged(m_caskServerRunning);
     });
 
-//general
+    //general
     m_model->appendModule(new AboutModule);
 
     //apperance
@@ -60,6 +61,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     m_model->appendModule(new ScreenModule);
 
     m_model->appendModule(new AudioModule);
+    m_model->appendModule(new InputDevicesModule);
     m_model->appendModule(new FormFactorModule);
     m_model->appendModule(new AccessibilityModule);
 

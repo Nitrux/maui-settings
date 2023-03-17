@@ -3,13 +3,13 @@
 
 #include <KI18n/KLocalizedString>
 
-AboutModule::AboutModule(QObject *parent) :AbstractModule("about",
+AboutModule::AboutModule(QObject *parent) :AbstractModule(QStringLiteral("about"),
                                                           i18n("About"),
                                                           i18n("General"),
-                                                          "qrc:/modules/about/AboutModuleView.qml",
-                                                          "user-man",
-                                                          "User and system information.",
-                                                          {"about", "info", "information", "user", "data"},
+                                                          QStringLiteral("qrc:/modules/about/AboutModuleView.qml"),
+                                                          QStringLiteral("user-man"),
+                                                          QStringLiteral("User and system information."),
+                                                          QStringList{"about", "info", "information", "user", "data"},
                                                           parent)
   , m_manager(nullptr)
 {

@@ -6,6 +6,7 @@
 
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 
 import org.mauikit.controls 1.3 as Maui
 import org.maui.settings.lib 1.0 as ManLib
@@ -18,8 +19,11 @@ Maui.Page
 
     property var module
     readonly property string moduleId : module ? module.id : ""
-title: _stackView.currentItem.title ? _stackView.currentItem.title : ""
+
+    title: _stackView.currentItem.title ? _stackView.currentItem.title : ""
     showCSDControls: true
+    showTitle: !_searchFieldLoader.visible
+
     headBar.leftContent:[ToolButton
         {
             icon.name: "sidebar-collapse"
@@ -28,12 +32,22 @@ title: _stackView.currentItem.title ? _stackView.currentItem.title : ""
         },
 
         ToolButton
-            {
-                icon.name: "go-previous"
-                onClicked: _stackView.pop()
-                visible:  _stackView.depth > 1
-            }
+        {
+            icon.name: "go-previous"
+            onClicked: _stackView.pop()
+            visible:  _stackView.depth > 1
+        }
     ]
+
+    headBar.middleContent: Loader
+    {
+        id: _searchFieldLoader
+        visible: item
+        sourceComponent: _stackView.currentItem && _stackView.currentItem.hasOwnProperty("searchFieldComponent") ? _stackView.currentItem.searchFieldComponent : null
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignHCenter
+        Layout.maximumWidth: 500
+    }
 
 
     StackView

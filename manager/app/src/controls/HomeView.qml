@@ -1,7 +1,6 @@
 import QtQuick 2.14
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.12
-import org.mauikit.filebrowsing 1.3 as FB
 
 import org.mauikit.controls 1.3 as Maui
 
@@ -11,7 +10,7 @@ Maui.SideBarView
 
     property string currentModule : _viewLoader.currentItem.moduleId
     property string title : _viewLoader.currentItem.title
-property alias sideBarWidth :  control.sideBar.preferredWidth
+    property alias sideBarWidth :  control.sideBar.preferredWidth
 
     sideBar.minimumWidth: 200
     sideBar.preferredWidth: 300
@@ -19,34 +18,8 @@ property alias sideBarWidth :  control.sideBar.preferredWidth
     {
         anchors.fill: parent
 
-Maui.Theme.colorSet: Maui.Theme.Window
-Maui.Theme.inherit: false
-        //        showCSDControls: true
-
-        //        headBar.leftContent: [
-        //            Maui.ToolButtonMenu
-        //            {
-        //                icon.name: "application-menu"
-
-        //                MenuItem
-        //                {
-        //                    text: i18n("Settings")
-        //                    icon.name: "settings-configure"
-        //                    onTriggered:
-        //                    {
-        //                        _dialogLoader.sourceComponent = _settingsDialogComponent
-        //                        dialog.open()
-        //                    }
-        //                }
-
-        //                MenuItem
-        //                {
-        //                    text: i18n("About")
-        //                    icon.name: "documentinfo"
-        //                    onTriggered: root.about()
-        //                }
-        //            }
-        //        ]
+        Maui.Theme.colorSet: Maui.Theme.Window
+        Maui.Theme.inherit: false
 
         headBar.middleContent: TextField
         {
@@ -61,16 +34,10 @@ Maui.Theme.inherit: false
         Maui.ListBrowser
         {
             anchors.fill: parent
-            //            enabled: ModulesManager.serverRunning
             holder.visible: count === 0
             holder.title:i18n("No Modules!")
             holder.body: i18n("No modules avaliable!")
             holder.emoji: "face-confused-symbolic"
-//            holder.actions: Action
-//            {
-//                text: i18n("Start server")
-//                onTriggered: ModulesManager.startServer()
-//            }
 
             model : ModulesManager.model
             currentIndex : -1
@@ -99,62 +66,66 @@ Maui.Theme.inherit: false
             }
 
             flickable.header: Column
-                      {
-                          width: parent.width
-                          spacing: Maui.Style.defaultSpacing
+            {
+                width: parent.width
+                spacing: Maui.Style.defaultSpacing
 
-            Maui.Chip
+                Maui.Chip
                 {
                     width: parent.width
-height: visible ? implicitHeight : 0
+                    height: visible ? implicitHeight : 0
 
                     visible: !ModulesManager.isMauiSession
                     text: i18n("Unable to detect a Cask session. The current session is %1", ModulesManager.currentDesktopSession)
-ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For complete support start a Maui session.")
+                    ToolTip.text: i18n("Most of the settings won't be applied correctly or won't work as expected. For complete support start a Maui session.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                 }
 
-            Maui.Chip
+                Maui.Chip
                 {
                     width: parent.width
-height: visible ? implicitHeight : 0
+                    height: visible ? implicitHeight : 0
 
                     visible: !ModulesManager.serverRunning
                     text:i18n("MauiMan server is offline.")
-ToolTip.text: i18n("Changes in the setting preferences won't be applied live to other apps if the server is off. Changes will take effcet after restarting the apps.")
+                    ToolTip.text: i18n("Changes in the setting preferences won't be applied live to other apps if the server is off. Changes will take effcet after restarting the apps.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                     onClicked: ModulesManager.startMauiManServer()
                 }
 
-            Maui.Chip
+                Maui.Chip
                 {
                     width: parent.width
-height: visible ? implicitHeight : 0
+                    height: visible ? implicitHeight : 0
 
                     visible: !ModulesManager.caskServerRunning
                     text: i18n("Cask server is offline.")
-ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
+                    ToolTip.text: i18n("Changes releated to Cask won't be updated live unless the server is running.")
                     color: Maui.Theme.neutralBackgroundColor
                     iconSource: "dialog-warning"
                     onClicked: ModulesManager.startCaskServer()
                 }
-                      }
+            }
         }
     }
 
 
-        StackView
-        {
-            id: _viewLoader
-            anchors.fill: parent
-
-        }
-
+    StackView
+    {
+        id: _viewLoader
+        anchors.fill: parent
+    }
 
     function loadModule(module)
     {
+        if(_viewLoader.currentItem  && module === _viewLoader.currentItem.module)
+        {
+            console.log("Same module requested. Do nothing", module)
+            return;
+        }
+
         _viewLoader.pop()
         _viewLoader.push(module.qmlSource, ({'module': module}))
     }

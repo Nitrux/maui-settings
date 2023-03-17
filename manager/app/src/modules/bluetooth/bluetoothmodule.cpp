@@ -3,13 +3,13 @@
 #include <KI18n/KLocalizedString>
 
 
-BluetoothModule::BluetoothModule(QObject *parent) :AbstractModule("bluetooth",
+BluetoothModule::BluetoothModule(QObject *parent) :AbstractModule(QStringLiteral("bluetooth"),
                                                                   i18n("Bluetooth"),
                                                                   i18n("Network"),
-                                                                  "qrc:/modules/theme/BluetoothModuleView.qml",
-                                                                  i18n("love"),
+                                                                  QStringLiteral("qrc:/modules/theme/BluetoothModuleView.qml"),
+                                                                  QStringLiteral("love"),
                                                                   i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                                  {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+                                                                  QStringList{"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
                                                                   parent)
 //  , m_manager(nullptr)
 {

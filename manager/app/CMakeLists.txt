@@ -44,6 +44,7 @@ set(modulesSRCS
     src/modules/accessibility/accessibilitymodule.cpp
     src/modules/screenshot/screenshotmodule.cpp
     src/modules/screenshot/screenshothandler.cpp
+    src/modules/inputdevices/inputdevicesmodule.cpp
     )
 
 set(modulesRSCRS
