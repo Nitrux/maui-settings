@@ -199,20 +199,42 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
         if(!m_usePalette)
             return;
 
-        bool isDarkPreferred = type== 1;
+        bool isDarkPreferred = type == 1;
+        auto preferredScheme = type == 3 ? m_theme->customColorScheme() : (isDarkPreferred ? "NitruxDark" : "Nitrux");
 
-        auto scheme  = isDarkPreferred ? "NitruxDark" : "Nitrux";
-        m_palette = new QPalette(loadColorScheme(scheme, m_schemePath));
+        m_palette = new QPalette(loadColorScheme(preferredScheme, m_schemePath));
 
-        qDebug() << "Setting color scheme" << scheme << m_schemePath;
-        qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
+        qDebug() << "Setting color scheme" << preferredScheme << m_schemePath;
 
         if(hasWidgets())
         {
             qApp->setPalette(*m_palette);
+            qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
         }
 
-        QGuiApplication::setPalette(*m_palette);
+//        QGuiApplication::setPalette(*m_palette);
+
+    });
+
+    connect(m_theme, &MauiMan::ThemeManager::customColorSchemeChanged, [this](const QString &scheme)
+    {
+        if(!m_usePalette)
+            return;
+
+        if(m_theme->styleType() != 3)
+            return;
+
+        m_palette = new QPalette(loadColorScheme(scheme, m_schemePath));
+
+        qDebug() << "Setting color scheme" << scheme << m_schemePath;
+
+        if(hasWidgets())
+        {
+            qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
+            qApp->setPalette(*m_palette);
+        }
+
+//        QGuiApplication::setPalette(*m_palette);
 
     });
 }
@@ -363,8 +385,8 @@ void MauiPlatformTheme::applySettings()
 
         if(m_usePalette)
         {
-            qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
             qApp->setPalette(*m_palette);
+            qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
         }
     }
 #endif
@@ -438,8 +460,9 @@ const QFont *MauiPlatformTheme::font(Font type) const
 void MauiPlatformTheme::loadSettings()
 {
     bool isDarkPreferred = m_theme->styleType() == 1;
+    auto preferredScheme = m_theme->styleType() == 3 ? m_theme->customColorScheme() : (isDarkPreferred ? "NitruxDark" : "Nitrux");
 
-    m_palette = new QPalette(loadColorScheme(isDarkPreferred ? "NitruxDark" : "Nitrux", m_schemePath));
+    m_palette = new QPalette(loadColorScheme(preferredScheme, m_schemePath));
 
     m_style = "breeze";
     m_iconTheme = m_theme->iconTheme();
@@ -690,7 +713,8 @@ QPalette MauiPlatformTheme::loadColorScheme(const QString &scheme, QString&path)
 {
     path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("color-schemes/") + scheme + QStringLiteral(".colors"));
 
-    if (path.isEmpty()) {
+    if (path.isEmpty())
+    {
         qWarning() << "Could not find color scheme" << scheme << "falling back to BreezeLight";
         path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("color-schemes/BreezeLight.colors"));
     }

@@ -8,8 +8,8 @@ Background::Background(QObject *parent) : MauiMan::BackgroundManager(parent)
 ,m_wallpaperSourceDir(m_defaultWallpaperSourceDir)
 {
     MauiMan::SettingsStore setting;
-    setting.beginModule("Background");
-    m_wallpaperSourceDir = setting.load("SourceDir", m_wallpaperSourceDir).toString();
+    setting.beginModule(QStringLiteral("Background"));
+    m_wallpaperSourceDir = setting.load(QStringLiteral("SourceDir"), m_wallpaperSourceDir).toString();
     setting.endModule();
 }
 
@@ -25,8 +25,8 @@ void Background::setWallpaperSourceDir(QString wallpaperSourceDir)
 
     m_wallpaperSourceDir = wallpaperSourceDir;
     MauiMan::SettingsStore setting;
-    setting.beginModule("Background");
-    setting.save("SourceDir", m_wallpaperSourceDir);
+    setting.beginModule(QStringLiteral("Background"));
+    setting.save(QStringLiteral("SourceDir"), m_wallpaperSourceDir);
     setting.endModule();
     emit wallpaperSourceDirChanged(m_wallpaperSourceDir);
 }

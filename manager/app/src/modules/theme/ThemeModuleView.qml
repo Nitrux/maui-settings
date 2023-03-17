@@ -348,6 +348,65 @@ ManLib.SettingsPage
         }
     }
 
+    Component
+    {
+        id: _colorSchemesPageComponent
+
+        Maui.GridBrowser
+        {
+            readonly property string title: "Color Schemes"
+
+            model: control.module.colorSchemeModel
+
+            itemSize: 120
+            itemHeight: 100
+
+            delegate: Maui.GridBrowserDelegate
+            {
+                id: _delegate
+                height: GridView.view.cellHeight
+                width: GridView.view.itemSize
+                checked: model.file === control.manager.customColorScheme
+                onClicked:  control.manager.customColorScheme = model.file
+
+                readonly property var colors : model.preview
+
+                template.iconComponent: Control
+                {
+                    implicitHeight: Math.max(_layout.implicitHeight + topPadding + bottomPadding, 64)
+                    padding: Maui.Style.space.small
+
+                    background: Rectangle
+                    {
+                        color: Maui.Theme.alternateBackgroundColor
+                        radius: Maui.Style.radiusV
+                    }
+
+                    contentItem: Column
+                    {
+                        id:_layout
+                        spacing: 2
+                        Repeater
+                        {
+                            model: _delegate.colors
+
+                                delegate:  Rectangle
+                            {
+                                radius: 2
+                                height: 8
+                                width: parent.width
+                                color: modelData
+                            }
+
+                        }
+                    }
+                }
+
+                label1.text: model.name
+            }
+        }
+    }
+
     ButtonGroup
     {
         id: _styleGroup
@@ -483,6 +542,18 @@ ManLib.SettingsPage
             text: i18n("Accent color is not used with the Adaptive Style.")
             color: Maui.Theme.neutralBackgroundColor
             iconSource: "dialog-warning"
+        }
+
+        Maui.SectionItem
+        {
+            label1.text: i18n("Color Scheme")
+            label2.text: i18n("Pick a custom color scheme.")
+            ToolButton
+            {
+                checkable: true
+                icon.name: "go-next"
+                onToggled: control.stackView.push(_colorSchemesPageComponent)
+            }
         }
     }
 

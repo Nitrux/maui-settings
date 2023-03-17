@@ -82,6 +82,7 @@ target_link_libraries(${PROJECT_NAME}
     KF5::CoreAddons
     KF5::I18n
     KF5::ConfigCore
+    KF5::ConfigWidgets
     KF5::IconThemes)
 
 #set(MAUIMAN_MODULES_IMPORT_PATH "fuckery")
