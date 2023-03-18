@@ -3,11 +3,9 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
-import QtQuick.Window 2.2
 
 import org.mauikit.controls 1.3 as Maui
 
@@ -19,239 +17,24 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
+    property int styleItemHeight: Math.min(control.height * 0.2, 200)
+    property int styleItemWidth : Math.min(control.width * 0.2, 400)
+
     Component
     {
         id: _iconsPageComponent
-
-
-        Maui.GridBrowser
+        IconsPage
         {
-            property string title: i18n("Icon Theme")
-
-            property Component searchFieldComponent  :  Maui.SearchField
-            {
-                placeholderText: i18n ("Filter")
-                onAccepted: control.manager.iconsModel.filter = text
-                onCleared: control.manager.iconsModel.filter = undefined
-            }
-
-            itemSize: 144
-            itemHeight: 120
-
-            model: control.manager.iconsModel
-            delegate: Item
-            {
-
-                width: GridView.view.cellWidth
-                height: GridView.view.itemHeight
-
-                Maui.GridBrowserDelegate
-                {
-                    id: _iconsDelegate
-                    property var iconsModel : model.icons
-                    checked:  Maui.Style.currentIconTheme === model.themeName
-                    anchors.fill: parent
-                    anchors.margins: Maui.Style.space.medium
-
-                    flat: false
-
-                    template.iconComponent: GridLayout
-                    {
-                        rows: 2
-                        columns: 3
-                        columnSpacing: Maui.Style.space.small
-                        rowSpacing: Maui.Style.space.small
-
-                        Repeater
-                        {
-                            model: _iconsDelegate.iconsModel
-                            delegate: Image
-                            {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                sourceSize.height: 48
-                                sourceSize.width: 48
-                                fillMode: Image.PreserveAspectFit
-
-                                asynchronous: true
-                                source: modelData
-
-
-                            }
-                        }
-                    }
-
-                    onClicked: control.manager.iconTheme = model.themeName
-
-                    label1.text: model.display
-                }
-
-            }
+            manager: control.manager
         }
-
-
     }
 
     Component
     {
         id: _unitsPageComponent
-        Maui.SettingsPage
+        UnitsPage
         {
-            title: i18n("Units")
-            Maui.SectionItem
-            {
-                label1.text: i18n("Effects")
-                label2.text: i18n("Enable effects.")
-
-                Switch
-                {
-                    checked: control.manager.enableEffects
-                    onToggled: control.manager.enableEffects = !control.manager.enableEffects
-                }
-            }
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("Border Radius")
-                label2.text: i18n("Custom border radius.")
-                columns : 3
-
-                SpinBox
-                {
-                    from: 0
-                    to: 20
-                    value: control.manager.borderRadius
-                    stepSize: 1
-                    onValueModified: control.manager.borderRadius = value
-                }
-
-                Button
-                {
-                    text: i18n("Reset")
-                    onClicked: control.manager.borderRadius = undefined
-                }
-            }
-
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("Elements Size")
-                label2.text: i18n("Size of the UI elements.")
-                columns : 3
-
-                Maui.ToolActions
-                {
-                    autoExclusive: true
-                    expanded: true
-
-                    Action
-                    {
-                        text: i18n("S")
-                        checked: control.manager.paddingSize === 4
-                        onTriggered: control.manager.paddingSize = 4
-                    }
-
-                    Action
-                    {
-                        text: i18n("M")
-                        checked: control.manager.paddingSize === 6
-                        onTriggered: control.manager.paddingSize = 6
-                    }
-
-                    Action
-                    {
-                        text: i18n("L")
-                        checked: control.manager.paddingSize === 8
-                        onTriggered: control.manager.paddingSize = 8
-                    }
-                }
-
-                Button
-                {
-                    text: i18n("Reset")
-                    onClicked: control.manager.paddingSize = undefined
-                }
-            }
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("Content Margins")
-                label2.text: i18n("Margins of the views.")
-                columns : 3
-
-                Maui.ToolActions
-                {
-                    autoExclusive: true
-                    expanded: true
-
-                    Action
-                    {
-                        text: i18n("S")
-                        checked: control.manager.marginSize === 4
-                        onTriggered: control.manager.marginSize = 4
-                    }
-
-                    Action
-                    {
-                        text: i18n("M")
-                        checked: control.manager.marginSize === 6
-                        onTriggered: control.manager.marginSize = 6
-                    }
-
-                    Action
-                    {
-                        text: i18n("L")
-                        checked: control.manager.marginSize === 8
-                        onTriggered: control.manager.marginSize = 8
-                    }
-                }
-
-                Button
-                {
-                    text: i18n("Reset")
-                    onClicked: control.manager.marginSize = undefined
-                }
-            }
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("Content Spacing")
-                label2.text: i18n("Spacing between elements, such as list, tab buttons.")
-                columns : 3
-
-                Maui.ToolActions
-                {
-                    autoExclusive: true
-                    expanded: true
-
-                    Action
-                    {
-                        text: i18n("S")
-                        checked: control.manager.spacingSize === 4
-                        onTriggered: control.manager.spacingSize = 4
-                    }
-
-                    Action
-                    {
-                        text: i18n("M")
-                        checked: control.manager.spacingSize === 6
-                        onTriggered: control.manager.spacingSize = 6
-                    }
-
-                    Action
-                    {
-                        text: i18n("L")
-                        checked: control.manager.spacingSize === 8
-                        onTriggered: control.manager.spacingSize = 8
-                    }
-                }
-
-                Button
-                {
-                    text: i18n("Reset")
-                    onClicked: control.manager.spacingSize = undefined
-                }
-            }
+            manager: control.manager
         }
     }
 
@@ -259,91 +42,10 @@ ManLib.SettingsPage
     Component
     {
         id: _windowControlsPageComponent
-        Maui.SettingsPage
+
+        WindowControlsPage
         {
-            title: i18n("Window Controls")
-            Maui.SectionItem
-            {
-                label1.text: i18n("Style")
-                label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
-                columns : 1
-
-                Flow
-                {
-                    Layout.fillWidth: true
-                    spacing: Maui.Style.space.medium
-
-                    Repeater
-                    {
-                        model: control.manager.windowDecorationsModel
-
-                        delegate: Item
-                        {
-                            width: _layoutWD.implicitWidth
-                            height: _layoutWD.implicitHeight
-
-                            Column
-                            {
-                                id: _layoutWD
-                                spacing: Maui.Style.space.medium
-
-                                Control
-                                {
-                                    Maui.Theme.colorSet: Maui.Theme.Header
-                                    Maui.Theme.inherit: false
-                                    padding: Maui.Style.space.medium
-                                    background: Rectangle
-                                    {
-                                        radius: Maui.Style.radiusV
-                                        color: Maui.Theme.backgroundColor
-                                    }
-
-                                    contentItem: Loader
-                                    {
-                                        property bool isActiveWindow: true
-                                        property bool maximized: false
-                                        property var buttonsModel : Maui.App.controls.rightWindowControls
-                                        asynchronous: true
-                                        source: model.source
-                                    }
-                                }
-
-                                Button
-                                {
-                                    width: parent.width
-                                    checked: model.name === Maui.App.controls.styleName
-                                    text: model.name
-                                    onClicked: control.manager.windowControlsTheme = model.name
-                                }
-                            }
-
-                            RadioButton
-                            {
-                                autoExclusive: true
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.margins: Maui.Style.space.medium
-
-                                visible: model.name === Maui.App.controls.styleName
-                                checked: visible
-                            }
-                        }
-                    }
-                }
-            }
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("Use CSD")
-                label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
-
-                Switch
-                {
-                    checked: control.manager.enableCSD
-                    onToggled: control.manager.enableCSD = !control.manager.enableCSD
-                }
-            }
-
+            manager: control.manager
         }
     }
 
@@ -351,84 +53,18 @@ ManLib.SettingsPage
     {
         id: _colorSchemesPageComponent
 
-        Maui.GridBrowser
+        ColorSchemesPage
         {
-            readonly property string title: "Color Schemes"
+            manager: control.manager
+        }
+    }
 
-            property Component searchFieldComponent:  Maui.SearchField
-            {
-                placeholderText: i18n ("Filter")
-                onAccepted: control.manager.colorSchemeModel.filter = text
-                onCleared: control.manager.colorSchemeModel.filter = undefined
-            }
-
-            model: control.manager.colorSchemeModel
-
-            itemSize: 120
-            itemHeight: 140
-
-            delegate: Maui.GridBrowserDelegate
-            {
-                id: _delegate
-                height: GridView.view.cellHeight
-                width: GridView.view.itemSize
-                checked: model.file === control.manager.customColorScheme
-                onClicked:  control.manager.customColorScheme = model.file
-
-                readonly property var colors : model.preview
-
-                template.iconComponent: Control
-                {
-                    implicitHeight: Math.max(_layout.implicitHeight + topPadding + bottomPadding, 64)
-                    padding: Maui.Style.space.small
-
-                    background: Rectangle
-                    {
-                        color: _delegate.colors[0] //first color is the window background color
-                        radius: Maui.Style.radiusV
-                    }
-
-                    contentItem: Column
-                    {
-                        id:_layout
-                        spacing: 2
-
-                        Label
-                        {
-                            width: parent.width
-                            text: i18n ("Hello")
-                            color: _delegate.colors[1]
-                        }
-
-                        Rectangle
-                        {
-                            radius: 2
-                            height: 16
-                            width: parent.width
-                            color: _delegate.colors[2]
-                        }
-
-                        Rectangle
-                        {
-                            radius: 2
-                            height: 6
-                            width: parent.width
-                            color: _delegate.colors[4]
-                        }
-
-                        Rectangle
-                        {
-                            radius: 2
-                            height: 26
-                            width: parent.width
-                            color: _delegate.colors[3]
-                        }
-
-                    }
-                }
-
-                label1.text: model.name
-            }
+    Component
+    {
+        id: _fontsPageComponent
+        FontsPage
+        {
+            manager: control.manager
         }
     }
 
@@ -450,310 +86,73 @@ ManLib.SettingsPage
             columnSpacing: Maui.Style.space.big
             rowSpacing: Maui.Style.space.big
 
-            ManLib.GraphicButton
+            StyleTypeButton
             {
+                previewHeight: control.styleItemHeight
+                previewWidth: control.styleItemWidth
                 text: i18n("Light")
                 checked: control.manager.styleType === 0
                 onClicked: control.manager.styleType = 0
+                imageSource: control.manager.wallpaper
                 ButtonGroup.group: _styleGroup
-
-                iconComponent: Control
-                {
-                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
-                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
-
-                    padding: Maui.Style.space.medium
-
-                    background: Rectangle
-                    {
-                        color: Maui.Theme.backgroundColor
-                        radius: Maui.Style.radiusV
-                        Maui.IconItem
-                        {
-                            anchors.fill: parent
-
-                            imageSource:  control.manager.wallpaper
-                            fillMode: Image.PreserveAspectCrop
-                            maskRadius: 10
-                        }
-                    }
-
-                    contentItem: ColumnLayout
-                    {
-                        Button
-                        {
-                            Layout.fillWidth: true
-                            icon.name: "love"
-                            icon.color: "#333"
-
-                            background: Rectangle
-                            {
-                                radius: 10
-                                color: "#fafafa"
-                                opacity: 0.5
-                            }
-                        }
-
-                        Item
-                        {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                        }
-
-                        Rectangle
-                        {
-                            color: control.manager.accentColor
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 24
-                            Layout.preferredHeight: 24
-
-                            radius: 10
-                        }
-
-                        Rectangle
-                        {
-                            color: "#fafafa"
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 64
-                            Layout.preferredHeight: 48
-                            radius: 10
-                        }
-                    }
-                }
+                foregroundColor: "#333"
+                backgroundColor: "#fafafa"
+                highlightColor: control.manager.accentColor
             }
 
-            ManLib.GraphicButton
+            StyleTypeButton
             {
+                previewHeight: control.styleItemHeight
+                previewWidth: control.styleItemWidth
                 text: i18n("Dark")
                 checked: control.manager.styleType === 1
                 onClicked: control.manager.styleType = 1
                 ButtonGroup.group: _styleGroup
-                iconComponent: Control
-                {
-                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
-                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+                foregroundColor: "#fafafa"
+                backgroundColor: "#333"
+                highlightColor: control.manager.accentColor
+                imageSource: control.manager.wallpaper
 
-                    padding: Maui.Style.space.medium
-
-                    background: Rectangle
-                    {
-                        color: Maui.Theme.backgroundColor
-                        radius: Maui.Style.radiusV
-                        Maui.IconItem
-                        {
-                            anchors.fill: parent
-
-                            imageSource:  control.manager.wallpaper
-                            fillMode: Image.PreserveAspectCrop
-                            maskRadius: 10
-                        }
-                    }
-
-                    contentItem: ColumnLayout
-                    {
-                        Button
-                        {
-                            Layout.fillWidth: true
-                            icon.name: "love"
-                            icon.color: "#fafafa"
-
-                            background: Rectangle
-                            {
-                                radius: 10
-                                color: "#333"
-                                opacity: 0.5
-                            }
-                        }
-
-                        Item
-                        {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                        }
-
-                        Rectangle
-                        {
-                            color: control.manager.accentColor
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 24
-                            Layout.preferredHeight: 24
-
-                            radius: 10
-                        }
-
-                        Rectangle
-                        {
-                            color: "#333"
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 64
-                            Layout.preferredHeight: 48
-
-                            radius: 10
-                        }
-                    }
-                }
             }
 
-            ManLib.GraphicButton
+            StyleTypeButton
             {
-                text: i18n("Adative")
+                previewHeight: control.styleItemHeight
+                previewWidth: control.styleItemWidth
+                text: i18n("Adaptive")
                 checked: control.manager.styleType === 2
                 onClicked: control.manager.styleType = 2
                 ButtonGroup.group: _styleGroup
-                iconComponent: Control
+                foregroundColor: _imgColors.foreground
+                backgroundColor: _imgColors.background
+                highlightColor: _imgColors.average
+                imageSource: control.manager.wallpaper
+
+                Maui.ImageColors
                 {
-                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
-                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
-
-                    padding: Maui.Style.space.medium
-
-                    Maui.ImageColors
-                        {
-                            id: _imgColors
-                            source: control.manager.wallpaper.replace("file://", "")
-                            onPaletteChanged:
-                            {
-                                console.log(_imgColors.average)
-                            }
-                        }
-
-
-
-                    background: Rectangle
+                    id: _imgColors
+                    source: control.manager.wallpaper.replace("file://", "")
+                    onPaletteChanged:
                     {
-                        color: Maui.Theme.backgroundColor
-                        radius: Maui.Style.radiusV
-                        Maui.IconItem
-                        {
-                            id: _iconWallpaper
-                            anchors.fill: parent
-
-                            imageSource:  control.manager.wallpaper
-                            fillMode: Image.PreserveAspectCrop
-                            maskRadius: 10
-                        }
-                    }
-
-                    contentItem: ColumnLayout
-                    {
-                        Button
-                        {
-                            Layout.fillWidth: true
-                            icon.name: "love"
-                            icon.color: _imgColors.foreground
-
-                            background: Rectangle
-                            {
-                                radius: 10
-                                color: _imgColors.background
-                                opacity: 0.5
-                            }
-                        }
-
-                        ItemHa
-                        {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                        }
-
-                        Rectangle
-                        {
-                            color:  _imgColors.highlight
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 24
-                            Layout.preferredHeight: 24
-
-                            radius: 10
-                        }
-
-                        Rectangle
-                        {
-                            color: _imgColors.average
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 64
-                            Layout.preferredHeight: 48
-                            radius: 10
-                        }
+                        console.log(_imgColors.average)
                     }
                 }
             }
 
-            ManLib.GraphicButton
+            StyleTypeButton
             {
+                previewHeight: control.styleItemHeight
+                previewWidth: control.styleItemWidth
+
                 text: i18n("Custom")
                 checked: control.manager.styleType === 3
                 onClicked: control.manager.styleType = 3
                 ButtonGroup.group: _styleGroup
-                iconComponent: Control
-                {
-                    implicitHeight: Math.min(Screen.desktopAvailableHeight * 0.1, 200)
-                    implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.1, 200)
+                foregroundColor: Maui.Theme.textColor
+                backgroundColor: Maui.Theme.backgroundColor
+                highlightColor:Maui.Theme.highlightColor
+                imageSource: control.manager.wallpaper
 
-                    padding: Maui.Style.space.medium
-
-                    background: Rectangle
-                    {
-                        color: Maui.Theme.backgroundColor
-                        radius: Maui.Style.radiusV
-                        Maui.IconItem
-                        {
-                            anchors.fill: parent
-
-                            imageSource:  control.manager.wallpaper
-                            fillMode: Image.PreserveAspectCrop
-                            maskRadius: 10
-                        }
-                    }
-
-                    contentItem: ColumnLayout
-                    {
-                        Button
-                        {
-                            Layout.fillWidth: true
-                            icon.name: "love"
-
-                            background: Rectangle
-                            {
-                                radius: 10
-                                color: Maui.Theme.backgroundColor
-                                opacity: 0.5
-                            }
-                        }
-
-                        Item
-                        {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                        }
-
-                        Rectangle
-                        {
-                            color: Maui.Theme.highlightColor
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 24
-                            Layout.preferredHeight: 24
-
-                            radius: 10
-                        }
-
-                        Rectangle
-                        {
-                            color: Maui.Theme.backgroundColor
-
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 64
-                            Layout.preferredHeight: 48
-
-                            radius: 10
-                        }
-                    }
-                }
             }
         }
     }
@@ -767,6 +166,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Units and Preferences")
             label2.text: i18n("Customize the look-and-feel of elements.")
+            //            iconSource: "preferences-desktop-tweaks"
 
             ToolButton
             {
@@ -776,12 +176,12 @@ ManLib.SettingsPage
             }
         }
 
-
         Maui.SectionItem
         {
             label1.text: i18n("Window Controls Decorations")
             label2.text: i18n("Style and options.")
             visible: !Maui.Handy.isMobile
+            //            iconSource: "preferences-desktop-theme-windowdecorations"
             ToolButton
             {
                 checkable: true
@@ -792,6 +192,7 @@ ManLib.SettingsPage
 
         Maui.SectionItem
         {
+            //            iconSource: "preferences-desktop-font"
             label1.text: i18n("Fonts")
             label2.text: i18n("Pick the system fonts.")
             ToolButton
@@ -801,9 +202,7 @@ ManLib.SettingsPage
                 onToggled: control.stackView.push(_fontsPageComponent)
             }
         }
-
     }
-
 
     Maui.SectionGroup
     {
@@ -811,6 +210,7 @@ ManLib.SettingsPage
 
         Maui.SectionItem
         {
+            //            iconSource: "preferences-desktop-color"
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
 
@@ -840,6 +240,7 @@ ManLib.SettingsPage
             label1.text: i18n("Color Scheme")
             label2.text: i18n("Pick a custom color scheme.")
             enabled: control.manager.styleType === 3
+
             ToolButton
             {
                 checkable: true
@@ -905,6 +306,8 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Icon Theme")
             label2.text: control.manager.iconTheme
+            //            iconSource: "preferences-desktop-icons"
+
             ToolButton
             {
                 checkable: true
@@ -913,59 +316,4 @@ ManLib.SettingsPage
             }
         }
     }
-
-
-    Component
-    {
-        id: _fontsPageComponent
-        Maui.SettingsPage
-        {
-            title: i18n ("Fonts")
-
-            Maui.SectionGroup
-            {
-                title: i18n("System Fonts")
-                description: i18n ("Pick the default system fonts to be used.")
-
-                Maui.SectionItem
-                {
-                    id: _defaultFontSection
-                    label1.text: i18n("Default Font")
-                    label2.text: defaultFont.family
-                    columns: 3
-                    property font defaultFont : control.module.getFont(control.manager.defaultFont)
-
-                    Button
-                    {
-                        text: _defaultFontSection.defaultFont.family
-                        onClicked:
-                        {
-                            _fontEditDialog.mfont = control.module.getFont(control.manager.defaultFont)
-                            _fontEditDialog.open()
-                        }
-                    }
-
-                    Button
-                    {
-                        text: i18n("Reset")
-                        onClicked: control.manager.defaultFont = undefined
-                    }
-                }
-            }
-
-            Maui.FontPickerDialog
-            {
-                id: _fontEditDialog
-
-                onAccepted:
-                {
-                    let desc = control.module.fontToString(_fontEditDialog.mfont)
-                    control.manager.defaultFont = desc
-                }
-
-            }
-        }
-    }
-
-
 }

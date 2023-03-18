@@ -8,8 +8,8 @@ Maui.SideBarView
 {
     id: control
 
-    property string currentModule : _viewLoader.currentItem.moduleId
-    property string title : _viewLoader.currentItem.title
+    property string currentModule : _viewLoader.currentItem ? _viewLoader.currentItem.moduleId : ""
+    property string title : _viewLoader.currentItem ? _viewLoader.currentItem.title : ""
     property alias sideBarWidth :  control.sideBar.preferredWidth
 
     sideBar.minimumWidth: 200
@@ -120,17 +120,19 @@ Maui.SideBarView
 
         Pane
         {
+            id:_errorPane
+            property string error
+
             Maui.Holder
             {
                 anchors.fill: parent
                 emoji: "emblem-error"
                 isMask: false
                 title: i18n("Error!")
-                body: i18n("Failed to create the module %1.", control.currentModule)
+                body: i18n("Failed to create the module %1.\n%2", control.currentModule, _errorPane.error)
             }
         }
     }
-
 
 
     StackView
@@ -158,7 +160,7 @@ Maui.SideBarView
 
         }else
         {
-            _viewLoader.push(_errorComponent)
+            _viewLoader.push(_errorComponent, ({'error': component.errorString()}))
         }
 
     }

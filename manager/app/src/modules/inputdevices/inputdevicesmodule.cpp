@@ -7,7 +7,7 @@ InputDevicesModule::InputDevicesModule(QObject *parent) : AbstractModule(QString
                                                                          i18n("Input Devices"),
                                                                          i18n("System"),
                                                                          QStringLiteral("qrc:/modules/inputdevices/InputDevicesModuleView.qml"),
-                                                                         QStringLiteral("input_device_settings"),
+                                                                         QStringLiteral("preferences-desktop-peripherals"),
                                                                          i18n("Configure your input devices."),
                                                                          QStringList{"mouse", "keyboard", "keymap", "variant", "layout"},
                                                                          parent)

@@ -12,7 +12,6 @@ import QtGraphicalEffects 1.0
 import QtQuick.Dialogs 1.3
 
 import org.mauikit.controls 1.3 as Maui
-import org.mauikit.filebrowsing 1.3 as FB
 
 import org.maui.settings 1.0 as Man
 import org.maui.settings.lib 1.0 as ManLib
@@ -185,64 +184,13 @@ ManLib.SettingsPage
         }
     }
 
-
     Component
     {
         id: _wallpapersGridViewComponent
 
-        Maui.GridBrowser
+        WallpapersPage
         {
-            id: _wallpapersGridView
-            property string title : i18n("Wallpapers")
-            //            implicitHeight: contentHeight
-            currentIndex :-1
-
-            itemSize: Math.min(Math.floor(_wallpapersGridView.width/3), 200)
-
-            model: Maui.BaseModel
-            {
-                list: FB.FMList
-                {
-                    path: control.module.manager.wallpaperSourceDir
-                    filters: FB.FM.nameFilters(FB.FMList.IMAGE)
-                    //                        limit: 40
-                }
-            }
-
-            delegate: Item
-            {
-                height: GridView.view.cellHeight
-                width: GridView.view.cellWidth
-                property string wallpaper : model.url
-                Maui.GridBrowserDelegate
-                {
-                    checkable: false
-                    checked: model.thumbnail ===  control.module.manager.wallpaperSource
-                    isCurrentItem: parent.GridView.isCurrentItem
-                    anchors.fill: parent
-                    anchors.margins: Maui.Style.space.tiny
-                    iconSource: model.icon
-                    imageSource: model.thumbnail
-                    //                    iconSizeHint: Maui.Style.iconSizes.medium
-                    label1.text: model.label
-                    //                    template.labelSizeHint: 32
-                    labelsVisible:false
-                    tooltipText: model.label
-
-                    onClicked:
-                    {
-                        _wallpapersGridView.currentIndex = index
-                        control.module.manager.wallpaperSource = model.thumbnail
-                    }
-
-                    onDoubleClicked:
-                    {
-                        _wallpapersGridView.currentIndex = index
-                        control.module.manager.wallpaperSource = model.thumbnail
-                        control.stackView.pop()
-                    }
-                }
-            }
+            manager: control.manager
         }
     }
 }

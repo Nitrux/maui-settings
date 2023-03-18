@@ -3,13 +3,13 @@
 #include <KI18n/KLocalizedString>
 
 
-ShellModule::ShellModule(QObject *parent) :AbstractModule(QStringLiteral("shell"),
+ShellModule::ShellModule(QObject *parent) :AbstractModule(QStringLiteral("workspace"),
+                                                          i18n("Workspace"),
                                                           i18n("Shell"),
-                                                          i18n("System"),
                                                           QStringLiteral("qrc:/modules/theme/ShellModuleView.qml"),
-                                                          QStringLiteral("preferences-desktop"),
+                                                          QStringLiteral("preferences-desktop-workspaces"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                          QStringList{"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},                                                          parent)
+                                                          QStringList{i18n("dock"), i18n("panel"), i18n("cask"), i18n("workspace"), i18n("launcher")},                                                          parent)
 //  , m_manager(nullptr)
 {
 //    qRegisterMetaType<Theme *>("const Theme*"); // this is needed for QML to know of FMList in the search method

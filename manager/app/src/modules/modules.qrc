@@ -9,6 +9,12 @@
         <file>accessibility/AccessibilityModuleView.qml</file>
         <file>screenshot/ScreenshotModuleView.qml</file>
         <file>inputdevices/InputDevicesModuleView.qml</file>
+        <file>theme/StyleTypeButton.qml</file>
+        <file>theme/IconsPage.qml</file>
+        <file>theme/ColorSchemesPage.qml</file>
+        <file>theme/WindowControlsPage.qml</file>
+        <file>theme/FontsPage.qml</file>
+        <file>theme/UnitsPage.qml</file>
+        <file>background/WallpapersPage.qml</file>
     </qresource>
-    <qresource prefix="/"/>
 </RCC>
