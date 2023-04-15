@@ -78,11 +78,35 @@ ManLib.SettingsPage
         title: i18n("Style")
         description: i18n("Pick a style variant.")
 
+        Maui.SectionItem
+        {
+            label1.text: i18n("True Black")
+            label2.text: i18n("True black color for saving battery on AMOLED and OLED displays. And for E Ink displays.")
+
+            Switch
+            {
+                checked: control.manager.styleType === 4
+                onToggled: control.manager.styleType = 4
+            }
+        }
+
+        Maui.SectionItem
+        {
+            label1.text: i18n("Inverted")
+            label2.text: i18n("Inverted color for E Ink displays.")
+
+            Switch
+            {
+                checked: control.manager.styleType === 5
+                onToggled: control.manager.styleType = 5
+            }
+        }
+
         GridLayout
         {
             Layout.alignment: Qt.AlignCenter
 
-            columns: parent.width > 600 ? 4 : 2
+            columns: parent.width > 800 ? 4 : 2
             columnSpacing: Maui.Style.space.big
             rowSpacing: Maui.Style.space.big
 
@@ -152,7 +176,6 @@ ManLib.SettingsPage
                 backgroundColor: Maui.Theme.backgroundColor
                 highlightColor:Maui.Theme.highlightColor
                 imageSource: control.manager.wallpaper
-
             }
         }
     }
@@ -195,6 +218,7 @@ ManLib.SettingsPage
             //            iconSource: "preferences-desktop-font"
             label1.text: i18n("Fonts")
             label2.text: i18n("Pick the system fonts.")
+
             ToolButton
             {
                 checkable: true
@@ -228,8 +252,8 @@ ManLib.SettingsPage
 
             Maui.Chip
             {
-                visible: control.manager.styleType === 2 || control.manager.styleType === 3
-                text: i18n("Accent color is not used with the Adaptive or Custom styles.")
+                visible: control.manager.styleType === 2 || control.manager.styleType === 3 || control.manager.trueBlack
+                text: i18n("Accent color is only used with the Light and Dark styles.")
                 color: Maui.Theme.neutralBackgroundColor
                 iconSource: "dialog-warning"
             }

@@ -47,6 +47,8 @@ Button
             fillMode: control.fillMode
             maskRadius: control.radius
             imageSizeHint: control.imageWidth
+            imageWidth: 400
+            imageHeight: 200
         }
     }
 

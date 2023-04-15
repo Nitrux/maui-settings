@@ -42,6 +42,8 @@ ManLib.GraphicButton
                 imageSource:  control.imageSource
                 fillMode: Image.PreserveAspectCrop
                 maskRadius: 10
+                imageWidth: 400
+                imageHeight: 200
             }
         }
 

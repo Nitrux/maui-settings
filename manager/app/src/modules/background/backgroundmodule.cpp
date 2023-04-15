@@ -14,7 +14,6 @@ BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule(QStringLiter
   , m_manager(nullptr)
 {
     qRegisterMetaType<Background*>("const Background*"); // this is needed for QML to know of FMList in the search method
-
 }
 
 Background *BackgroundModule::manager()

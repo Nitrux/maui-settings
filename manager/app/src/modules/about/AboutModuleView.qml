@@ -221,10 +221,11 @@ ManLib.SettingsPage
                 label1.text: modelData.name
                 label2.text: modelData.type
                 iconSource: "drive-harddisk"
+                columns: 1
                 flat: false
                 ProgressBar
                 {
-                    width: parent.parent.width
+                    Layout.fillWidth: true
                     from: 0
                     to: modelData.bytesTotal
                     value: modelData.bytesTotal - modelData.bytesAvailable

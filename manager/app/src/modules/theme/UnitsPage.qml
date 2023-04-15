@@ -56,7 +56,7 @@ Maui.SettingsPage
     Maui.SectionItem
     {
         label1.text: i18n("Elements Size")
-        label2.text: i18n("Size of the UI elements.")
+        label2.text: i18n("Changes the padding value of controls such as buttons, menu entries, fields, tool bars etc.")
         columns : 3
 
         Maui.ToolActions
@@ -96,7 +96,7 @@ Maui.SettingsPage
     Maui.SectionItem
     {
         label1.text: i18n("Content Margins")
-        label2.text: i18n("Margins of the views.")
+        label2.text: i18n("Changes the margins of the views, such as list and icon views.")
         columns : 3
 
         Maui.ToolActions
@@ -136,7 +136,7 @@ Maui.SettingsPage
     Maui.SectionItem
     {
         label1.text: i18n("Content Spacing")
-        label2.text: i18n("Spacing between elements, such as list, tab buttons.")
+        label2.text: i18n("Spacing between elements in lists.")
         columns : 3
 
         Maui.ToolActions
