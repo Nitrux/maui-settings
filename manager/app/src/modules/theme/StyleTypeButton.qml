@@ -16,13 +16,16 @@ ManLib.GraphicButton
 {
     id: control
 
-    property string imageSource
+    property string imageSource : manager.wallpaper
+
     property color backgroundColor
     property color foregroundColor
     property color highlightColor
 
-    property int previewHeight
-    property int previewWidth
+    property int previewHeight : 200
+    property int previewWidth : 400
+
+    autoExclusive: true
 
     iconComponent: Control
     {
@@ -33,34 +36,33 @@ ManLib.GraphicButton
 
         background: Rectangle
         {
-            color: Maui.Theme.backgroundColor
-            radius: Maui.Style.radiusV
+            color: control.backgroundColor
+            radius: control.radius
+
             Maui.IconItem
             {
                 anchors.fill: parent
 
                 imageSource:  control.imageSource
                 fillMode: Image.PreserveAspectCrop
-                maskRadius: 10
+                maskRadius: control.radius
                 imageWidth: 400
                 imageHeight: 200
+                opacity: 0.7
             }
         }
 
         contentItem: ColumnLayout
         {
-            Button
+            clip: true
+
+            Rectangle
             {
                 Layout.fillWidth: true
-                icon.name: "love"
-                icon.color: control.foregroundColor
-
-                background: Rectangle
-                {
-                    radius: 10
-                    color: control.backgroundColor
-                    opacity: 0.5
-                }
+                radius: 10
+                implicitHeight: 24
+                color: control.backgroundColor
+                opacity: 0.5
             }
 
             Item
@@ -71,23 +73,43 @@ ManLib.GraphicButton
 
             Rectangle
             {
-                color: control.highlightColor
-
-                Layout.fillWidth: true
-                Layout.maximumHeight: 24
-                Layout.preferredHeight: 24
-
-                radius: 10
-            }
-
-            Rectangle
-            {
                 color: control.backgroundColor
 
                 Layout.fillWidth: true
-                Layout.maximumHeight: 64
+                Layout.maximumHeight: 100
                 Layout.preferredHeight: 48
+                Layout.fillHeight: true
                 radius: 10
+
+
+                Column
+                {
+                    spacing: Maui.Style.space.medium
+                    anchors
+                    {
+                        fill: parent
+                        margins: Maui.Style.space.medium
+                    }
+
+                    Rectangle
+                    {
+                        color: control.highlightColor
+                        width: parent.width
+
+                        height: 24
+                        radius: 10
+                    }
+
+                    Rectangle
+                    {
+                        color: control.foregroundColor
+                        width: parent.width
+                        height: 24
+                        radius: 10
+                    }
+                }
+
+
             }
         }
     }

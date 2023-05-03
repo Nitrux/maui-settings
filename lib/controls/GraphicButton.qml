@@ -20,11 +20,13 @@ Button
 
     implicitHeight: implicitContentHeight + topPadding + bottomPadding
     implicitWidth: implicitContentWidth + rightPadding + leftPadding
+
     spacing: Maui.Style.space.medium
+    flat: false
+
     property alias button : _button
     property Component iconComponent : _defaultGraphic
 
-   flat: false
     property int radius: Maui.Style.radiusV
     property color color: "transparent"
     property int fillMode : Image.PreserveAspectFit
@@ -34,7 +36,6 @@ Button
 
     property bool imageVisible : true
     property int imageWidth :  -1
-//    property int imageHeight : -1
 
     Component
     {
@@ -72,7 +73,7 @@ Button
                 sourceComponent: control.iconComponent
             }
 
-            CheckBox
+            Maui.CheckBoxItem
             {
                 autoExclusive: control.autoExclusive
                 anchors.left: parent.left

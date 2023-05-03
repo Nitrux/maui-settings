@@ -40,8 +40,10 @@ Maui.GridBrowser
         height: GridView.view.cellHeight
         width: GridView.view.cellWidth
         property string wallpaper : model.url
+
         Maui.GridBrowserDelegate
         {
+            autoExclusive: true
             checkable: false
             checked: model.thumbnail ===  control.manager.wallpaperSource
             isCurrentItem: parent.GridView.isCurrentItem

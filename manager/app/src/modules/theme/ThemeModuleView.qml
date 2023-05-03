@@ -17,8 +17,6 @@ ManLib.SettingsPage
 
     property var manager : control.module.manager
 
-    property int styleItemHeight: Math.min(control.height * 0.2, 200)
-    property int styleItemWidth : Math.min(control.width * 0.2, 400)
 
     Component
     {
@@ -37,7 +35,6 @@ ManLib.SettingsPage
             manager: control.manager
         }
     }
-
 
     Component
     {
@@ -75,82 +72,78 @@ ManLib.SettingsPage
 
     Maui.SectionGroup
     {
+        id: _styleSection
         title: i18n("Style")
         description: i18n("Pick a style variant.")
 
-        Maui.SectionItem
-        {
-            label1.text: i18n("True Black")
-            label2.text: i18n("True black color for saving battery on AMOLED and OLED displays. And for E Ink displays.")
-
-            Switch
-            {
-                checked: control.manager.styleType === 4
-                onToggled: control.manager.styleType = 4
-            }
-        }
-
-        Maui.SectionItem
-        {
-            label1.text: i18n("Inverted")
-            label2.text: i18n("Inverted color for E Ink displays.")
-
-            Switch
-            {
-                checked: control.manager.styleType === 5
-                onToggled: control.manager.styleType = 5
-            }
-        }
-
         GridLayout
         {
+            id: _styleLayout
             Layout.alignment: Qt.AlignCenter
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.min(control.height * 0.6, 400)
 
-            columns: parent.width > 800 ? 4 : 2
+            columns: 3
+
             columnSpacing: Maui.Style.space.big
             rowSpacing: Maui.Style.space.big
 
             StyleTypeButton
             {
-                previewHeight: control.styleItemHeight
-                previewWidth: control.styleItemWidth
-                text: i18n("Light")
-                checked: control.manager.styleType === 0
-                onClicked: control.manager.styleType = 0
-                imageSource: control.manager.wallpaper
                 ButtonGroup.group: _styleGroup
+
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                text: i18n("Light")
+
                 foregroundColor: "#333"
                 backgroundColor: "#fafafa"
                 highlightColor: control.manager.accentColor
+
+                checked: control.manager.styleType === 0
+                onClicked: control.manager.styleType = 0
             }
 
             StyleTypeButton
             {
-                previewHeight: control.styleItemHeight
-                previewWidth: control.styleItemWidth
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
                 text: i18n("Dark")
+
                 checked: control.manager.styleType === 1
                 onClicked: control.manager.styleType = 1
+
                 ButtonGroup.group: _styleGroup
+
                 foregroundColor: "#fafafa"
                 backgroundColor: "#333"
                 highlightColor: control.manager.accentColor
-                imageSource: control.manager.wallpaper
-
             }
 
             StyleTypeButton
             {
-                previewHeight: control.styleItemHeight
-                previewWidth: control.styleItemWidth
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+
                 text: i18n("Adaptive")
+
                 checked: control.manager.styleType === 2
                 onClicked: control.manager.styleType = 2
+
                 ButtonGroup.group: _styleGroup
+
                 foregroundColor: _imgColors.foreground
                 backgroundColor: _imgColors.background
                 highlightColor: _imgColors.average
-                imageSource: control.manager.wallpaper
 
                 Maui.ImageColors
                 {
@@ -165,17 +158,59 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                previewHeight: control.styleItemHeight
-                previewWidth: control.styleItemWidth
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
 
                 text: i18n("Custom")
                 checked: control.manager.styleType === 3
                 onClicked: control.manager.styleType = 3
                 ButtonGroup.group: _styleGroup
-                foregroundColor: Maui.Theme.textColor
-                backgroundColor: Maui.Theme.backgroundColor
-                highlightColor:Maui.Theme.highlightColor
-                imageSource: control.manager.wallpaper
+
+                foregroundColor: "#333"
+                backgroundColor: "#f4f2f8"
+                highlightColor: "#cb83f8"
+            }
+
+            StyleTypeButton
+            {
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                ButtonGroup.group: _styleGroup
+
+                text: i18n("Black")
+
+
+                foregroundColor: "#fff"
+                backgroundColor: "#000"
+                highlightColor: "#fff"
+
+                checked: control.manager.styleType === 4
+                onClicked: control.manager.styleType = 4
+            }
+
+            StyleTypeButton
+            {
+                Layout.maximumWidth: 200
+                Layout.minimumWidth: 120
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                ButtonGroup.group: _styleGroup
+
+                text: i18n("White")
+
+
+                foregroundColor: "#000"
+                backgroundColor: "#fff"
+                highlightColor: "#000"
+
+                checked: control.manager.styleType === 5
+                onClicked: control.manager.styleType = 5
             }
         }
     }

@@ -27,9 +27,9 @@ ManLib.SettingsPage
     {
         title: i18n("Wallpaper Image")
         description: i18n("Pick a new image")
+
         RowLayout
         {
-            //                        Layout.margins: Maui.Style.space.medium
             Layout.fillWidth: true
             Layout.fillHeight: false
             Layout.preferredHeight: 180
@@ -46,7 +46,7 @@ ManLib.SettingsPage
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 imageVisible: control.manager.showWallpaper
-                radius: fillMode  === Image.PreserveAspectFit ? 0 : 8
+                radius: fillMode  === Image.PreserveAspectFit ? 0 : Maui.Style.radiusV
 
                 color: control.manager.solidColor
                 fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
@@ -54,21 +54,18 @@ ManLib.SettingsPage
                 text: i18n("Workspace")
 
                 onClicked: control.stackView.push(_wallpapersGridViewComponent)
-
             }
 
             ManLib.GraphicButton
             {
-                radius: 8
                 color: "#333"
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 fillMode: control.manager.fitWallpaper ? Image.PreserveAspectFit :Image.PreserveAspectCrop
                 imageSource: control.manager.wallpaperSource
                 text: i18n("Lock Screen")
+
                 onClicked: control.stackView.push(_wallpapersGridViewComponent)
-
-
             }
         }
     }
