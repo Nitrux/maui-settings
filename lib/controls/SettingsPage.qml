@@ -26,8 +26,9 @@ Maui.Page
 
     headBar.leftContent:[ToolButton
         {
-            icon.name: "sidebar-collapse"
-
+            icon.name: sideBar.visible ? "sidebar-collapse" : "sidebar-expand"
+            checked: sideBar.visible
+            visible: sideBar.collapsed
             onClicked: toggleSideBar()
         },
 

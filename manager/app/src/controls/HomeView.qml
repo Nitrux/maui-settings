@@ -162,7 +162,6 @@ Maui.SideBarView
         {
             _viewLoader.push(_errorComponent, ({'error': component.errorString()}))
         }
-
     }
 
     function toggleSideBar()

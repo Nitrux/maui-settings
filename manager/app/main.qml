@@ -12,11 +12,11 @@ Maui.ApplicationWindow
     id: root
     title: _homeView.title
 
-Settings
+    Settings
     {
         id: settings
         property alias sideBarWidth : _homeView.sideBarWidth
-}
+    }
 
     HomeView
     {
@@ -24,15 +24,14 @@ Settings
         anchors.fill: parent
     }
 
-
     function isModuleOpen(module : String)
     {
-       return _homeView.currentModule === module
+        return _homeView.currentModule === module
     }
 
     function openModule(module : String)
     {
-         _homeView.loadModule(ModulesManager.sourceFor(module))
+        _homeView.loadModule(ModulesManager.sourceFor(module))
     }
 
 }

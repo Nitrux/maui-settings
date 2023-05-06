@@ -38,6 +38,73 @@ ManLib.SettingsPage
             }
         }
 
+        Maui.SectionItem
+        {
+            label1.text: i18n("Scroll Bars Policy")
+            label2.text: i18n("Scrolling bars visibility and behaviour.")
+
+            columns:1
+
+            ColumnLayout
+            {
+                Layout.fillWidth: true
+
+                Maui.SectionItem
+                {
+                    label1.text: i18n("Always On")
+
+                    onClicked: control.manager.scrollBarPolicy = 0
+
+                    CheckBox
+                    {
+                        autoExclusive: true
+                        checked: control.manager.scrollBarPolicy === 0
+                    }
+                }
+
+                Maui.SectionItem
+                {
+                    label1.text: i18n("As Needed")
+
+                    onClicked: control.manager.scrollBarPolicy = 1
+
+                    CheckBox
+                    {
+                        autoExclusive: true
+                        checked: control.manager.scrollBarPolicy === 1
+                    }
+                }
+
+                Maui.SectionItem
+                {
+                    label1.text: i18n("Always Off")
+
+                    onClicked: control.manager.scrollBarPolicy = 2
+
+                    CheckBox
+                    {
+                        autoExclusive: true
+                        checked: control.manager.scrollBarPolicy === 2
+                    }
+                }
+
+                Maui.SectionItem
+                {
+                    label1.text: i18n("Auto Hide")
+
+                    onClicked: control.manager.scrollBarPolicy = 3
+
+                    CheckBox
+                    {
+                        autoExclusive: true
+                        checked: control.manager.scrollBarPolicy === 3
+                    }
+                }
+
+            }
+        }
     }
 
- }
+
+
+}

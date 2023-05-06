@@ -7,7 +7,6 @@ namespace MauiMan
 class AccessibilityManager;
 }
 
-
 class AccessibilityModule : public AbstractModule
 {
     Q_OBJECT

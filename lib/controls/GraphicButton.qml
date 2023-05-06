@@ -71,6 +71,7 @@ Button
                 anchors.fill: parent
                 asynchronous: true
                 sourceComponent: control.iconComponent
+                scale: control.checked ? 0.8 : 1
             }
 
             Maui.CheckBoxItem
@@ -82,6 +83,9 @@ Button
                 checked: control.checked
                 checkable: control.checkable
                 visible: checked
+
+                height: Maui.Style.iconSizes.medium
+                width: height
             }
 
             radius: control.radius

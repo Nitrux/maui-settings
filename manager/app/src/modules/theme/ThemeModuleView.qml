@@ -92,11 +92,6 @@ ManLib.SettingsPage
             {
                 ButtonGroup.group: _styleGroup
 
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
                 text: i18n("Light")
 
                 foregroundColor: "#333"
@@ -109,11 +104,6 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
                 text: i18n("Dark")
 
                 checked: control.manager.styleType === 1
@@ -128,12 +118,6 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-
                 text: i18n("Adaptive")
 
                 checked: control.manager.styleType === 2
@@ -158,11 +142,6 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
                 text: i18n("Custom")
                 checked: control.manager.styleType === 3
                 onClicked: control.manager.styleType = 3
@@ -175,11 +154,6 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
                 ButtonGroup.group: _styleGroup
 
                 text: i18n("Black")
@@ -195,11 +169,6 @@ ManLib.SettingsPage
 
             StyleTypeButton
             {
-                Layout.maximumWidth: 200
-                Layout.minimumWidth: 120
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
                 ButtonGroup.group: _styleGroup
 
                 text: i18n("White")
@@ -273,8 +242,11 @@ ManLib.SettingsPage
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
 
+            columns:1
+
             Maui.ColorsRow
             {
+                Layout.fillWidth: true
                 size: Maui.Style.iconSizes.medium*1.2
                 colors: ["#26c6da", "#2C3E50", "#1976d2", "#212121", "#8e24aa", "#16A085", "#BBCDE5", "#E6BCC3", "#FEF9A7", "#00FFAB", "#2A2550", "#827397", "#FF6363", "#F900BF", "#FFF56D"]
                 currentColor: control.manager.accentColor
@@ -287,7 +259,9 @@ ManLib.SettingsPage
 
             Maui.Chip
             {
-                visible: control.manager.styleType === 2 || control.manager.styleType === 3 || control.manager.trueBlack
+                Layout.fillWidth: true
+
+                visible: control.manager.styleType > 1
                 text: i18n("Accent color is only used with the Light and Dark styles.")
                 color: Maui.Theme.neutralBackgroundColor
                 iconSource: "dialog-warning"
@@ -309,6 +283,8 @@ ManLib.SettingsPage
 
             Maui.Chip
             {
+                Layout.fillWidth: true
+
                 visible: control.manager.styleType !== 3
                 text: i18n("Enable the Custom style to be able to pick different schemes.")
                 color: Maui.Theme.neutralBackgroundColor

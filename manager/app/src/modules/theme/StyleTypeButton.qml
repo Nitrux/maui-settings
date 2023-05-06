@@ -7,6 +7,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
+import QtGraphicalEffects 1.0
 
 import org.mauikit.controls 1.3 as Maui
 
@@ -27,12 +28,17 @@ ManLib.GraphicButton
 
     autoExclusive: true
 
+    Layout.maximumWidth: 250
+    Layout.minimumWidth: 84
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+
     iconComponent: Control
     {
         implicitHeight: control.previewHeight
         implicitWidth: control.previewWidth
 
-        padding: Maui.Style.space.medium
+        padding: Maui.Style.defaultPadding
 
         background: Rectangle
         {
@@ -50,6 +56,17 @@ ManLib.GraphicButton
                 imageHeight: 200
                 opacity: 0.7
             }
+
+            layer.enabled: Maui.Style.enableEffects
+            layer.effect: DropShadow
+            {
+                horizontalOffset: 0
+                verticalOffset: 0
+                radius: 8
+                samples: 16
+                color: "#80000000"
+                transparentBorder: true
+            }
         }
 
         contentItem: ColumnLayout
@@ -59,10 +76,9 @@ ManLib.GraphicButton
             Rectangle
             {
                 Layout.fillWidth: true
-                radius: 10
+                radius: control.radius
                 implicitHeight: 24
                 color: control.backgroundColor
-                opacity: 0.5
             }
 
             Item
@@ -79,8 +95,7 @@ ManLib.GraphicButton
                 Layout.maximumHeight: 100
                 Layout.preferredHeight: 48
                 Layout.fillHeight: true
-                radius: 10
-
+                radius: control.radius
 
                 Column
                 {
@@ -88,7 +103,7 @@ ManLib.GraphicButton
                     anchors
                     {
                         fill: parent
-                        margins: Maui.Style.space.medium
+                        margins: Maui.Style.defaultPadding
                     }
 
                     Rectangle
@@ -97,7 +112,7 @@ ManLib.GraphicButton
                         width: parent.width
 
                         height: 24
-                        radius: 10
+                        radius: control.radius
                     }
 
                     Rectangle
@@ -105,11 +120,9 @@ ManLib.GraphicButton
                         color: control.foregroundColor
                         width: parent.width
                         height: 24
-                        radius: 10
+                        radius: control.radius
                     }
                 }
-
-
             }
         }
     }
