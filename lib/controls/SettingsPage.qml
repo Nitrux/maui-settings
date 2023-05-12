@@ -36,7 +36,8 @@ Maui.Page
         {
             icon.name: "go-previous"
             onClicked: _stackView.pop()
-            visible:  _stackView.depth > 1
+            visible: _stackView.depth > 1
+            text: _stackView.depth > 1 ? (_stackView.get(_stackView.currentItem.StackView.index-1, StackView.DontLoad).title) : ""
         }
     ]
 
