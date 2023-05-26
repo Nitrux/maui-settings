@@ -17,6 +17,7 @@ project(MauiSettings VERSION ${MAUISETTINGS_VERSION})
 
 set(REQUIRED_QT_VERSION 5.15.2)
 set(REQUIRED_KF5_VERSION 5.40.0)
+set(REQUIRED_MAUI_VERSION 3.0.0)
 
 find_package(ECM ${REQUIRED_KF5_VERSION} NO_MODULE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
@@ -42,7 +43,7 @@ include(CMakePackageConfigHelpers)
 find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets DBus)
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes Config ConfigWidgets)
 
-find_package(MauiKit REQUIRED)
+find_package(MauiKit ${REQUIRED_QT_VERSION} REQUIRED)
 find_package(MauiMan REQUIRED)
 find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
 find_package(CaskServer)

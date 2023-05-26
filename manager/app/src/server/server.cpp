@@ -4,8 +4,6 @@
 #include <QQuickWindow>
 #include <QQmlApplicationEngine>
 
-#include <MauiKit/FileBrowsing/fmstatic.h>
-
 #include <QDBusConnection>
 #include <QDebug>
 
