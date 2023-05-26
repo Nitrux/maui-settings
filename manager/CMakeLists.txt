@@ -44,6 +44,8 @@ find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Q
 find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes Config ConfigWidgets)
 
 find_package(MauiKit ${REQUIRED_MAUI_VERSION} REQUIRED)
+find_package(MauiKit ${REQUIRED_MAUI_VERSION} REQUIRED COMPONENTS FileBrowsing)
+
 find_package(MauiMan REQUIRED)
 find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
 find_package(CaskServer)
