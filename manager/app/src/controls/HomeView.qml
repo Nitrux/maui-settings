@@ -143,6 +143,9 @@ Maui.SideBarView
 
     function loadModule(module)
     {
+        if(sideBar.collapsed && sideBar.visible)
+            sideBar.close()
+            
         if(_viewLoader.currentItem  && module === _viewLoader.currentItem.module)
         {
             console.log("Same module requested. Do nothing", module)
