@@ -39,6 +39,7 @@ $APT_COMMAND install -qy --no-install-recommends \
 	libkf5notifications-dev \
 	libkf5service-dev \
 	libkf5solid-dev \
+	libkf5wayland-dev \
 	libkf5widgetsaddons-dev \
 	libkf5windowsystem-dev \
 	libkf5xmlgui-dev \
