@@ -43,6 +43,7 @@ $APT_COMMAND install -qy --no-install-recommends \
 	libkf5windowsystem-dev \
 	libkf5xmlgui-dev \
 	libqt5svg5-dev \
+	libqt5waylandclient5-dev \
 	libqt5x11extras5-dev \
 	libssl-dev \
 	libtool \
