@@ -52,6 +52,7 @@ $APT_COMMAND install -qy --no-install-recommends \
 	libxcb-icccm4-dev \
 	libxcb-shape0-dev \
 	qtbase5-dev \
+	qtbase5-private-dev \
 	qtdeclarative5-dev \
 	qtmultimedia5-dev \
 	qtpositioning5-dev \
