@@ -67,7 +67,7 @@ checkinstall -D -y \
 	--pakdir=. \
 	--maintainer=uri_herrera@nxos.org \
 	--provides=maui-settings \
-	--requires="cask-server-git \(\>= 2.2.2+git\),libc6,libqt5core5a,maui-core-git \(\>= 2.2.2+git\),mauikit-filebrowsing-git \(\>= 2.2.2+git\),mauikit-git \(\>= 2.2.2+git\)" \
+	--requires="cask-server-git \(\>= 3.0.0+git\),libc6,libqt5core5a,maui-core-git \(\>= 3.0.0+git\),mauikit-filebrowsing-git \(\>= 3.0.0+git\),mauikit-git \(\>= 3.0.0+git\)" \
 	--nodoc \
 	--strip=no \
 	--stripso=yes \
