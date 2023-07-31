@@ -1,0 +1,4 @@
+module org.maui.settings.lib
+plugin MauiSettingsLib
+classname MauiSettingsPlugin
+typeinfo plugins.qmltypes
