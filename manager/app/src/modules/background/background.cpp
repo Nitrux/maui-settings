@@ -1,6 +1,6 @@
 #include "background.h"
 
-#include <MauiMan/settingsstore.h>
+#include <MauiMan4/settingsstore.h>
 
 #include <QDebug>
 
@@ -28,7 +28,7 @@ void Background::setWallpaperSourceDir(QString wallpaperSourceDir)
     setting.beginModule(QStringLiteral("Background"));
     setting.save(QStringLiteral("SourceDir"), m_wallpaperSourceDir);
     setting.endModule();
-    emit wallpaperSourceDirChanged(m_wallpaperSourceDir);
+    Q_EMIT wallpaperSourceDirChanged(m_wallpaperSourceDir);
 }
 
 void Background::resetWallpaperSourceDir()

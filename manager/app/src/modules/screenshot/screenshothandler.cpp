@@ -6,8 +6,11 @@
 
 static QVariantMap desktopData(const QString &uri)
 {
-    KDesktopFile desktop(uri+".desktop");
-    return QVariantMap{{"id", uri}, {"name", desktop.readName()}, {"icon", desktop.readIcon()}, {"comment", desktop.readComment()}};
+    KDesktopFile desktop(uri+QStringLiteral(".desktop"));
+    return QVariantMap {{QStringLiteral("id"), uri},
+        {QStringLiteral("name"), desktop.readName()},
+        {QStringLiteral("icon"), desktop.readIcon()},
+        {QStringLiteral("comment"), desktop.readComment()}};
 }
 
 ScreenshotHandler::ScreenshotHandler(QObject *parent) : CaskScreenshot(parent)

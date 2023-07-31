@@ -5,66 +5,35 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 project(MauiSettings VERSION ${MAUISETTINGS_VERSION})
 
-set(REQUIRED_QT_VERSION 5.15.2)
-set(REQUIRED_KF5_VERSION 5.40.0)
-set(REQUIRED_MAUI_VERSION 3.0.0)
+find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED DBus Qml Quick Widgets DBus COMPONENTS)
+find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED I18n CoreAddons IconThemes Config ConfigWidgets COMPONENTS)
 
-find_package(ECM ${REQUIRED_KF5_VERSION} NO_MODULE)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+find_package(MauiKit4 ${REQUIRED_MAUI_VERSION} REQUIRED)
+#find_package(MauiKit4 ${REQUIRED_MAUI_VERSION} REQUIRED COMPONENTS FileBrowsing4)
+find_package(MauiKitFileBrowsing4)
 
-include(ECMInstallIcons)
-include(ECMAddAppIcon)
-
-include(KDEClangFormat)
-include(ECMSourceVersionControl)
-include(ECMQMLModules)
-
-include(GenerateExportHeader)
-include(GNUInstallDirs)
-include(KDEInstallDirs)
-include(KDECMakeSettings)
-include(KDECompilerSettings)
-include(FeatureSummary)
-include(ECMPoQmTools)
-include(ECMSetupVersion)
-include(ECMGenerateQmlTypes)
-include(CMakePackageConfigHelpers)
-
-find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS DBus Qml Quick Widgets DBus)
-find_package(KF5 ${REQUIRED_KF5_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes Config ConfigWidgets)
-
-find_package(MauiKit ${REQUIRED_MAUI_VERSION} REQUIRED)
-find_package(MauiKit ${REQUIRED_MAUI_VERSION} REQUIRED COMPONENTS FileBrowsing)
-
-find_package(MauiMan REQUIRED)
+find_package(MauiMan4 REQUIRED)
 find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
 find_package(CaskServer)
+
+include(KDEInstallDirs)
+include(KDEClangFormat)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
         COMMAND git rev-parse --abbrev-ref HEAD
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_BRANCH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     # Get the latest abbreviated commit hash of the working branch
     execute_process(
         COMMAND git log -1 --format=%h
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     add_definitions(-DGIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
     add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
@@ -76,8 +45,7 @@ endif()
 
 ecm_setup_version(${MAUISETTINGS_VERSION}
     VARIABLE_PREFIX MAUISETTINGS
-    VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauisettings_version.h"
-    )
+    VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/mauisettings_version.h")
 
 add_subdirectory(app)
 

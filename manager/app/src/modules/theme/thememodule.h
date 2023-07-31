@@ -5,7 +5,6 @@
 
 #include <QAbstractListModel>
 
-
 class Theme;
 class ThemeModule : public AbstractModule
 {
@@ -16,7 +15,7 @@ public:
     ThemeModule(QObject * parent = nullptr);
     Theme* manager();
 
-public slots:
+public Q_SLOTS:
     QFont getFont(const QString &desc);
     QString fontToString(const QFont &font);
     QStringList fontStyles(const QFont &font);

@@ -3,10 +3,7 @@
 #include <QObject>
 #include "code/abstractmodule.h"
 
-namespace MauiMan
-{
-class InputDevicesManager;
-}
+#include <MauiMan4/inputdevicesmanager.h>
 
 class InputDevicesModule : public AbstractModule
 {
@@ -19,8 +16,5 @@ public:
 
 private:
     MauiMan::InputDevicesManager *m_manager;
-
-Q_SIGNALS:
-
 };
 

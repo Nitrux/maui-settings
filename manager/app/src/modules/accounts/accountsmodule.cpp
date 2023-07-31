@@ -1,7 +1,7 @@
 #include "accountsmodule.h"
 
 
-AccountsModule::AccountsModule(QObject *parent) :AbstractModule("accounts", parent)
+AccountsModule::AccountsModule(QObject *parent) :AbstractModule(QStringLiteral("accounts"), parent)
   , m_manager(nullptr)
 {
 }

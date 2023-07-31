@@ -7,7 +7,7 @@
 #include <QAbstractListModel>
 #include <QSortFilterProxyModel>
 
-#include <MauiMan/thememanager.h>
+#include <MauiMan4/thememanager.h>
 
 class Theme;
 class IconsProxyModel;
@@ -42,6 +42,7 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override final;
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override final;
 };
+
 class ColorSchemesModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -74,6 +75,7 @@ public:
 class WindowDecorationsModel : public QAbstractListModel
 {
     Q_OBJECT
+
 public:
     enum Roles
     {
@@ -109,7 +111,7 @@ public:
 
     QString wallpaper() const;
 
-signals:
+Q_SIGNALS:
     void wallpaperChanged(QString wallpaper);
 
 private:

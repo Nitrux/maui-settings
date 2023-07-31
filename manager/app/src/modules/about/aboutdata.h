@@ -1,6 +1,4 @@
-#ifndef ABOUTDATA_H
-#define ABOUTDATA_H
-
+#pragma once
 #include <QObject>
 #include <QString>
 #include <QVariantList>
@@ -63,8 +61,4 @@ public:
 
     QVariantList devices() const;
 
-signals:
-
 };
-
-#endif // ABOUTDATA_H

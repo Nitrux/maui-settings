@@ -1,9 +1,8 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Controls 2.14
-import Qt.labs.settings 1.0
+import QtQuick
+import QtQuick.Controls
+import QtCore
 
-import org.mauikit.controls 1.3 as Maui
+import org.mauikit.controls as Maui
 
 import "src/controls"
 

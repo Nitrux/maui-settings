@@ -1,12 +1,13 @@
 #include "thememodule.h"
 #include "theme.h"
+
+#include <QVariant>
 #include <QDir>
 #include <QStandardPaths>
 #include <QSettings>
 #include <QFontDatabase>
 
-#include <KI18n/KLocalizedString>
-
+#include <KLocalizedString>
 
 #include <map>
 
@@ -29,13 +30,13 @@ void ThemeModule::updateGtk3Config()
 
     QSettings settings(gtk3SettingsIniPath(), QSettings::IniFormat);
     settings.clear();
-    settings.setIniCodec("UTF-8");
+    //    settings.setIniCodec("UTF-8");
     settings.beginGroup("Settings");
 
     QFont font;
     font.fromString(m_manager->defaultFont());
     // font
-    settings.setValue("gtk-font-name", QString("%1 %2").arg(font.family()).arg(QString::number(font.pointSize())));
+    settings.setValue("gtk-font-name", QString(QStringLiteral("%1 %2")).arg(font.family()).arg(QString::number(font.pointSize())));
     // dark mode
     settings.setValue("gtk-application-prefer-dark-theme", m_manager->styleType() == 1);
     // icon theme
@@ -43,17 +44,30 @@ void ThemeModule::updateGtk3Config()
     // other
     settings.setValue("gtk-enable-animations", true);
     // theme
-    settings.setValue("gtk-theme-name", m_manager->styleType() == 1 ? "Adwaita-dark" : "Adwaita-light");
+    settings.setValue("gtk-theme-name", m_manager->styleType() == 1 ? QStringLiteral("Adwaita-dark") : QStringLiteral("Adwaita-light"));
     settings.sync();
 }
 
 ThemeModule::ThemeModule(QObject *parent) :AbstractModule(QStringLiteral("theme"),
                                                           i18n("Theme"),
                                                           i18n("Apperance"),
-                                                          QStringLiteral("qrc:/modules/theme/ThemeModuleView.qml"),
+                                                          QStringLiteral("qrc:/MauiSettings/src/modules/theme/ThemeModuleView.qml"),
                                                           QStringLiteral("preferences-desktop-theme"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                          QStringList{"look", "theme", "color", "icons", "dark mode", "fonts", "dark", "adaptive", "color scheme", "csd", "window controls", "style"},
+
+                                                          QStringList{i18n("look"),
+                                                          i18n("theme"),
+                                                          i18n("color"),
+                                                          i18n("icons"),
+                                                          i18n("dark mode"),
+                                                          i18n("fonts"),
+                                                          i18n("dark"),
+                                                          i18n("adaptive"),
+                                                          i18n("color scheme"),
+                                                          i18n("csd"),
+                                                          i18n("window controls"),
+                                                          i18n("style")},
+
                                                           parent)
   , m_manager(nullptr)
 {

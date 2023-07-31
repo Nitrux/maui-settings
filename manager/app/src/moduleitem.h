@@ -1,6 +1,4 @@
-#ifndef MODULEITEM_H
-#define MODULEITEM_H
-
+#pragma once
 #include <QObject>
 
 class ModuleItem : public QObject
@@ -9,8 +7,5 @@ class ModuleItem : public QObject
 public:
     explicit ModuleItem(QObject *parent = nullptr);
 
-signals:
 
 };
-
-#endif // MODULEITEM_H

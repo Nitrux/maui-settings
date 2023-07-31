@@ -95,7 +95,7 @@ bool AppInstance::registerService()
     if (!registration.isValid())
     {
         qWarning("2 Failed to register D-Bus service \"%s\" on session bus: \"%s\"",
-                 qPrintable("org.maui.settings"),
+                 qPrintable(QStringLiteral("org.maui.settings")),
                  qPrintable(registration.error().message()));
         return false;
     }

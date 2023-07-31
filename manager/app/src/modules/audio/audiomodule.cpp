@@ -1,15 +1,23 @@
 #include "audiomodule.h"
 //#include "theme.h"
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
-AudioModule::AudioModule(QObject *parent) :AbstractModule("audio",
+AudioModule::AudioModule(QObject *parent) :AbstractModule(QStringLiteral("audio"),
                                                           i18n("Audio"),
                                                           i18n("System"),
-                                                          "qrc:/modules/theme/AudioModuleView.qml",
-                                                          "preferences-desktop-sound",
+                                                          QStringLiteral("qrc:/MauiSettings/src/modules/theme/AudioModuleView.qml"),
+                                                          QStringLiteral("preferences-desktop-sound"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                          {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+
+                                                          QStringList{i18n("audio"),
+                                                          i18n("sound"),
+                                                          i18n("mixer"),
+                                                          i18n("headphones"),
+                                                          i18n("speaker"),
+                                                          i18n("mic"),
+                                                          i18n("microphone")},
+
                                                           parent)
 //  , m_manager(nullptr)
 {

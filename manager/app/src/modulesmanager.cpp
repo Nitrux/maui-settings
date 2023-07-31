@@ -20,7 +20,7 @@
 #include "modules/screenshot/screenshotmodule.h"
 #include "modules/inputdevices/inputdevicesmodule.h"
 
-#include <MauiMan/mauimanutils.h>
+#include <MauiMan4/mauimanutils.h>
 #include <CaskServer/serverutils.h>
 
 ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
@@ -34,7 +34,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     connect(server, &MauiManUtils::serverRunningChanged, [this](bool state)
     {
         m_serverRunning = state;
-        emit serverRunningChanged(m_serverRunning);
+        Q_EMIT serverRunningChanged(m_serverRunning);
     });
 
     auto caskServer = new ServerUtils(this);
@@ -43,7 +43,7 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     connect(caskServer, &ServerUtils::serverRunningChanged, [this](bool state)
     {
         m_caskServerRunning = state;
-        emit caskServerRunningChanged(m_caskServerRunning);
+        Q_EMIT caskServerRunningChanged(m_caskServerRunning);
     });
 
     //general

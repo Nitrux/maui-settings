@@ -5,7 +5,7 @@
 
 
 [Desktop Entry]
-Name=Maui Manager
+Name=Maui Settings
 Comment=Maui Settings Manager
 TryExec=MauiSettings
 Exec=MauiSettings %U
@@ -14,4 +14,4 @@ Type=Application
 Categories=Qt;System;
 GenericName=Settings Manager
 StartupNotify=true
-Icon=preferences-system
+Icon=mauisettings

@@ -1,16 +1,20 @@
 #include "formfactormodule.h"
 
-#include <MauiMan/formfactormanager.h>
-#include <KI18n/KLocalizedString>
-
+#include <KLocalizedString>
 
 FormFactorModule::FormFactorModule(QObject *parent) : AbstractModule(QStringLiteral("formfactor"),
                                                                      i18n("Form Factor"),
                                                                      i18n("System"),
-                                                                     QStringLiteral("qrc:/modules/formfactor/FormFactorModuleView.qml"),
+                                                                     QStringLiteral("qrc:/MauiSettings/src/modules/formfactor/FormFactorModuleView.qml"),
                                                                      QStringLiteral("preferences-desktop-wallpaper"),
                                                                      i18n("Switch between desktop and mobile modes."),
-                                                                     QStringList{"form factor", "phone", "tablet", "mobile", "input"},
+
+                                                                     QStringList{i18n("form factor"),
+                                                                     i18n("phone"),
+                                                                     i18n("tablet"),
+                                                                     i18n("mobile"),
+                                                                     i18n("input")},
+
                                                                      parent)
   , m_manager(nullptr)
 {

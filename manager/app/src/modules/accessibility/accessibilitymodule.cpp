@@ -1,15 +1,17 @@
 #include "accessibilitymodule.h"
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
-#include <MauiMan/accessibilitymanager.h>
 
-AccessibilityModule::AccessibilityModule(QObject *parent) : AbstractModule("accessibility",
+AccessibilityModule::AccessibilityModule(QObject *parent) : AbstractModule(QStringLiteral("accessibility"),
                                                                            i18n("Accessibility"),
-                                                                            i18n("System"),
-                                                                           "qrc:/modules/accessibility/AccessibilityModuleView.qml",
-                                                                           "preferences-desktop-accessibility",
-                                                                            i18n("Customize accessibility features."),
-                                                                           {i18n("accessibility"), i18n("click")},
+                                                                           i18n("System"),
+                                                                           QStringLiteral("qrc:/MauiSettings/src/modules/accessibility/AccessibilityModuleView.qml"),
+                                                                           QStringLiteral("preferences-desktop-accessibility"),
+                                                                           i18n("Customize accessibility features."),
+
+                                                                           QStringList{i18n("accessibility"),
+                                                                           i18n("click")},
+
                                                                            parent)
   ,m_manager(nullptr)
 {

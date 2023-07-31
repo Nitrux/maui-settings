@@ -1,4 +1,5 @@
 #include "modulesmodel.h"
+#include <QRegularExpression>
 
 ModulesModel::ModulesModel(ModulesProxyModel *parent) : QAbstractListModel(parent)
   ,m_proxy(parent)
@@ -77,7 +78,7 @@ QString ModulesProxyModel::filter() const
 
 void ModulesProxyModel::resetFilter()
 {
-    this->setFilterRegExp("");
+    this->setFilterRegularExpression(QStringLiteral(""));
     this->invalidateFilter();
 }
 
@@ -95,7 +96,7 @@ bool ModulesProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourc
 {
     QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
     const auto module = qvariant_cast<AbstractModule*>( this->sourceModel()->data(index, 0));
-    return module->checkFilter(this->filterRegExp());
+    return module->checkFilter(this->filterRegularExpression());
 
 }
 
