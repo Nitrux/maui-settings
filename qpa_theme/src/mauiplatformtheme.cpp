@@ -34,13 +34,13 @@
 #include <KIconLoader>
 #include <kstandardshortcut.h>
 
-#include <KIOCore/KFileItem>
+#include <KFileItem>
 #include <KIO/Global>
 
 #include <private/qiconloader_p.h>
 
-#include <MauiMan/thememanager.h>
-#include <MauiMan/accessibilitymanager.h>
+#include <MauiMan4/thememanager.h>
+#include <MauiMan4/accessibilitymanager.h>
 
 static const QByteArray s_x11AppMenuServiceNamePropertyName = QByteArrayLiteral("_KDE_NET_WM_APPMENU_SERVICE_NAME");
 static const QByteArray s_x11AppMenuObjectPathPropertyName = QByteArrayLiteral("_KDE_NET_WM_APPMENU_OBJECT_PATH");

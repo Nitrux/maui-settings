@@ -35,6 +35,6 @@ include(KDECMakeSettings)
 
 add_subdirectory(lib)
 add_subdirectory(manager)
-#add_subdirectory(qpa_theme)
+add_subdirectory(qpa_theme)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

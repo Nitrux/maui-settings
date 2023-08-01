@@ -7,12 +7,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(MauiSettings VERSION ${MAUISETTINGS_VERSION})
 
-find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED DBus Qml Quick Widgets DBus COMPONENTS)
-find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED I18n CoreAddons IconThemes Config ConfigWidgets COMPONENTS)
+find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED COMPONENTS DBus Qml Quick Widgets DBus)
+find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS I18n CoreAddons IconThemes Config ConfigWidgets)
 
 find_package(MauiKit4 ${REQUIRED_MAUI_VERSION} REQUIRED)
-#find_package(MauiKit4 ${REQUIRED_MAUI_VERSION} REQUIRED COMPONENTS FileBrowsing4)
-find_package(MauiKitFileBrowsing4)
+find_package(MauiKit4 ${REQUIRED_MAUI_VERSION} REQUIRED COMPONENTS FileBrowsing)
 
 find_package(MauiMan4 REQUIRED)
 find_package(MauiCore REQUIRED COMPONENTS Audio Notifications Power)
