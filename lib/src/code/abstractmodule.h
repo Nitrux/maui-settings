@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QRegularExpression>
 
 #include "mauisettingslib_export.h"
 
@@ -17,7 +18,7 @@ class MAUISETTINGSLIB_EXPORT AbstractModule : public QObject
     Q_PROPERTY(QString id READ id CONSTANT FINAL)
 
 public:
-    AbstractModule(const QString &id, const QString &name, const QString &category, const QString &qmlSource, const QString &iconName = "preferences", const QString &description = "", const QStringList &keywords = {}, QObject * parent = nullptr);
+    AbstractModule(const QString &id, const QString &name, const QString &category, const QString &qmlSource, const QString &iconName = QStringLiteral("preferences"), const QString &description = QStringLiteral(""), const QStringList &keywords = {}, QObject * parent = nullptr);
 
     QString qmlSource() const
     {
@@ -54,7 +55,7 @@ public:
         return m_id;
     }
 
-    bool checkFilter(const QRegExp &filter);
+    bool checkFilter(const QRegularExpression &filter);
 
 private:
     QString m_id;
@@ -65,7 +66,7 @@ private:
     QString m_iconName;
     QString m_description;
 
-signals:
+Q_SIGNALS:
     void iconNameChanged();
     void nameChanged();
     void descriptionChanged();

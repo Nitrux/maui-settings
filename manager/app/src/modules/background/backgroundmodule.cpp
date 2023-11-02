@@ -1,15 +1,21 @@
 #include "backgroundmodule.h"
 #include "background.h"
-#include <KI18n/KLocalizedString>
+
+#include <KLocalizedString>
 
 
 BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule(QStringLiteral("background"),
                                                                     i18n("Background"),
                                                                     i18n("Apperance"),
-                                                                    QStringLiteral("qrc:/modules/background/BackgroundModuleView.qml"),
+                                                                    QStringLiteral("qrc:/MauiSettings/src/modules/background/BackgroundModuleView.qml"),
                                                                     QStringLiteral("preferences-desktop-wallpaper"),
                                                                     i18n("Wallpaper color, sources, aspect and more"),
-                                                                     QStringList{"look", "wallpaper", "apperance", "background"},
+
+                                                                    QStringList{i18n("look"),
+                                                                    i18n("wallpaper"),
+                                                                    i18n("apperance"),
+                                                                    i18n("background")},
+
                                                                     parent)
   , m_manager(nullptr)
 {

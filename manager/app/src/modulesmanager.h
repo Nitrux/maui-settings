@@ -25,7 +25,7 @@ public:
 
     bool caskServerRunning() const;
 
-public slots:
+public Q_SLOTS:
     void startMauiManServer();
     void startCaskServer();
 
@@ -38,8 +38,7 @@ private:
 
     bool m_caskServerRunning = false;
 
-signals:
-
+Q_SIGNALS:
     void serverRunningChanged(bool serverRunning);
     void caskServerRunningChanged(bool caskServerRunning);
 };

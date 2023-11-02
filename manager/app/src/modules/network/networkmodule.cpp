@@ -1,15 +1,23 @@
 #include "networkmodule.h"
 //#include "theme.h"
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
-NetworkModule::NetworkModule(QObject *parent) :AbstractModule("network",
+NetworkModule::NetworkModule(QObject *parent) :AbstractModule(QStringLiteral("network"),
                                                               i18n("Network"),
                                                               i18n("Network"),
-                                                              "qrc:/modules/network/NetworkModuleView.qml",
-                                                              "preferences-system-network",
+                                                              QStringLiteral("qrc:/MauiSettings/src/modules/network/NetworkModuleView.qml"),
+                                                              QStringLiteral("preferences-system-network"),
                                                               i18n("Accent colors, icon sets, adaptive colorscheme."),
-                                                              {"look", "theme", "color", "icons", "dark mode", "dark", "adaptive"},
+
+                                                              QStringList{i18n("look"),
+                                                              i18n("theme"),
+                                                              i18n("color"),
+                                                              i18n("icons"),
+                                                              i18n("dark mode"),
+                                                              i18n("dark"),
+                                                              i18n("adaptive")},
+
                                                               parent)
 //  , m_manager(nullptr)
 {

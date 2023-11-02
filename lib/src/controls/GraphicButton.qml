@@ -4,15 +4,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.3
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import QtGraphicalEffects 1.0
-import QtQuick.Dialogs 1.3
-
-import org.mauikit.controls 1.3 as Maui
-import QtQuick.Templates 2.15 as T
+import Qt5Compat.GraphicalEffects
+import org.mauikit.controls as Maui
 
 Button
 {

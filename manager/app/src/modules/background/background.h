@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QString>
 
-#include <MauiMan/backgroundmanager.h>
+#include <MauiMan4/backgroundmanager.h>
 
 class Background : public MauiMan::BackgroundManager
 {
@@ -16,7 +16,8 @@ public:
     QString wallpaperSourceDir() const;
     void setWallpaperSourceDir(QString wallpaperSourceDir);
  void resetWallpaperSourceDir();
-signals:
+
+Q_SIGNALS:
     void wallpaperSourceDirChanged(QString wallpaperSourceDir);
 
 private:

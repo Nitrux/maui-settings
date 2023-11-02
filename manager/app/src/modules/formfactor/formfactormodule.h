@@ -1,11 +1,7 @@
 #pragma once
 
 #include "code/abstractmodule.h"
-
-namespace MauiMan
-{
-class FormFactorManager;
-}
+#include <MauiMan4/formfactormanager.h>
 
 class FormFactorModule : public AbstractModule
 {

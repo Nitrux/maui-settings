@@ -11,10 +11,10 @@
 #include <QQmlContext>
 #include <QPair>
 
-#include <MauiKit/Core/mauiapp.h>
+#include <MauiKit4/Core/mauiapp.h>
 
 #include <KAboutData>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 #include "../mauisettings_version.h"
 
@@ -25,30 +25,35 @@
 
 #define MAUISETTINGS_URI "org.maui.settings"
 
+#undef QT_NO_CAST_TO_ASCII
+#undef QT_NO_CAST_FROM_ASCII
+
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-
     QApplication app(argc, argv);
 
     app.setOrganizationName(QStringLiteral("Maui"));
-    app.setWindowIcon(QIcon(":/nxmanager.svg"));
+    app.setWindowIcon(QIcon(QStringLiteral(":/mauisettings.svg")));
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
-    KAboutData about(QStringLiteral("settings"), i18n("Maui Settings"), MAUISETTINGS_VERSION_STRING, i18n("Maui Settings Manager."),
-                     KAboutLicense::LGPL_V3, i18n("© 2022-%1 Maui Development Team", QString::number(QDate::currentDate().year())), QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
+    KAboutData about(QStringLiteral("mauisettings"),
+                     i18n("Maui Settings"),
+                     MAUISETTINGS_VERSION_STRING,
+                     i18n("Maui Settings Manager."),
+                     KAboutLicense::LGPL_V3,
+                     i18n("© 2022-%1 Maui Development Team", QString::number(QDate::currentDate().year())),
+                     QString(GIT_BRANCH) + QStringLiteral("/") + QString(GIT_COMMIT_HASH));
 
-    about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
-    about.setHomepage("https://nxos.org");
+    about.addAuthor(QStringLiteral("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
+    about.setHomepage(QStringLiteral("https://nxos.org"));
     about.setProductName("maui/settings");
-    about.setBugAddress("https://github.com/nitrux/nxmanager");
+    about.setBugAddress("https://github.com/nitrux/maui-settings");
     about.setOrganizationDomain(MAUISETTINGS_URI);
     about.setProgramLogo(app.windowIcon());
 
     KAboutData::setApplicationData(about);
-    MauiApp::instance()->setIconName("qrc:/nxmanager.svg");
+    MauiApp::instance()->setIconName(QStringLiteral("qrc:/mauisettings.svg"));
 
     ModulesManager manager;
     QCommandLineParser parser;
@@ -62,7 +67,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption moduleOption(QStringList() << "m" << "module",
+    QCommandLineOption moduleOption(QStringList() << QStringLiteral("m") << QStringLiteral("module"),
                                     QCoreApplication::translate("main", "open the manager at the given module name"),
                                     QCoreApplication::translate("main", "module"));
     parser.addOption(moduleOption);
@@ -77,7 +82,7 @@ int main(int argc, char *argv[])
         arguments.first = parser.value(moduleOption);
     }else
     {
-        arguments.first = "about";
+        arguments.first = QStringLiteral("about");
     }
 
     if (AppInstance::attachToExistingInstance(arguments.first))
@@ -92,7 +97,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    const QUrl url(u"qrc:/MauiSettings/main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, &server, &arguments](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
@@ -107,7 +112,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
 
-    engine.rootContext()->setContextProperty("ModulesManager", &manager);
+    engine.rootContext()->setContextProperty(QStringLiteral("ModulesManager"), &manager);
 
     engine.load(url);
 

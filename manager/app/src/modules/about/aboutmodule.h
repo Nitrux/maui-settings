@@ -1,8 +1,8 @@
 #pragma once
 
 #include "code/abstractmodule.h"
+#include "aboutdata.h"
 
-class AboutData;
 class AboutModule : public AbstractModule
 {
     Q_OBJECT
@@ -14,7 +14,5 @@ public:
 
 private:
     AboutData *m_manager;
-
-
 };
 

@@ -22,7 +22,7 @@ private:
     QSettings *m_settings;
     void setBlacklistedModel();
 
-signals:
+Q_SIGNALS:
     void blacklistedModelChanged(QVariantList blacklisted);
 };
 

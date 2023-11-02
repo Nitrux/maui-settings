@@ -13,15 +13,14 @@ class MauiSettingsPlugin : public QQmlExtensionPlugin
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 public:
     void registerTypes(const char *uri) override;
+
 private:
+    QUrl componentUrl(const QString &fileName) const;
+
     void initializeEngine(QQmlEngine *engine, const char *uri) override;
     
     QString resolveFileUrl(const QString &filePath) const
     {
-#ifdef QUICK_COMPILER
-        return QStringLiteral("qrc:/maui/settings/lib/") + filePath;
-#else
         return baseUrl().toString() + QLatin1Char('/') + filePath;
-#endif
     }
 };

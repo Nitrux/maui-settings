@@ -9,9 +9,9 @@
 #include <KColorScheme>
 #include <KConfigGroup>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
-#include <MauiMan/backgroundmanager.h>
+#include <MauiMan4/backgroundmanager.h>
 
 #include "iconsmodel.h"
 
@@ -105,7 +105,7 @@ void WindowDecorationsModel::getDecorations()
     while (it.hasNext())
     {
         QDir currentDir(it.next());
-        auto confFile = currentDir.absolutePath() +"/config.conf";
+        QString confFile = currentDir.absolutePath() + QStringLiteral("/config.conf");
         qDebug() << "WINDOCSDSTUF" << confFile;
 
         if(!QFileInfo(confFile).exists())
@@ -116,7 +116,7 @@ void WindowDecorationsModel::getDecorations()
         auto name = currentDir.dirName();
         QSettings conf (confFile, QSettings::IniFormat);
         conf.beginGroup ("Decoration");
-        auto source = QUrl::fromLocalFile(currentDir.absolutePath()).toString()+"/"+ conf.value("Source", "undefined.qml").toString();
+        QString source = QUrl::fromLocalFile(currentDir.absolutePath()).toString()+ QStringLiteral("/") + conf.value("Source", QStringLiteral("undefined.qml")).toString();
         conf.endGroup ();
 
         if(!QFileInfo(QUrl(source).toLocalFile()).exists())
@@ -268,7 +268,7 @@ QString ColorSchemesModelProxy::filter() const
 
 void ColorSchemesModelProxy::resetFilter()
 {
-    this->setFilterRegExp("");
+    this->setFilterRegularExpression(QStringLiteral(""));
     this->invalidateFilter();
 }
 
@@ -278,14 +278,14 @@ bool ColorSchemesModelProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     {
         QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
         const auto data = this->sourceModel()->data(index, this->filterRole()).toString();
-        return data.contains(this->filterRegExp());
+        return data.contains(this->filterRegularExpression());
     }
 
     const auto roleNames = this->sourceModel()->roleNames();
     for (const auto &role : roleNames.keys()) {
         QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
         const auto data = this->sourceModel()->data(index, role).toString();
-        if (data.contains(this->filterRegExp()))
+        if (data.contains(this->filterRegularExpression()))
             return true;
         else
             continue;

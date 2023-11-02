@@ -1,15 +1,20 @@
 #include "inputdevicesmodule.h"
 
-#include <MauiMan/inputdevicesmanager.h>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 InputDevicesModule::InputDevicesModule(QObject *parent) : AbstractModule(QStringLiteral("inputdevices"),
                                                                          i18n("Input Devices"),
                                                                          i18n("System"),
-                                                                         QStringLiteral("qrc:/modules/inputdevices/InputDevicesModuleView.qml"),
+                                                                         QStringLiteral("qrc:/MauiSettings/src/modules/inputdevices/InputDevicesModuleView.qml"),
                                                                          QStringLiteral("preferences-desktop-peripherals"),
                                                                          i18n("Configure your input devices."),
-                                                                         QStringList{"mouse", "keyboard", "keymap", "variant", "layout"},
+
+                                                                         QStringList{i18n("mouse"),
+                                                                         i18n("keyboard"),
+                                                                         i18n("keymap"),
+                                                                         i18n("key variant"),
+                                                                         i18n("key layout")},
+
                                                                          parent)
   , m_manager(nullptr)
 {

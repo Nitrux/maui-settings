@@ -16,7 +16,6 @@
 #include <QFileIconProvider>
 
 #include <KIconTheme>
-
 #include <QUrl>
 #include <QDebug>
 
@@ -71,7 +70,6 @@ QVariant IconsModel::data(const QModelIndex &index, int role) const
 
     return QVariant();
 }
-
 
 QHash<int, QByteArray> IconsModel::roleNames() const
 {
@@ -133,7 +131,7 @@ void IconsModel::load()
 QStringList IconsModel::previewIcons(const QString &name) const
 {
     KIconTheme theme(name);
-    const auto lookupIcons = QStringList{"folder", "application-text", "preferences-mail", "preferences-color", "preferences-desktop-emoticons", "office-calendar", "audio-speakers", "computer", "joystick", "network-wired",  "weather-clear", "image-png", "vvave",  "application-x-project"};
+    const auto lookupIcons = QStringList{QStringLiteral("folder"), QStringLiteral("application-text"), QStringLiteral("preferences-mail"), QStringLiteral("preferences-color"), QStringLiteral("preferences-desktop-emoticons"), QStringLiteral("office-calendar"), QStringLiteral("audio-speakers"), QStringLiteral("computer"), QStringLiteral("joystick"), QStringLiteral("network-wired"),  QStringLiteral("weather-clear"), QStringLiteral("image-png"), QStringLiteral("vvave"),  QStringLiteral("application-x-project")};
 
     QStringList icons;
 
@@ -177,7 +175,7 @@ QString IconsProxyModel::filter() const
 
 void IconsProxyModel::resetFilter()
 {
-    this->setFilterRegExp("");
+    this->setFilterRegularExpression(QStringLiteral(""));
     this->invalidateFilter();
 }
 
@@ -187,14 +185,14 @@ bool IconsProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
     {
         QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
         const auto data = this->sourceModel()->data(index, this->filterRole()).toString();
-        return data.contains(this->filterRegExp());
+        return data.contains(this->filterRegularExpression());
     }
 
     const auto roleNames = this->sourceModel()->roleNames();
     for (const auto &role : roleNames.keys()) {
         QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
         const auto data = this->sourceModel()->data(index, role).toString();
-        if (data.contains(this->filterRegExp()))
+        if (data.contains(this->filterRegularExpression()))
             return true;
         else
             continue;

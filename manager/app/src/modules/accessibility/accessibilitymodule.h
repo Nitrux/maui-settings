@@ -2,10 +2,7 @@
 #include <QObject>
 #include "code/abstractmodule.h"
 
-namespace MauiMan
-{
-class AccessibilityManager;
-}
+#include <MauiMan4/accessibilitymanager.h>
 
 class AccessibilityModule : public AbstractModule
 {

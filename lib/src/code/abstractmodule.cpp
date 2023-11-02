@@ -12,7 +12,7 @@ AbstractModule::AbstractModule(const QString &id, const QString &name, const QSt
 
 }
 
-bool AbstractModule::checkFilter(const QRegExp &filter)
+bool AbstractModule::checkFilter(const QRegularExpression &filter)
 {
     bool keywordContains = false;
 

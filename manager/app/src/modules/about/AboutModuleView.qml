@@ -4,18 +4,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.3
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import QtGraphicalEffects 1.0
-import QtQuick.Dialogs 1.3
+import Qt5Compat.GraphicalEffects
+import QtQuick.Dialogs
 
-import org.mauikit.controls 1.3 as Maui
+import org.mauikit.controls as Maui
 
-import org.maui.settings 1.0 as Man
-import org.maui.settings.lib 1.0 as ManLib
-import QtSystemInfo 5.0
+import org.maui.settings as Man
+import org.maui.settings.lib as ManLib
 
 ManLib.SettingsPage
 {
@@ -158,50 +157,44 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionGroup
-        {
-            Layout.alignment: Qt.AlignTop
+//        Maui.SectionGroup
+//        {
+//            Layout.alignment: Qt.AlignTop
 
-            title: i18n("Device")
-            description: i18n("Device Information")
-            //            template.template.iconSource: "computer"
+//            title: i18n("Device")
+//            description: i18n("Device Information")
+//            //            template.template.iconSource: "computer"
 
-            Maui.SectionItem
-            {
-                label1.text: i18n("Manufacturer")
-                label2.text: devinfo.manufacturer()
-            }
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("Manufacturer")
+//                label2.text: devinfo.manufacturer()
+//            }
 
-            Maui.SectionItem
-            {
-                label1.text: i18n("Product")
-                label2.text: devinfo.productName()
-            }
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("Product")
+//                label2.text: devinfo.productName()
+//            }
 
-            Maui.SectionItem
-            {
-                label1.text: i18n("Model")
-                label2.text: devinfo.model()
-            }
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("Model")
+//                label2.text: devinfo.model()
+//            }
 
-            Maui.SectionItem
-            {
-                label1.text: i18n("Device ID")
-                label2.text: devinfo.uniqueDeviceID()
-            }
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("Device ID")
+//                label2.text: devinfo.uniqueDeviceID()
+//            }
 
-            //            Maui.SectionItem
-            //            {
-            //                label1.text: i18n("Firmware")
-            //                label2.text:  devinfo.version(DeviceInfo.Firmware)
-            //            }
-
-            Maui.SectionItem
-            {
-                label1.text: i18n("OS Version")
-                label2.text:  devinfo.version(DeviceInfo.Os)
-            }
-        }
+//            Maui.SectionItem
+//            {
+//                label1.text: i18n("OS Version")
+//                label2.text:  devinfo.version(DeviceInfo.Os)
+//            }
+//        }
     }
 
 
@@ -231,10 +224,6 @@ ManLib.SettingsPage
                 }
             }
         }
-    }
-
-    DeviceInfo {
-        id: devinfo;
     }
 
     Maui.SectionGroup
