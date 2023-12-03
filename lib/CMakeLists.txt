@@ -7,6 +7,10 @@ cmake_minimum_required(VERSION 3.16)
 
 set(AUTOMOC_MOC_OPTIONS -Muri=org.maui.settings.lib)
 
+include(ECMGenerateQmlTypes)
+include(ECMFindQmlModule)
+include(ECMQmlModule)
+
 project(MauiSettingsLib VERSION ${MAUISETTINGS_VERSION})
 
 ##CMAKE PARTS

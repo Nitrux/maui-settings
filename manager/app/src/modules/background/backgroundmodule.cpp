@@ -7,7 +7,7 @@
 BackgroundModule::BackgroundModule(QObject *parent) :AbstractModule(QStringLiteral("background"),
                                                                     i18n("Background"),
                                                                     i18n("Apperance"),
-                                                                    QStringLiteral("qrc:/MauiSettings/src/modules/background/BackgroundModuleView.qml"),
+                                                                    QStringLiteral("qrc:/MauiSettingsModule/src/modules/background/BackgroundModuleView.qml"),
                                                                     QStringLiteral("preferences-desktop-wallpaper"),
                                                                     i18n("Wallpaper color, sources, aspect and more"),
 

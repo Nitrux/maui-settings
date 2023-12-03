@@ -29,7 +29,12 @@ Maui.SideBarView
             Layout.maximumWidth: 500
             Layout.fillWidth: true
             placeholderText: i18n("Search configs")
-            onAccepted: ModulesManager.model.filter = text
+            onAccepted:
+            {
+                console.log(text)
+                ModulesManager.model.filter = text
+            }
+
             onCleared: ModulesManager.model.filter = undefined
         }
 
@@ -47,7 +52,7 @@ Maui.SideBarView
             section.delegate: Maui.LabelDelegate
             {
                 width: ListView.view.width
-                label: section
+                text: section
                 isSection: true
             }
 

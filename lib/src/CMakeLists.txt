@@ -7,6 +7,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR})
 
+#add_library(${PROJECT_NAME} SHARED)
 ecm_add_qml_module(${PROJECT_NAME} URI "org.maui.settings.lib" VERSION 1.0 CLASSNAME MauiSettingsPlugin)
 
 set(mauisettingslib_HDRS
@@ -37,7 +38,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CUR
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-#    MauiKit4
+    #    MauiKit4
     Qt6::Core
     Qt6::DBus
     Qt6::Qml)

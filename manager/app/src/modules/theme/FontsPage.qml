@@ -25,12 +25,11 @@ Maui.SettingsPage
         title: i18n("System Fonts")
         description: i18n ("Pick the default system fonts to be used.")
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             id: _defaultFontSection
             label1.text: i18n("Default Font")
             label2.text: defaultFont.family
-            columns: 3
             property font defaultFont : module.getFont(control.manager.defaultFont)
 
             Button
@@ -56,12 +55,11 @@ Maui.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             id: _smallFontSection
             label1.text: i18n("Small Font")
             label2.text: smallFont.family
-            columns: 3
             property font smallFont : module.getFont(control.manager.smallFont)
 
             Button
@@ -87,12 +85,11 @@ Maui.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             id: _monospacedFontSection
             label1.text: i18n("Monospaced Font")
             label2.text: monospacedFont.family
-            columns: 3
             property font monospacedFont : module.getFont(control.manager.monospacedFont)
 
             Button
@@ -135,7 +132,6 @@ Maui.SettingsPage
 
             _fontEditDialog.close()
         }
-
     }
 }
 

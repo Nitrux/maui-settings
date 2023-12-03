@@ -5,7 +5,7 @@
 FormFactorModule::FormFactorModule(QObject *parent) : AbstractModule(QStringLiteral("formfactor"),
                                                                      i18n("Form Factor"),
                                                                      i18n("System"),
-                                                                     QStringLiteral("qrc:/MauiSettings/src/modules/formfactor/FormFactorModuleView.qml"),
+                                                                     QStringLiteral("qrc:/MauiSettingsModule/src/modules/formfactor/FormFactorModuleView.qml"),
                                                                      QStringLiteral("preferences-desktop-wallpaper"),
                                                                      i18n("Switch between desktop and mobile modes."),
 

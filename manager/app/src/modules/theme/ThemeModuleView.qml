@@ -184,12 +184,11 @@ ManLib.SettingsPage
         }
     }
 
-
     Maui.SectionGroup
     {
         title: i18n("Interface")
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Units and Preferences")
             label2.text: i18n("Customize the look-and-feel of elements.")
@@ -203,7 +202,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Window Controls Decorations")
             label2.text: i18n("Style and options.")
@@ -217,7 +216,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             //            iconSource: "preferences-desktop-font"
             label1.text: i18n("Fonts")
@@ -241,8 +240,6 @@ ManLib.SettingsPage
             //            iconSource: "preferences-desktop-color"
             label1.text: i18n("Accent Color")
             label2.text: i18n("Custom accent color.")
-
-            columns:1
 
             Maui.ColorsRow
             {
@@ -268,7 +265,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Color Scheme")
             label2.text: i18n("Pick a custom color scheme.")
@@ -297,11 +294,10 @@ ManLib.SettingsPage
     {
         title: i18n("Icons")
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Icon Size")
             label2.text: i18n("Custom button icon sizes.")
-            columns : 3
 
             Maui.ToolActions
             {
@@ -337,7 +333,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Icon Theme")
             label2.text: control.manager.iconTheme

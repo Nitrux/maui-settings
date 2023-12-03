@@ -91,7 +91,7 @@ QHash<int, QByteArray> WindowDecorationsModel::roleNames() const
 
 void WindowDecorationsModel::getDecorations()
 {
-    auto controlsDir = QStandardPaths::locate (QStandardPaths::GenericDataLocation, QStringLiteral("org.mauikit.controls/csd"), QStandardPaths::LocateDirectory);
+    auto controlsDir = QStandardPaths::locate (QStandardPaths::GenericDataLocation, QStringLiteral("org.mauikit.controls/csd.6"), QStandardPaths::LocateDirectory);
 
     qDebug() << " Trying to find WINDOCSDSTUF" << controlsDir;
 

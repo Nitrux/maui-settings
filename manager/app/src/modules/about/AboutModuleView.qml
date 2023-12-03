@@ -7,6 +7,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window 
 
 import Qt5Compat.GraphicalEffects
 import QtQuick.Dialogs
@@ -25,10 +26,13 @@ ManLib.SettingsPage
     Rectangle
     {
         Layout.fillWidth: true
+        Layout.maximumWidth: 800
+        Layout.alignment: Qt.AlignHCenter
         implicitHeight: 160
 
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
+        
         Rectangle
         {
             id: _logoItem
@@ -88,7 +92,10 @@ ManLib.SettingsPage
     GridLayout
     {
         Layout.fillWidth: true
-        columns: root.isWide ? 3 : 1
+        Layout.maximumWidth: 800
+        Layout.alignment: Qt.AlignHCenter
+        
+        columns: Window.window.isWide ? 3 : 1
         columnSpacing: Maui.Style.space.big
         rowSpacing: Maui.Style.space.big
 
@@ -203,6 +210,8 @@ ManLib.SettingsPage
     {
         title: i18n("Storage")
         description: i18n("Storage device information")
+        Layout.maximumWidth: 800
+        Layout.alignment: Qt.AlignHCenter
 
         Repeater
         {
@@ -212,8 +221,8 @@ ManLib.SettingsPage
             {
                 label1.text: modelData.name
                 label2.text: modelData.type
-                iconSource: "drive-harddisk"
-                columns: 1
+                iconSource: "drive-harddisk"                
+                
                 flat: false
                 ProgressBar
                 {
@@ -230,6 +239,8 @@ ManLib.SettingsPage
     {
         title: Maui.App.about.displayName
         description: Maui.App.about.shortDescription
+        Layout.maximumWidth: 800
+        Layout.alignment: Qt.AlignHCenter
         //        iconSource: Maui.App.iconName
 
         Maui.SectionItem
@@ -247,7 +258,6 @@ ManLib.SettingsPage
 
             template.isMask: true
             template.iconSizeHint: Maui.Style.iconSize
-            columns: 1
             flat: false
 
             Column
@@ -291,7 +301,6 @@ ManLib.SettingsPage
             iconSource: "folder-language"
             template.isMask: true
             template.iconSizeHint: Maui.Style.iconSize
-            columns: 1
             flat: false
 
             Column
@@ -337,7 +346,6 @@ ManLib.SettingsPage
 
             label1.text: i18n("Licenses")
             // label2.text: `Maui.App.about.copyrightStatement
-            columns: 1
             flat: false
 
             Column
@@ -368,7 +376,6 @@ ManLib.SettingsPage
             template.iconSizeHint: Maui.Style.iconSize
 
             label1.text: ("Components")
-            columns: 1
             flat: false
 
             Column

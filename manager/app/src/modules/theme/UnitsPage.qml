@@ -18,7 +18,8 @@ Maui.SettingsPage
     property var manager
 
     title: i18n("Units")
-    Maui.SectionItem
+    
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Effects")
         label2.text: i18n("Enable effects.")
@@ -30,11 +31,10 @@ Maui.SettingsPage
         }
     }
 
-    Maui.SectionItem
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Border Radius")
         label2.text: i18n("Custom border radius.")
-        columns : 3
 
         SpinBox
         {
@@ -53,11 +53,10 @@ Maui.SettingsPage
     }
 
 
-    Maui.SectionItem
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Elements Size")
         label2.text: i18n("Changes the padding value of controls such as buttons, menu entries, fields, tool bars etc.")
-        columns : 3
 
         Maui.ToolActions
         {
@@ -93,11 +92,10 @@ Maui.SettingsPage
         }
     }
 
-    Maui.SectionItem
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Content Margins")
         label2.text: i18n("Changes the margins of the views, such as list and icon views.")
-        columns : 3
 
         Maui.ToolActions
         {
@@ -133,11 +131,10 @@ Maui.SettingsPage
         }
     }
 
-    Maui.SectionItem
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Content Spacing")
         label2.text: i18n("Spacing between elements in lists.")
-        columns : 3
 
         Maui.ToolActions
         {

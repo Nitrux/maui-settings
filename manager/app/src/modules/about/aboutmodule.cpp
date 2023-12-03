@@ -5,7 +5,7 @@
 AboutModule::AboutModule(QObject *parent) :AbstractModule(QStringLiteral("about"),
                                                           i18n("About"),
                                                           i18n("General"),
-                                                          QStringLiteral("qrc:/MauiSettings/src/modules/about/AboutModuleView.qml"),
+                                                          QStringLiteral("qrc:/MauiSettingsModule/src/modules/about/AboutModuleView.qml"),
                                                           QStringLiteral("user-man"),
                                                           QStringLiteral("User and system information."),
 

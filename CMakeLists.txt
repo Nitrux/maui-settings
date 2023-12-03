@@ -7,7 +7,7 @@ project(MauiSettingsManager)
 set(MAUISETTINGS_VERSION 1.1.0)
 
 set(REQUIRED_QT_VERSION 6.4)
-set(REQUIRED_KF_VERSION 5.204.0)
+set(REQUIRED_KF_VERSION 5.81.80)
 set(REQUIRED_MAUI_VERSION 4.0.0)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -24,9 +24,6 @@ include(FeatureSummary)
 include(CMakePackageConfigHelpers)
 
 include(ECMSetupVersion)
-include(ECMGenerateQmlTypes)
-include(ECMFindQmlModule)
-include(ECMQmlModule)
 
 include(KDEPackageAppTemplates)
 include(KDECompilerSettings)

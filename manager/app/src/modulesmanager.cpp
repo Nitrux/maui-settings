@@ -52,22 +52,22 @@ ModulesManager::ModulesManager(QObject *parent) : QObject(parent)
     //apperance
     m_model->model()->appendModule(new BackgroundModule);
     m_model->model()->appendModule(new ThemeModule);
-
+    
     //network
     m_model->model()->appendModule(new BluetoothModule);
     m_model->model()->appendModule(new NetworkModule);
-
+    
     //system
     m_model->model()->appendModule(new ScreenModule);
-
+    
     m_model->model()->appendModule(new AudioModule);
     m_model->model()->appendModule(new InputDevicesModule);
     m_model->model()->appendModule(new FormFactorModule);
     m_model->model()->appendModule(new AccessibilityModule);
-
+    
     //shell
-    m_model->model()->appendModule(new ShellModule);
-    m_model->model()->appendModule(new ScreenshotModule);
+    // m_model->model()->appendModule(new ShellModule);
+    // m_model->model()->appendModule(new ScreenshotModule);
 }
 
 ModulesProxyModel *ModulesManager::model() const
@@ -107,8 +107,10 @@ void ModulesManager::startMauiManServer()
 
 AbstractModule* ModulesManager::sourceFor(const QString &moduleId)
 {
-    for(const auto &module : m_model->model()->modules())
+    auto modules= m_model->model()->modules();
+    for(const auto &module : modules)
     {
+        qDebug() << "lookin for modules" << moduleId;
         if(module->id() == moduleId)
         {
             return module;

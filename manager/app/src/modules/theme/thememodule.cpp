@@ -51,7 +51,7 @@ void ThemeModule::updateGtk3Config()
 ThemeModule::ThemeModule(QObject *parent) :AbstractModule(QStringLiteral("theme"),
                                                           i18n("Theme"),
                                                           i18n("Apperance"),
-                                                          QStringLiteral("qrc:/MauiSettings/src/modules/theme/ThemeModuleView.qml"),
+                                                          QStringLiteral("qrc:/MauiSettingsModule/src/modules/theme/ThemeModuleView.qml"),
                                                           QStringLiteral("preferences-desktop-theme"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
 

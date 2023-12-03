@@ -75,7 +75,7 @@ ManLib.SettingsPage
         title: i18n("Options")
         description: i18n("Configure look and feel")
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Dim Wallpaper")
             label2.text: i18n("On dark mode the wallpaper will be dimmed")
@@ -87,7 +87,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Fit Wallpaper")
             label2.text: i18n("Fill or fit wallpaper")
@@ -99,7 +99,7 @@ ManLib.SettingsPage
             }
         }
 
-        Maui.SectionItem
+        Maui.FlexSectionItem
         {
             label1.text: i18n("Show Wallpaper")
             label2.text: i18n("Show image or solid color")
@@ -115,7 +115,8 @@ ManLib.SettingsPage
     Maui.SectionGroup
     {
         title: i18n("Customize")
-        Maui.SectionItem
+        
+        Maui.FlexSectionItem
         {
             enabled: control.manager.showWallpaper
 
@@ -153,7 +154,7 @@ ManLib.SettingsPage
         {
             label1.text: i18n("Sources")
             label2.text: i18n("Wallpaper source directory")
-            columns: 1
+
             RowLayout
             {
                 width: parent.parent.width

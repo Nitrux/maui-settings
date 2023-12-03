@@ -10,7 +10,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QPair>
-
+#include <memory>
 #include <MauiKit4/Core/mauiapp.h>
 
 #include <KAboutData>
@@ -22,6 +22,9 @@
 #include "src/modulesmodel.h"
 
 #include "src/server/server.h"
+
+#include "code/abstractmodule.h"
+
 
 #define MAUISETTINGS_URI "org.maui.settings"
 
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
     KAboutData::setApplicationData(about);
     MauiApp::instance()->setIconName(QStringLiteral("qrc:/mauisettings.svg"));
 
-    ModulesManager manager;
+    std::unique_ptr<ModulesManager> manager = std::make_unique<ModulesManager>();
     QCommandLineParser parser;
 
     if(about.setupCommandLine(&parser))
@@ -97,7 +100,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    const QUrl url(u"qrc:/MauiSettings/main.qml"_qs);
+    const QUrl url(u"qrc:/MauiSettingsModule/main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, &server, &arguments](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
@@ -111,8 +114,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
 
     qmlRegisterAnonymousType<ModulesModel>(MAUISETTINGS_URI, 1);
+    qmlRegisterAnonymousType<AbstractModule>(MAUISETTINGS_URI, 1);
 
-    engine.rootContext()->setContextProperty(QStringLiteral("ModulesManager"), &manager);
+    engine.rootContext()->setContextProperty(QStringLiteral("ModulesManager"), manager.get());
 
     engine.load(url);
 

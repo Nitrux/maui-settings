@@ -24,12 +24,11 @@ Maui.SettingsPage
     {
         label1.text: i18n("Style")
         label2.text: i18n("Enable CLient Side Decorations for MauiApps.")
-        columns : 1
 
         Flow
         {
             Layout.fillWidth: true
-            spacing: Maui.Style.space.medium
+            spacing: Maui.Style.space.big
 
             Repeater
             {
@@ -38,18 +37,20 @@ Maui.SettingsPage
                 delegate: Item
                 {
                     width: _layoutWD.implicitWidth
-                    height: _layoutWD.implicitHeight
+                    height: Math.max(_layoutWD.implicitHeight, 80)
 
-                    Column
+                    ColumnLayout
                     {
                         id: _layoutWD
+                        anchors.fill: parent
                         spacing: Maui.Style.space.medium
 
                         Control
                         {
+                            Layout.alignment: Qt.AlignCenter
                             Maui.Theme.colorSet: Maui.Theme.Header
                             Maui.Theme.inherit: false
-                            padding: Maui.Style.space.medium
+                            padding: Maui.Style.space.small
                             background: Rectangle
                             {
                                 radius: Maui.Style.radiusV
@@ -68,7 +69,8 @@ Maui.SettingsPage
 
                         Button
                         {
-                            width: parent.width
+                             Layout.alignment: Qt.AlignBottom
+                            Layout.fillWidth: true
                             checked: model.name === Maui.App.controls.styleName
                             text: model.name
                             onClicked: control.manager.windowControlsTheme = model.name
@@ -90,7 +92,7 @@ Maui.SettingsPage
         }
     }
 
-    Maui.SectionItem
+    Maui.FlexSectionItem
     {
         label1.text: i18n("Use CSD")
         label2.text: i18n("Enable CLient Side Decorations for MauiApps.")

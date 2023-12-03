@@ -76,8 +76,8 @@ qt_add_executable(${PROJECT_NAME}
     ${modulesSRCS}
     ${app_dbus_SRCS})
 
-qt_add_qml_module(${PROJECT_NAME}
-    URI ${PROJECT_NAME}
+qt6_add_qml_module(${PROJECT_NAME}
+    URI ${PROJECT_NAME}Module
     VERSION 1.0
     QML_FILES ${modulesQML})
 

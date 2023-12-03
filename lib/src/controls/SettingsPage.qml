@@ -21,7 +21,7 @@ Maui.Page
     readonly property string moduleId : module ? module.id : ""
 
     title: _stackView.currentItem.title ? _stackView.currentItem.title : ""
-    showCSDControls: true
+    Maui.Controls.showCSD: true
     showTitle: !_searchFieldLoader.visible
 
     headBar.leftContent:[ToolButton

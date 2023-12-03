@@ -16,10 +16,10 @@ static QVariantMap desktopData(const QString &uri)
 ScreenshotHandler::ScreenshotHandler(QObject *parent) : CaskScreenshot(parent)
   ,m_settings(new QSettings(this))
 {
-    connect(this, &ScreenshotHandler::blacklistedChanged, [this](QStringList)
-    {
-        setBlacklistedModel();
-    });
+    // connect(this, &ScreenshotHandler::blacklistedModelChanged, [this](QStringList)
+    // {
+    //     setBlacklistedModel();
+    // });
 
     setBlacklistedModel();
 }
