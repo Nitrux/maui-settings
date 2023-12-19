@@ -9,7 +9,7 @@ find_package(Qt6Gui ${REQUIRED_QT_VERSION} CONFIG REQUIRED Private)
 
 find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS
                 Config ConfigWidgets I18n IconThemes KIO Notifications
-                WidgetsAddons WindowSystem ConfigWidgets Wayland)
+                WidgetsAddons WindowSystem ConfigWidgets)
 
 find_package(MauiMan4 REQUIRED)
 

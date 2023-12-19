@@ -23,12 +23,12 @@ Maui.ApplicationWindow
         anchors.fill: parent
     }
 
-    function isModuleOpen(module : String)
+    function isModuleOpen(module)
     {
         return _homeView.currentModule === module
     }
 
-    function openModule(module : String)
+    function openModule(module)
     {
         _homeView.loadModule(ModulesManager.sourceFor(module))
     }

@@ -7,8 +7,8 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR})
 
-#add_library(${PROJECT_NAME} SHARED)
-ecm_add_qml_module(${PROJECT_NAME} URI "org.maui.settings.lib" VERSION 1.0 CLASSNAME MauiSettingsPlugin)
+add_library(${PROJECT_NAME} SHARED)
+ecm_add_qml_module(${PROJECT_NAME} URI "org.maui.settings.lib" VERSION 1.0 CLASS_NAME MauiSettingsPlugin)
 
 set(mauisettingslib_HDRS
     code/abstractmodule.h)
