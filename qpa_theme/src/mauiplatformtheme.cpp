@@ -25,6 +25,9 @@
 #include <QDebug>
 #include <QToolBar>
 #include <QMainWindow>
+#include <QWindow>
+#include <QStyleFactory>
+
 
 #include <KLocalizedString>
 #include <KStandardGuiItem>
@@ -124,9 +127,7 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
 
         QIcon::setThemeName(m_iconTheme);
 
-        QIcon icon = app->windowIcon();
-        app->setWindowIcon(QIcon::fromTheme(icon.name()));
-
+       
         // update all widgets for repaint new themed icons.
         for (auto widget : QApplication::allWidgets())
         {
@@ -142,7 +143,11 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
 
         //this is for now what maui qqc2 theme checks for updating icons
         app->setStyle(m_style);
-
+        
+        QEvent e{QEvent::ThemeChange};
+        QApplication::sendEvent(this, &e);
+        
+        QWindowSystemInterface::handleThemeChange();
     });
 
 
@@ -196,6 +201,8 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
 
     connect(m_theme, &MauiMan::ThemeManager::styleTypeChanged, [this](uint type)
     {
+                qDebug() << "Style type changed in Maui QPA" << type;
+
         if(!m_usePalette)
             return;
 
@@ -211,9 +218,9 @@ MauiPlatformTheme::MauiPlatformTheme(QObject *parent ) : QObject(parent)
             qApp->setPalette(*m_palette);
             qApp->setProperty("KDE_COLOR_SCHEME_PATH", m_schemePath);
         }
-
-//        QGuiApplication::setPalette(*m_palette);
-
+        
+         QWindowSystemInterface::handleThemeChange();
+   
     });
 
     connect(m_theme, &MauiMan::ThemeManager::customColorSchemeChanged, [this](const QString &scheme)
@@ -722,5 +729,17 @@ QPalette MauiPlatformTheme::loadColorScheme(const QString &scheme, QString&path)
     return QPalette(KColorScheme::createApplicationPalette(KSharedConfig::openConfig(path)));
 
 }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+Qt::ColorScheme MauiPlatformTheme::colorScheme() const
+{
+    return m_theme->styleType() == 1 ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light;
+}
+#elif QT_VERSION >= QT_VERSION_CHECK(6, 3, 0)
+QPlatformTheme::Appearance MauiPlatformTheme::appearance() const
+{
+    return m_theme->styleType() == 1 ? Appearance::Dark : Appearance::Light;
+}
+#endif
 
 #include "mauiplatformtheme.moc"

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <qpa/qplatformtheme.h>
+#include <qpa/qwindowsysteminterface.h>
 #include <qpa/qplatformdialoghelper.h>
 #include <QHash>
 #include <QKeySequence>
@@ -47,8 +48,16 @@ public:
 
 
     void windowCreated(QWindow *window);
+    
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    Qt::ColorScheme colorScheme() const Q_DECL_OVERRIDE;
+#elif QT_VERSION >= QT_VERSION_CHECK(6, 3, 0)
+    QPlatformTheme::Appearance appearance() const Q_DECL_OVERRIDE;
+#endif
+        
 private Q_SLOTS:
     void applySettings();
+    
 private:
     MauiMan::ThemeManager *m_theme;
       MauiMan::AccessibilityManager *m_accessibility;
