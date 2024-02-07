@@ -6,7 +6,7 @@
 AudioModule::AudioModule(QObject *parent) :AbstractModule(QStringLiteral("audio"),
                                                           i18n("Audio"),
                                                           i18n("System"),
-                                                          QStringLiteral("qrc:/MauiSettings/src/modules/theme/AudioModuleView.qml"),
+                                                          QStringLiteral("qrc:/MauiSettingsModule/src/modules/audio/AudioModuleView.qml"),
                                                           QStringLiteral("preferences-desktop-sound"),
                                                           i18n("Accent colors, icon sets, adaptive colorscheme."),
 
@@ -17,7 +17,6 @@ AudioModule::AudioModule(QObject *parent) :AbstractModule(QStringLiteral("audio"
                                                           i18n("speaker"),
                                                           i18n("mic"),
                                                           i18n("microphone")},
-
                                                           parent)
 //  , m_manager(nullptr)
 {

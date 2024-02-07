@@ -49,6 +49,11 @@ set(modulesQML
     src/controls/HomeView.qml
     src/modules/theme/ThemeModuleView.qml
     src/modules/about/AboutModuleView.qml
+
+    src/modules/audio/AudioModuleView.qml
+    src/modules/audio/AudioCard.qml
+    src/modules/audio/SliderTemplate.qml
+
     src/modules/background/BackgroundModuleView.qml
     src/modules/screen/ScreenModuleView.qml
     src/modules/formfactor/FormFactorModuleView.qml

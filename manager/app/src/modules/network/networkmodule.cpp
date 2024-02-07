@@ -6,7 +6,7 @@
 NetworkModule::NetworkModule(QObject *parent) :AbstractModule(QStringLiteral("network"),
                                                               i18n("Network"),
                                                               i18n("Network"),
-                                                              QStringLiteral("qrc:/MauiSettings/src/modules/network/NetworkModuleView.qml"),
+                                                              QStringLiteral("qrc:/MauiSettingsModule/src/modules/network/NetworkModuleView.qml"),
                                                               QStringLiteral("preferences-system-network"),
                                                               i18n("Accent colors, icon sets, adaptive colorscheme."),
 
