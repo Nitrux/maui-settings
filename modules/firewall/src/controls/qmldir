@@ -1,4 +1,0 @@
-module org.nxmanager.touchegg
-plugin ToucheggModule
-classname ToucheggPlugin
-typeinfo plugins.qmltypes
