@@ -47,7 +47,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     about.setOrganizationDomain(QByteArrayLiteral("org.maui.settings"));
     about.setProductName(QByteArrayLiteral("nitrux/maui-settings"));
     about.setProgramLogo(app.windowIcon());
-    about.setDesktopFileName(QStringLiteral("org.kde.maui-settings"));
+    about.setDesktopFileName(QStringLiteral("org.maui.settings"));
     KAboutData::setApplicationData(about);
 
     MauiApp::instance()->setIconName(QStringLiteral("preferences-system"));

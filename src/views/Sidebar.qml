@@ -14,16 +14,61 @@ Loader
 
     required property string currentSection
     required property string searchQuery
+    property var groups: []
 
     signal sectionSelected(string section)
 
-    function matchesFilter(label)
+    function matchesFilter(text)
     {
         const query = searchQuery.trim().toLowerCase()
         if (!query.length)
             return true
 
-        return String(label).toLowerCase().indexOf(query) >= 0
+        return String(text).toLowerCase().indexOf(query) >= 0
+    }
+
+    function visibleItemCount()
+    {
+        const query = searchQuery.trim().toLowerCase()
+        if (!query.length)
+        {
+            let total = 0
+            for (let i = 0; i < control.groups.length; ++i)
+                total += control.groups[i].items.length
+            return total
+        }
+
+        let count = 0
+        for (let i = 0; i < control.groups.length; ++i)
+        {
+            const group = control.groups[i]
+            if (matchesFilter(group.title))
+            {
+                count += group.items.length
+                continue
+            }
+
+            for (let j = 0; j < group.items.length; ++j)
+            {
+                if (matchesFilter(group.items[j].label))
+                    ++count
+            }
+        }
+        return count
+    }
+
+    function groupVisible(group)
+    {
+        if (matchesFilter(group.title))
+            return true
+
+        for (let i = 0; i < group.items.length; ++i)
+        {
+            if (matchesFilter(group.items[i].label))
+                return true
+        }
+
+        return false
     }
 
     OpacityAnimator on opacity
@@ -61,67 +106,75 @@ Loader
                 anchors.fill: parent
                 anchors.margins: Maui.Style.contentMargins
 
-                ColumnLayout
+                ScrollView
                 {
+                    id: _scrollView
                     anchors.fill: parent
-                    spacing: Maui.Style.space.small
+                    clip: true
+                    focus: false
+                    padding: 0
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-                    Maui.SectionHeader
+                    ColumnLayout
                     {
-                        Layout.fillWidth: true
-                        text1: i18n("Settings")
-                        label1.font.weight: Font.Bold
-                        label1.font.pixelSize: 14
-                        label2.visible: false
-                    }
+                        width: _scrollView.availableWidth
+                        spacing: Maui.Style.space.medium
 
-                    Maui.ListBrowser
-                    {
-                        id: _listBrowser
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        padding: 0
-                        focus: false
-                        clip: true
-                        Keys.enabled: false
-                        verticalScrollBarPolicy: ScrollBar.AlwaysOff
-
-                        model: sectionsModel
-
-                        holder.visible: count === 0
-                        holder.title: i18n("Settings")
-                        holder.body: i18n("Your sections will appear here")
-
-                        delegate: Maui.ListDelegate
+                        Repeater
                         {
-                            readonly property bool shown: control.matchesFilter(model.label)
-                            width: _listBrowser.availableWidth
-                            height: shown ? implicitHeight : 0
-                            visible: shown
-                            enabled: shown
-                            iconSize: Maui.Style.iconSize
-                            iconVisible: true
-                            label: model.label
-                            iconName: model.icon
-                            isCurrentItem: model.section === control.currentSection
+                            model: control.groups
 
-                            onClicked:
+                            delegate: ColumnLayout
                             {
-                                control.sectionSelected(model.section)
+                                required property var modelData
+                                Layout.fillWidth: true
+                                spacing: Maui.Style.space.small
+                                visible: control.groupVisible(modelData)
+
+                                Maui.SectionHeader
+                                {
+                                    Layout.fillWidth: true
+                                    text1: modelData.title
+                                    label1.font.weight: Font.Bold
+                                    label1.font.pixelSize: 14
+                                    label2.visible: false
+                                }
+
+                                ColumnLayout
+                                {
+                                    id: groupRows
+                                    Layout.fillWidth: true
+                                    spacing: Maui.Style.space.small
+
+                                    Repeater
+                                    {
+                                        model: modelData.items
+
+                                        delegate: Maui.ListDelegate
+                                        {
+                                            required property var modelData
+                                            readonly property bool shown: control.matchesFilter(modelData.label)
+                                            Layout.fillWidth: true
+                                            visible: shown
+                                            enabled: shown
+                                            iconSize: Maui.Style.iconSize
+                                            iconVisible: true
+                                            label: modelData.label
+                                            iconName: modelData.icon
+                                            isCurrentItem: modelData.section === control.currentSection
+
+                                            onClicked:
+                                            {
+                                                control.sectionSelected(modelData.section)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-
-            ListModel
-            {
-                id: sectionsModel
-
-                ListElement { label: "General"; section: "general"; icon: "settings-configure" }
-                ListElement { label: "Appearance"; section: "appearance"; icon: "preferences-desktop-theme" }
-                ListElement { label: "Privacy"; section: "privacy"; icon: "security-high" }
-                ListElement { label: "About"; section: "about"; icon: "documentinfo" }
             }
         }
     }
