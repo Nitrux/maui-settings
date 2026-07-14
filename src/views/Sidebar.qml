@@ -71,6 +71,61 @@ Loader
         return false
     }
 
+    Component
+    {
+        id: generalGroupComponent
+        GeneralGroup {}
+    }
+
+    Component
+    {
+        id: appearanceGroupComponent
+        AppearanceGroup {}
+    }
+
+    Component
+    {
+        id: desktopShellGroupComponent
+        DesktopShellGroup {}
+    }
+
+    Component
+    {
+        id: applicationsGroupComponent
+        ApplicationsGroup {}
+    }
+
+    Component
+    {
+        id: connectivityGroupComponent
+        ConnectivityGroup {}
+    }
+
+    Component
+    {
+        id: hardwareSoundGroupComponent
+        HardwareSoundGroup {}
+    }
+
+    Component
+    {
+        id: securityLoginGroupComponent
+        SecurityLoginGroup {}
+    }
+
+    Component.onCompleted:
+    {
+        groups = [
+            generalGroupComponent.createObject(control),
+            appearanceGroupComponent.createObject(control),
+            desktopShellGroupComponent.createObject(control),
+            applicationsGroupComponent.createObject(control),
+            connectivityGroupComponent.createObject(control),
+            hardwareSoundGroupComponent.createObject(control),
+            securityLoginGroupComponent.createObject(control)
+        ]
+    }
+
     OpacityAnimator on opacity
     {
         from: 0
@@ -143,7 +198,6 @@ Loader
 
                                 ColumnLayout
                                 {
-                                    id: groupRows
                                     Layout.fillWidth: true
                                     spacing: Maui.Style.space.small
 

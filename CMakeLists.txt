@@ -80,6 +80,28 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     QML_FILES
     src/main.qml
     src/views/Sidebar.qml
+    src/views/sidebar/general/GeneralGroup.qml
+    src/views/sidebar/general/AboutItem.qml
+    src/views/sidebar/appearance/AppearanceGroup.qml
+    src/views/sidebar/appearance/BackgroundItem.qml
+    src/views/sidebar/appearance/ThemeItem.qml
+    src/views/sidebar/desktop_shell/DesktopShellGroup.qml
+    src/views/sidebar/desktop_shell/DesktopItem.qml
+    src/views/sidebar/desktop_shell/PanelItem.qml
+    src/views/sidebar/applications/ApplicationsGroup.qml
+    src/views/sidebar/applications/DefaultsItem.qml
+    src/views/sidebar/applications/CacheItem.qml
+    src/views/sidebar/connectivity/ConnectivityGroup.qml
+    src/views/sidebar/connectivity/BluetoothItem.qml
+    src/views/sidebar/connectivity/NetworkItem.qml
+    src/views/sidebar/hardware_sound/HardwareSoundGroup.qml
+    src/views/sidebar/hardware_sound/AudioItem.qml
+    src/views/sidebar/hardware_sound/InputDevicesItem.qml
+    src/views/sidebar/hardware_sound/FormFactorItem.qml
+    src/views/sidebar/hardware_sound/AccessibilityItem.qml
+    src/views/sidebar/security_login/SecurityLoginGroup.qml
+    src/views/sidebar/security_login/GreeterItem.qml
+    src/views/sidebar/security_login/LockScreenItem.qml
 )
 
 target_link_libraries(${APP_NAME}

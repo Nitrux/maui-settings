@@ -98,58 +98,6 @@ Maui.ApplicationWindow
                 anchors.rightMargin: 0
                 currentSection: root.currentSection
                 searchQuery: root.searchQuery
-                groups: [
-                    {
-                        title: "General",
-                        items: [
-                            { label: "About", section: "general-about", icon: "documentinfo" }
-                        ]
-                    },
-                    {
-                        title: "Appearance",
-                        items: [
-                            { label: "Background", section: "appearance-background", icon: "preferences-desktop-wallpaper" },
-                            { label: "Theme", section: "appearance-theme", icon: "preferences-desktop-theme" }
-                        ]
-                    },
-                    {
-                        title: "Desktop & Shell",
-                        items: [
-                            { label: "Desktop", section: "desktop-shell-desktop", icon: "computer" },
-                            { label: "Panel", section: "desktop-shell-panel", icon: "view-media-sidebar" }
-                        ]
-                    },
-                    {
-                        title: "Applications",
-                        items: [
-                            { label: "Defaults", section: "applications-defaults", icon: "document-open" },
-                            { label: "Cache", section: "applications-cache", icon: "edit-clear-history" }
-                        ]
-                    },
-                    {
-                        title: "Connectivity",
-                        items: [
-                            { label: "Bluetooth", section: "connectivity-bluetooth", icon: "bluetooth" },
-                            { label: "Network", section: "connectivity-network", icon: "network-wireless" }
-                        ]
-                    },
-                    {
-                        title: "Hardware & Sound",
-                        items: [
-                            { label: "Audio", section: "hardware-sound-audio", icon: "audio-headphones" },
-                            { label: "Input Devices", section: "hardware-sound-input", icon: "input-keyboard" },
-                            { label: "Form Factor", section: "hardware-sound-form-factor", icon: "computer-laptop" },
-                            { label: "Accessibility", section: "hardware-sound-accessibility", icon: "preferences-desktop-accessibility" }
-                        ]
-                    },
-                    {
-                        title: "Security & Login",
-                        items: [
-                            { label: "Greeter", section: "security-login-greeter", icon: "system-users" },
-                            { label: "Lock Screen", section: "security-login-lock-screen", icon: "system-lock-screen" }
-                        ]
-                    }
-                ]
                 onSectionSelected: (section) =>
                 {
                     root.currentSection = section
