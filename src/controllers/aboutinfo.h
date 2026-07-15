@@ -16,12 +16,8 @@ class AboutInfo : public QObject
     Q_PROPERTY(QString cpuArchitecture READ cpuArchitecture CONSTANT)
     Q_PROPERTY(QString memoryTotal READ memoryTotal CONSTANT)
     Q_PROPERTY(QString memoryAvailable READ memoryAvailable CONSTANT)
-    Q_PROPERTY(QVariantList storageVolumes READ storageVolumes CONSTANT)
-    Q_PROPERTY(QString storageMountPoint READ storageMountPoint CONSTANT)
-    Q_PROPERTY(QString storageFileSystem READ storageFileSystem CONSTANT)
-    Q_PROPERTY(QString storageUsed READ storageUsed CONSTANT)
-    Q_PROPERTY(QString storageAvailable READ storageAvailable CONSTANT)
-    Q_PROPERTY(QString storageTotal READ storageTotal CONSTANT)
+    Q_PROPERTY(QVariantList storageDevices READ storageDevices NOTIFY storageDevicesChanged)
+    Q_PROPERTY(QVariantList storageVolumes READ storageDevices NOTIFY storageDevicesChanged)
 
 public:
     explicit AboutInfo(QObject *parent = nullptr);
@@ -35,16 +31,19 @@ public:
     QString cpuArchitecture() const;
     QString memoryTotal() const;
     QString memoryAvailable() const;
-    QVariantList storageVolumes() const;
-    QString storageMountPoint() const;
-    QString storageFileSystem() const;
-    QString storageUsed() const;
-    QString storageAvailable() const;
-    QString storageTotal() const;
+    QVariantList storageDevices() const;
+
+Q_SIGNALS:
+    void storageDevicesChanged();
+
+private:
+    void refreshStorageDevices();
 
 private:
     static QString formatBytes(qint64 bytes);
     static QString readReleaseValue(const QString &path, const QString &key);
     static qint64 readMemInfoValueKB(const QString &key);
     static QString readCpuModel();
+
+    QVariantList m_storageDevices;
 };

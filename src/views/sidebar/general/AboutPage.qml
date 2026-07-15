@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
@@ -162,18 +163,18 @@ Maui.ScrollColumn
             id: _storageLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.medium
+            spacing: Maui.Style.space.small
 
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
                 text1: i18n("Storage")
-                text2: i18n("Internal partitions and filesystem details.")
+                text2: i18n("Physical disks and their storage usage.")
             }
 
             Repeater
             {
-                model: info ? info.storageVolumes : []
+                model: info ? info.storageDevices : []
 
                 delegate: Rectangle
                 {
@@ -184,11 +185,11 @@ Maui.ScrollColumn
                     radius: Maui.Style.radiusV
                     border.color: Maui.Theme.alternateBackgroundColor
                     border.width: 1
-                    implicitHeight: _volumeLayout.implicitHeight + Maui.Style.contentMargins * 2
+                    implicitHeight: _deviceLayout.implicitHeight + Maui.Style.contentMargins * 2
 
                     ColumnLayout
                     {
-                        id: _volumeLayout
+                        id: _deviceLayout
                         anchors.fill: parent
                         anchors.margins: Maui.Style.contentMargins
                         spacing: Maui.Style.space.small
@@ -196,35 +197,31 @@ Maui.ScrollColumn
                         Maui.SectionHeader
                         {
                             Layout.fillWidth: true
-                            text1: modelData.label
-                            text2: [modelData.fileSystem, modelData.device].filter(Boolean).join(i18n(" - "))
+                            text1: modelData.title
+                            text2: modelData.subtitle
                         }
 
-                        Maui.SectionItem
+                        ProgressBar
                         {
                             Layout.fillWidth: true
-                            flat: true
-                            label1.text: i18n("Used")
-                            label2.text: modelData ? modelData.used : i18n("Unknown")
-                            label2.wrapMode: Text.WordWrap
+                            Layout.leftMargin: Maui.Style.defaultPadding
+                            Layout.rightMargin: Maui.Style.defaultPadding
+                            from: 0
+                            to: 1
+                            value: modelData.usageFraction >= 0 ? modelData.usageFraction : 0
+                            indeterminate: modelData.indeterminate
                         }
 
-                        Maui.SectionItem
+                        Text
                         {
                             Layout.fillWidth: true
-                            flat: true
-                            label1.text: i18n("Available")
-                            label2.text: modelData ? modelData.available : i18n("Unknown")
-                            label2.wrapMode: Text.WordWrap
-                        }
-
-                        Maui.SectionItem
-                        {
-                            Layout.fillWidth: true
-                            flat: true
-                            label1.text: i18n("Total")
-                            label2.text: modelData ? modelData.total : i18n("Unknown")
-                            label2.wrapMode: Text.WordWrap
+                            Layout.leftMargin: Maui.Style.defaultPadding
+                            Layout.rightMargin: Maui.Style.defaultPadding
+                            text: modelData.usageSummary
+                            color: Maui.Theme.textColor
+                            opacity: 0.75
+                            wrapMode: Text.WordWrap
+                            font.pointSize: Maui.Style.fontSizes.small
                         }
                     }
                 }

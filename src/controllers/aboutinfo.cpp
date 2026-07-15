@@ -1,18 +1,17 @@
 #include "aboutinfo.h"
 
-#include <algorithm>
-
 #include <QByteArray>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QDebug>
 #include <QLocale>
-#include <QList>
 #include <QProcess>
 #include <QStorageInfo>
 #include <QStringList>
 #include <QSysInfo>
+#include <QTimer>
 #include <QVariantMap>
+#include <QList>
 #ifdef Q_OS_LINUX
 #include <sys/sysinfo.h>
 #endif
@@ -95,40 +94,25 @@ QString readMemInfoValueKBFromPath(const QString &path, const QString &key)
 
 QString readCpuModelFromPath(const QString &path)
 {
-    qWarning().noquote() << "AboutInfo: trying to read CPU model from" << path;
-
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        qWarning().noquote() << "AboutInfo: failed to open" << path << "for CPU model:" << file.errorString();
         return {};
-    }
 
     while (!file.atEnd())
     {
         const QString line = QString::fromUtf8(file.readLine()).trimmed();
-        const QString lowerLine = line.toLower();
-        if (!lowerLine.contains(QStringLiteral("model name")))
+        if (!line.toLower().contains(QStringLiteral("model name")))
             continue;
 
-        const int separatorIndex = line.indexOf(QLatin1String(":"));
+        const int separatorIndex = line.indexOf(QLatin1Char(':'));
         if (separatorIndex < 0)
-        {
-            qWarning().noquote() << "AboutInfo: matched model-name line without colon:" << line;
             continue;
-        }
 
         const QString value = line.mid(separatorIndex + 1).trimmed();
         if (!value.isEmpty())
-        {
-            qWarning().noquote() << "AboutInfo: parsed CPU model:" << value;
             return value;
-        }
-
-        qWarning().noquote() << "AboutInfo: matched model-name line but value was empty:" << line;
     }
 
-    qWarning().noquote() << "AboutInfo: no CPU model found in" << path;
     return {};
 }
 
@@ -180,67 +164,202 @@ QString normalizeDevicePath(const QString &devicePath)
     return canonical.isEmpty() ? devicePath : canonical;
 }
 
-QString storageLabelPath(const QString &label)
+QString readSysfsText(const QString &path)
 {
-    const QString path = QStringLiteral("/dev/disk/by-label/") + label;
-    QFileInfo info(path);
-    if (!info.exists())
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return {};
 
-    QString target = info.symLinkTarget();
-    if (target.isEmpty())
-        target = info.canonicalFilePath();
-    if (target.isEmpty())
-        target = path;
-
-    return normalizeDevicePath(target);
+    return QString::fromUtf8(file.readAll()).trimmed();
 }
 
-QStorageInfo storageForLabel(const QString &label)
+qint64 readSysfsInteger(const QString &path)
 {
-    const QString target = storageLabelPath(label);
-    if (target.isEmpty())
-        return {};
+    bool ok = false;
+    const qint64 value = readSysfsText(path).toLongLong(&ok);
+    return ok ? value : 0;
+}
 
-    const QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
-    for (const QStorageInfo &storage : volumes)
+QString diskNameFromDevicePath(const QString &devicePath)
+{
+    return QFileInfo(devicePath).fileName();
+}
+
+QString diskNameFromPartitionName(const QString &partitionName)
+{
+    if (partitionName.startsWith(QStringLiteral("nvme")) || partitionName.startsWith(QStringLiteral("mmcblk")))
     {
-        if (normalizeDevicePath(QString::fromUtf8(storage.device())) == target)
-            return storage;
+        const int separatorIndex = partitionName.lastIndexOf(QLatin1Char('p'));
+        if (separatorIndex > 0)
+            return partitionName.left(separatorIndex);
+    }
+    else if (partitionName.startsWith(QStringLiteral("sd")) || partitionName.startsWith(QStringLiteral("hd")) || partitionName.startsWith(QStringLiteral("vd")) || partitionName.startsWith(QStringLiteral("xvd")))
+    {
+        int index = partitionName.size() - 1;
+        while (index >= 0 && partitionName.at(index).isDigit())
+            --index;
+
+        if (index >= 0 && index < partitionName.size() - 1)
+            return partitionName.left(index + 1);
     }
 
-    return {};
+    return partitionName;
 }
 
-QVariantMap storageToMap(const QString &label)
+QString diskDevicePath(const QString &diskName)
 {
-    const QStorageInfo storage = storageForLabel(label);
-    const bool valid = storage.isValid() && storage.isReady();
+    return QStringLiteral("/dev/") + diskName;
+}
 
-    const qint64 total = valid ? storage.bytesTotal() : -1;
-    const qint64 available = valid ? storage.bytesAvailable() : -1;
-    const qint64 used = (total > 0 && available >= 0) ? qMax<qint64>(0, total - available) : -1;
+QString diskDisplayName(const QString &diskName)
+{
+    const QString basePath = QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/device/");
+    const QString model = readSysfsText(basePath + QStringLiteral("model")).simplified();
+    const QString vendor = readSysfsText(basePath + QStringLiteral("vendor")).simplified();
+
+    if (!model.isEmpty())
+        return model;
+    if (!vendor.isEmpty())
+        return QStringLiteral("%1 %2").arg(vendor, diskName);
+
+    return diskName;
+}
+
+QString diskTypeLabel(const QString &diskName)
+{
+    if (diskName.startsWith(QStringLiteral("nvme")))
+        return QStringLiteral("nvme");
+
+    const QString removable = readSysfsText(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/removable"));
+    if (removable == QStringLiteral("1"))
+        return QStringLiteral("usb");
+
+    const QString rotational = readSysfsText(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/queue/rotational"));
+    if (rotational == QStringLiteral("1"))
+        return QStringLiteral("hdd");
+    if (rotational == QStringLiteral("0"))
+        return QStringLiteral("ssd");
+
+    return QStringLiteral("disk");
+}
+
+qint64 diskTotalBytes(const QString &diskName)
+{
+    return readSysfsInteger(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/size")) * 512;
+}
+
+bool isPhysicalDisk(const QString &diskName)
+{
+    if (!QFileInfo::exists(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/device")))
+        return false;
+
+    if (QFileInfo::exists(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/partition")))
+        return false;
+
+    const QString uevent = readSysfsText(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/uevent"));
+    if (!uevent.isEmpty() && !uevent.contains(QStringLiteral("DEVTYPE=disk")))
+        return false;
+
+    return diskTotalBytes(diskName) > 0;
+}
+
+QString storageUsageSummary(qint64 usedBytes, qint64 totalBytes)
+{
+    const QString totalText = totalBytes > 0 ? readableDataSize(totalBytes) : QStringLiteral("Unavailable");
+    const QString usedText = usedBytes >= 0 ? readableDataSize(usedBytes) : QStringLiteral("Unavailable");
+    return QStringLiteral("%1 used of %2 total").arg(usedText, totalText);
+}
+
+QVariantMap storageDeviceToMap(const QString &diskName, const QList<QStorageInfo> &mountedVolumes)
+{
+    const QString devicePath = diskDevicePath(diskName);
+    const qint64 totalBytes = diskTotalBytes(diskName);
+    qint64 usedBytes = 0;
+    bool hasUsage = false;
+    QStringList mountPoints;
+    QStringList seenPartitionDevices;
+
+    for (const QStorageInfo &storage : mountedVolumes)
+    {
+        if (!storage.isValid() || !storage.isReady())
+            continue;
+
+        const QString partitionDevice = normalizeDevicePath(QString::fromUtf8(storage.device()));
+        if (!partitionDevice.startsWith(QStringLiteral("/dev/")))
+            continue;
+
+        if (seenPartitionDevices.contains(partitionDevice))
+            continue;
+        seenPartitionDevices.append(partitionDevice);
+
+        const QString partitionName = diskNameFromDevicePath(partitionDevice);
+        if (diskNameFromPartitionName(partitionName) != diskName)
+            continue;
+
+        const QString mountPoint = storage.rootPath();
+        if (!mountPoint.isEmpty() && !mountPoints.contains(mountPoint))
+            mountPoints.append(mountPoint);
+
+        const qint64 partitionTotal = storage.bytesTotal();
+        const qint64 partitionAvailable = storage.bytesAvailable();
+        if (partitionTotal > 0 && partitionAvailable >= 0)
+        {
+            usedBytes += qMax<qint64>(0, partitionTotal - partitionAvailable);
+            hasUsage = true;
+        }
+    }
+
+    mountPoints.sort();
 
     QVariantMap data;
-    data.insert(QStringLiteral("label"), label);
-    data.insert(QStringLiteral("mountPoint"), valid && !storage.rootPath().isEmpty() ? storage.rootPath() : QStringLiteral("Unavailable"));
-    data.insert(QStringLiteral("device"), valid && !storage.device().isEmpty() ? QString::fromUtf8(storage.device()) : QStringLiteral("Unavailable"));
-    data.insert(QStringLiteral("fileSystem"), valid && !storage.fileSystemType().isEmpty() ? QString::fromLatin1(storage.fileSystemType()) : QStringLiteral("Unknown file system"));
-    data.insert(QStringLiteral("used"), used >= 0 ? readableDataSize(used) : QStringLiteral("Unknown used space"));
-    data.insert(QStringLiteral("available"), available >= 0 ? readableDataSize(available) : QStringLiteral("Unknown available space"));
-    data.insert(QStringLiteral("total"), total >= 0 ? readableDataSize(total) : QStringLiteral("Unknown total space"));
+    data.insert(QStringLiteral("title"), diskDisplayName(diskName));
+    data.insert(QStringLiteral("devicePath"), devicePath);
+    data.insert(QStringLiteral("deviceType"), diskTypeLabel(diskName));
+    data.insert(QStringLiteral("mountPoints"), mountPoints.join(QStringLiteral(", ")));
+    data.insert(QStringLiteral("subtitle"), mountPoints.isEmpty() ? QStringLiteral("%1 · %2").arg(devicePath, diskTypeLabel(diskName))
+                                                                     : QStringLiteral("%1 · %2 · mounted at %3").arg(devicePath, diskTypeLabel(diskName), mountPoints.join(QStringLiteral(", "))));
+    const bool hasTotal = totalBytes > 0;
+    const bool showUsage = hasUsage && hasTotal;
+    const qint64 displayUsedBytes = showUsage ? usedBytes : 0;
+    const qint64 displayAvailableBytes = hasTotal ? qMax<qint64>(0, totalBytes - displayUsedBytes) : -1;
+
+    data.insert(QStringLiteral("used"), showUsage ? readableDataSize(displayUsedBytes) : QStringLiteral("Unavailable"));
+    data.insert(QStringLiteral("available"), showUsage ? readableDataSize(displayAvailableBytes) : QStringLiteral("Unavailable"));
+    data.insert(QStringLiteral("total"), hasTotal ? readableDataSize(totalBytes) : QStringLiteral("Unavailable"));
+    data.insert(QStringLiteral("usageSummary"), showUsage ? storageUsageSummary(displayUsedBytes, totalBytes) : QStringLiteral("Usage unavailable"));
+    data.insert(QStringLiteral("usageFraction"), showUsage ? qBound(0.0, static_cast<double>(usedBytes) / static_cast<double>(totalBytes), 1.0) : 0.0);
+    data.insert(QStringLiteral("indeterminate"), false);
     return data;
 }
 
-QVariantMap firstInternalStorageMap()
+QVariantList storageDeviceList()
 {
-    return storageToMap(QStringLiteral("NX_ROOT"));
+    const QList<QStorageInfo> mountedVolumes = QStorageInfo::mountedVolumes();
+    const QStringList diskNames = QDir(QStringLiteral("/sys/class/block")).entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+
+    QVariantList devices;
+    for (const QString &diskName : diskNames)
+    {
+        if (!isPhysicalDisk(diskName))
+            continue;
+
+        devices.append(storageDeviceToMap(diskName, mountedVolumes));
+    }
+
+    return devices;
 }
 } // namespace
 
 AboutInfo::AboutInfo(QObject *parent)
     : QObject(parent)
 {
+    auto *timer = new QTimer(this);
+    timer->setInterval(2000);
+    timer->setSingleShot(false);
+    connect(timer, &QTimer::timeout, this, &AboutInfo::refreshStorageDevices);
+    timer->start();
+
+    refreshStorageDevices();
 }
 
 QString AboutInfo::formatBytes(qint64 bytes)
@@ -271,37 +390,22 @@ qint64 AboutInfo::readMemInfoValueKB(const QString &key)
 
 QString AboutInfo::readCpuModel()
 {
-    qWarning().noquote() << "AboutInfo: reading CPU model with grep from /proc/cpuinfo";
-
     QProcess process;
     process.start(QStringLiteral("grep"), {QStringLiteral("-m"), QStringLiteral("1"), QStringLiteral("model name"), QStringLiteral("/proc/cpuinfo")});
     if (process.waitForFinished(3000) && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0)
     {
         const QString output = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
-        const int separatorIndex = output.indexOf(QLatin1String(":"));
+        const int separatorIndex = output.indexOf(QLatin1Char(':'));
         if (separatorIndex >= 0)
         {
             const QString model = output.mid(separatorIndex + 1).trimmed();
             if (!model.isEmpty())
-            {
-                qWarning().noquote() << "AboutInfo: grep returned CPU model:" << model;
                 return model;
-            }
         }
-
-        qWarning().noquote() << "AboutInfo: grep returned output but it could not be parsed:" << output;
-    }
-    else
-    {
-        qWarning().noquote() << "AboutInfo: grep command failed for CPU model:" << process.errorString();
     }
 
     const QString path = firstExistingPath({QStringLiteral("/proc/cpuinfo")});
-    const QString fallbackModel = path.isEmpty() ? QString() : readCpuModelFromPath(path);
-    if (!fallbackModel.isEmpty())
-        qWarning().noquote() << "AboutInfo: fallback file parser returned CPU model:" << fallbackModel;
-
-    return fallbackModel;
+    return path.isEmpty() ? QString() : readCpuModelFromPath(path);
 }
 
 QString AboutInfo::osDistribution() const
@@ -369,49 +473,17 @@ QString AboutInfo::memoryAvailable() const
     return formatBytes(available * 1024);
 }
 
-QVariantList AboutInfo::storageVolumes() const
+void AboutInfo::refreshStorageDevices()
 {
-    static const QStringList labels = {
-        QStringLiteral("NX_ROOT"),
-        QStringLiteral("NX_HOME"),
-        QStringLiteral("NX_VAR_LIB"),
-    };
+    const QVariantList devices = storageDeviceList();
+    if (devices == m_storageDevices)
+        return;
 
-    QVariantList volumes;
-    volumes.reserve(labels.size());
-
-    for (const QString &label : labels)
-        volumes.append(storageToMap(label));
-
-    return volumes;
+    m_storageDevices = devices;
+    Q_EMIT storageDevicesChanged();
 }
 
-QString AboutInfo::storageMountPoint() const
+QVariantList AboutInfo::storageDevices() const
 {
-    const QVariantMap data = firstInternalStorageMap();
-    return data.value(QStringLiteral("mountPoint")).toString();
-}
-
-QString AboutInfo::storageFileSystem() const
-{
-    const QVariantMap data = firstInternalStorageMap();
-    return data.value(QStringLiteral("fileSystem")).toString();
-}
-
-QString AboutInfo::storageUsed() const
-{
-    const QVariantMap data = firstInternalStorageMap();
-    return data.value(QStringLiteral("used")).toString();
-}
-
-QString AboutInfo::storageAvailable() const
-{
-    const QVariantMap data = firstInternalStorageMap();
-    return data.value(QStringLiteral("available")).toString();
-}
-
-QString AboutInfo::storageTotal() const
-{
-    const QVariantMap data = firstInternalStorageMap();
-    return data.value(QStringLiteral("total")).toString();
+    return m_storageDevices;
 }
