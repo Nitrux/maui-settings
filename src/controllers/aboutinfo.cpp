@@ -5,12 +5,17 @@
 #include <QByteArray>
 #include <QFile>
 #include <QFileInfo>
+#include <QDebug>
 #include <QLocale>
+#include <QList>
+#include <QProcess>
 #include <QStorageInfo>
 #include <QStringList>
 #include <QSysInfo>
 #include <QVariantMap>
-#include <QList>
+#ifdef Q_OS_LINUX
+#include <sys/sysinfo.h>
+#endif
 
 namespace
 {
@@ -90,22 +95,40 @@ QString readMemInfoValueKBFromPath(const QString &path, const QString &key)
 
 QString readCpuModelFromPath(const QString &path)
 {
+    qWarning().noquote() << "AboutInfo: trying to read CPU model from" << path;
+
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qWarning().noquote() << "AboutInfo: failed to open" << path << "for CPU model:" << file.errorString();
         return {};
+    }
 
-    const QString prefix = QStringLiteral("model name");
     while (!file.atEnd())
     {
         const QString line = QString::fromUtf8(file.readLine()).trimmed();
-        if (!line.startsWith(prefix))
+        const QString lowerLine = line.toLower();
+        if (!lowerLine.contains(QStringLiteral("model name")))
             continue;
 
-        const QString value = line.section(QLatin1Char(':'), 1).trimmed();
+        const int separatorIndex = line.indexOf(QLatin1String(":"));
+        if (separatorIndex < 0)
+        {
+            qWarning().noquote() << "AboutInfo: matched model-name line without colon:" << line;
+            continue;
+        }
+
+        const QString value = line.mid(separatorIndex + 1).trimmed();
         if (!value.isEmpty())
+        {
+            qWarning().noquote() << "AboutInfo: parsed CPU model:" << value;
             return value;
+        }
+
+        qWarning().noquote() << "AboutInfo: matched model-name line but value was empty:" << line;
     }
 
+    qWarning().noquote() << "AboutInfo: no CPU model found in" << path;
     return {};
 }
 
@@ -126,6 +149,26 @@ QString formatSession(const QString &sessionType, const QString &desktop)
 
     return QStringLiteral("%1 / %2").arg(sessionType, desktop);
 }
+
+#ifdef Q_OS_LINUX
+qint64 systemMemoryTotalKB()
+{
+    struct sysinfo info;
+    if (sysinfo(&info) != 0)
+        return 0;
+
+    return (static_cast<qint64>(info.totalram) * static_cast<qint64>(info.mem_unit)) / 1024;
+}
+
+qint64 systemMemoryAvailableKB()
+{
+    struct sysinfo info;
+    if (sysinfo(&info) != 0)
+        return 0;
+
+    return (static_cast<qint64>(info.freeram) + static_cast<qint64>(info.bufferram)) * static_cast<qint64>(info.mem_unit) / 1024;
+}
+#endif
 
 bool isInternalFileSystem(const QByteArray &fileSystemType)
 {
@@ -243,51 +286,67 @@ QString AboutInfo::readReleaseValue(const QString &path, const QString &key)
 
 qint64 AboutInfo::readMemInfoValueKB(const QString &key)
 {
-    const QString path = firstExistingPath({QStringLiteral("/run/host/proc/meminfo"), QStringLiteral("/proc/meminfo")});
-    const QString value = path.isEmpty() ? QString() : readMemInfoValueKBFromPath(path, key);
-    return value.toLongLong();
+    const QString value = readMemInfoValueKBFromPath(QStringLiteral("/proc/meminfo"), key);
+    if (!value.isEmpty())
+        return value.toLongLong();
+
+#ifdef Q_OS_LINUX
+    if (key == QStringLiteral("MemTotal"))
+        return systemMemoryTotalKB();
+    if (key == QStringLiteral("MemAvailable"))
+        return systemMemoryAvailableKB();
+#endif
+
+    return 0;
 }
 
 QString AboutInfo::readCpuModel()
 {
-    const QString path = firstExistingPath({QStringLiteral("/run/host/proc/cpuinfo"), QStringLiteral("/proc/cpuinfo")});
-    return path.isEmpty() ? QString() : readCpuModelFromPath(path);
+    qWarning().noquote() << "AboutInfo: reading CPU model with grep from /proc/cpuinfo";
+
+    QProcess process;
+    process.start(QStringLiteral("grep"), {QStringLiteral("-m"), QStringLiteral("1"), QStringLiteral("model name"), QStringLiteral("/proc/cpuinfo")});
+    if (process.waitForFinished(3000) && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0)
+    {
+        const QString output = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+        const int separatorIndex = output.indexOf(QLatin1String(":"));
+        if (separatorIndex >= 0)
+        {
+            const QString model = output.mid(separatorIndex + 1).trimmed();
+            if (!model.isEmpty())
+            {
+                qWarning().noquote() << "AboutInfo: grep returned CPU model:" << model;
+                return model;
+            }
+        }
+
+        qWarning().noquote() << "AboutInfo: grep returned output but it could not be parsed:" << output;
+    }
+    else
+    {
+        qWarning().noquote() << "AboutInfo: grep command failed for CPU model:" << process.errorString();
+    }
+
+    const QString path = firstExistingPath({QStringLiteral("/proc/cpuinfo")});
+    const QString fallbackModel = path.isEmpty() ? QString() : readCpuModelFromPath(path);
+    if (!fallbackModel.isEmpty())
+        qWarning().noquote() << "AboutInfo: fallback file parser returned CPU model:" << fallbackModel;
+
+    return fallbackModel;
 }
 
 QString AboutInfo::osDistribution() const
 {
-    const QString releasePath = firstExistingPath({QStringLiteral("/run/host/os-release")});
+    const QString releasePath = firstExistingPath({QStringLiteral("/etc/os-release"), QStringLiteral("/usr/lib/os-release")});
     const QString distribution = releasePath.isEmpty() ? QString() : readReleaseValue(releasePath, QStringLiteral("NAME"));
-    if (!distribution.isEmpty())
-        return distribution;
-
-    const QString prettyName = releasePath.isEmpty() ? QString() : readReleaseValue(releasePath, QStringLiteral("PRETTY_NAME"));
-    if (!prettyName.isEmpty())
-        return prettyName;
-
-    const QString productName = QSysInfo::prettyProductName();
-    if (!productName.isEmpty())
-        return productName;
-
-    return QStringLiteral("Unknown operating system");
+    return distribution.isEmpty() ? QStringLiteral("Unknown operating system") : distribution;
 }
 
 QString AboutInfo::osVersion() const
 {
-    const QString releasePath = firstExistingPath({QStringLiteral("/run/host/os-release")});
+    const QString releasePath = firstExistingPath({QStringLiteral("/etc/os-release"), QStringLiteral("/usr/lib/os-release")});
     const QString version = releasePath.isEmpty() ? QString() : readReleaseValue(releasePath, QStringLiteral("VERSION"));
-    if (!version.isEmpty())
-        return version;
-
-    const QString versionId = releasePath.isEmpty() ? QString() : readReleaseValue(releasePath, QStringLiteral("VERSION_ID"));
-    if (!versionId.isEmpty())
-        return versionId;
-
-    const QString productVersion = QSysInfo::productVersion();
-    if (!productVersion.isEmpty())
-        return productVersion;
-
-    return QStringLiteral("Unknown version");
+    return version.isEmpty() ? QStringLiteral("Unknown version") : version;
 }
 
 QString AboutInfo::osKernel() const
@@ -309,19 +368,17 @@ QString AboutInfo::hostName() const
 QString AboutInfo::cpuModel() const
 {
     const QString model = readCpuModel();
-    if (!model.isEmpty())
-        return model;
-
-    const QString architecture = QSysInfo::currentCpuArchitecture();
-    if (!architecture.isEmpty())
-        return architecture;
-
-    return QStringLiteral("Unknown CPU");
+    return model.isEmpty() ? QStringLiteral("Unknown CPU") : model;
 }
 
 QString AboutInfo::cpuArchitecture() const
 {
-    const QString architecture = QSysInfo::currentCpuArchitecture();
+    QProcess process;
+    process.start(QStringLiteral("uname"), {QStringLiteral("-m")});
+    if (!process.waitForFinished(3000) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+        return QStringLiteral("Unknown architecture");
+
+    const QString architecture = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
     return architecture.isEmpty() ? QStringLiteral("Unknown architecture") : architecture;
 }
 
