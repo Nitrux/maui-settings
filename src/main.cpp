@@ -19,6 +19,8 @@
 
 #include <MauiKit4/Core/mauiapp.h>
 
+#include "controllers/aboutinfo.h"
+
 static constexpr auto SETTINGS_URI = "org.maui.settings";
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
@@ -54,6 +56,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+
+    AboutInfo aboutInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("aboutInfo"), &aboutInfo);
 
     const QUrl url(QStringLiteral("qrc:/app/maui/settings/src/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url](QObject *obj, const QUrl &objUrl) {

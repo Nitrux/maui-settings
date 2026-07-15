@@ -204,6 +204,28 @@ Maui.ApplicationWindow
                 }
             ]
 
+            Item
+            {
+                anchors.fill: parent
+
+                Loader
+                {
+                    anchors.fill: parent
+                    active: root.currentSection === "general-about"
+                    visible: active
+                    source: active ? "views/sidebar/general/AboutPage.qml" : ""
+                }
+
+                Maui.Holder
+                {
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
+                    visible: root.currentSection !== "general-about"
+                    emoji: "documentinfo"
+                    title: root.sectionTitle(root.currentSection)
+                    body: i18n("This settings section is not implemented yet.")
+                }
+            }
         }
     }
 }

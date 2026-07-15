@@ -66,6 +66,7 @@ endif()
 
 set(settings_SRCS
     src/main.cpp
+    src/controllers/aboutinfo.cpp
 )
 
 qt_add_executable(${APP_NAME}
@@ -82,6 +83,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/Sidebar.qml
     src/views/sidebar/general/GeneralGroup.qml
     src/views/sidebar/general/AboutItem.qml
+    src/views/sidebar/general/AboutPage.qml
     src/views/sidebar/appearance/AppearanceGroup.qml
     src/views/sidebar/appearance/BackgroundItem.qml
     src/views/sidebar/appearance/ThemeItem.qml
