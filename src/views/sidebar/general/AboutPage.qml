@@ -196,8 +196,8 @@ Maui.ScrollColumn
                         Maui.SectionHeader
                         {
                             Layout.fillWidth: true
-                            text1: modelData.mountPoint
-                            text2: [modelData.fileSystem, modelData.device].filter(Boolean).join(i18n(" · "))
+                            text1: modelData.label
+                            text2: [modelData.fileSystem, modelData.device].filter(Boolean).join(i18n(" - "))
                         }
 
                         Maui.SectionItem
@@ -228,15 +228,6 @@ Maui.ScrollColumn
                         }
                     }
                 }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                visible: !info || info.storageVolumes.length === 0
-                label1.text: i18n("No internal storage volumes were detected.")
-                label2.text: ""
             }
         }
     }

@@ -170,89 +170,62 @@ qint64 systemMemoryAvailableKB()
 }
 #endif
 
-bool isInternalFileSystem(const QByteArray &fileSystemType)
+QString normalizeDevicePath(const QString &devicePath)
 {
-    static const QList<QByteArray> blacklisted = {
-        QByteArrayLiteral("autofs"),
-        QByteArrayLiteral("cgroup"),
-        QByteArrayLiteral("cgroup2"),
-        QByteArrayLiteral("configfs"),
-        QByteArrayLiteral("debugfs"),
-        QByteArrayLiteral("devpts"),
-        QByteArrayLiteral("devtmpfs"),
-        QByteArrayLiteral("fuse.portal"),
-        QByteArrayLiteral("hugetlbfs"),
-        QByteArrayLiteral("mqueue"),
-        QByteArrayLiteral("nsfs"),
-        QByteArrayLiteral("overlay"),
-        QByteArrayLiteral("proc"),
-        QByteArrayLiteral("pstore"),
-        QByteArrayLiteral("ramfs"),
-        QByteArrayLiteral("rpc_pipefs"),
-        QByteArrayLiteral("securityfs"),
-        QByteArrayLiteral("selinuxfs"),
-        QByteArrayLiteral("squashfs"),
-        QByteArrayLiteral("sysfs"),
-        QByteArrayLiteral("tmpfs"),
-        QByteArrayLiteral("tracefs"),
-    };
+    if (devicePath.isEmpty())
+        return {};
 
-    const QByteArray normalized = fileSystemType.trimmed().toLower();
-    if (normalized.isEmpty())
-        return true;
-
-    return !blacklisted.contains(normalized);
+    const QFileInfo deviceInfo(devicePath);
+    const QString canonical = deviceInfo.canonicalFilePath();
+    return canonical.isEmpty() ? devicePath : canonical;
 }
 
-bool isInternalStorage(const QStorageInfo &storage)
+QString storageLabelPath(const QString &label)
 {
-    if (!storage.isValid() || !storage.isReady())
-        return false;
+    const QString path = QStringLiteral("/dev/disk/by-label/") + label;
+    QFileInfo info(path);
+    if (!info.exists())
+        return {};
 
-    const QString mountPoint = storage.rootPath();
-    if (mountPoint.isEmpty())
-        return false;
+    QString target = info.symLinkTarget();
+    if (target.isEmpty())
+        target = info.canonicalFilePath();
+    if (target.isEmpty())
+        target = path;
 
-    if (!isInternalFileSystem(storage.fileSystemType()))
-        return false;
-
-    const QByteArray device = storage.device();
-    if (!device.isEmpty() && !device.startsWith("/dev/"))
-        return false;
-
-    return true;
+    return normalizeDevicePath(target);
 }
 
-QList<QStorageInfo> internalStorageVolumes()
+QStorageInfo storageForLabel(const QString &label)
 {
-    QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
-    std::sort(volumes.begin(), volumes.end(), [](const QStorageInfo &left, const QStorageInfo &right) {
-        return left.rootPath().compare(right.rootPath()) < 0;
-    });
+    const QString target = storageLabelPath(label);
+    if (target.isEmpty())
+        return {};
 
-    QList<QStorageInfo> result;
-    result.reserve(volumes.size());
-
+    const QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
     for (const QStorageInfo &storage : volumes)
     {
-        if (isInternalStorage(storage))
-            result.append(storage);
+        if (normalizeDevicePath(QString::fromUtf8(storage.device())) == target)
+            return storage;
     }
 
-    return result;
+    return {};
 }
 
-QVariantMap storageToMap(const QStorageInfo &storage)
+QVariantMap storageToMap(const QString &label)
 {
-    const qint64 total = storage.bytesTotal();
-    const qint64 available = storage.bytesAvailable();
+    const QStorageInfo storage = storageForLabel(label);
+    const bool valid = storage.isValid() && storage.isReady();
+
+    const qint64 total = valid ? storage.bytesTotal() : -1;
+    const qint64 available = valid ? storage.bytesAvailable() : -1;
     const qint64 used = (total > 0 && available >= 0) ? qMax<qint64>(0, total - available) : -1;
 
     QVariantMap data;
-    data.insert(QStringLiteral("mountPoint"), storage.rootPath().isEmpty() ? QStringLiteral("/") : storage.rootPath());
-    data.insert(QStringLiteral("device"), QString::fromUtf8(storage.device()));
-    data.insert(QStringLiteral("fileSystem"), storage.fileSystemType().isEmpty() ? QStringLiteral("Unknown file system")
-                                                                                   : QString::fromLatin1(storage.fileSystemType()));
+    data.insert(QStringLiteral("label"), label);
+    data.insert(QStringLiteral("mountPoint"), valid && !storage.rootPath().isEmpty() ? storage.rootPath() : QStringLiteral("Unavailable"));
+    data.insert(QStringLiteral("device"), valid && !storage.device().isEmpty() ? QString::fromUtf8(storage.device()) : QStringLiteral("Unavailable"));
+    data.insert(QStringLiteral("fileSystem"), valid && !storage.fileSystemType().isEmpty() ? QString::fromLatin1(storage.fileSystemType()) : QStringLiteral("Unknown file system"));
     data.insert(QStringLiteral("used"), used >= 0 ? readableDataSize(used) : QStringLiteral("Unknown used space"));
     data.insert(QStringLiteral("available"), available >= 0 ? readableDataSize(available) : QStringLiteral("Unknown available space"));
     data.insert(QStringLiteral("total"), total >= 0 ? readableDataSize(total) : QStringLiteral("Unknown total space"));
@@ -261,11 +234,7 @@ QVariantMap storageToMap(const QStorageInfo &storage)
 
 QVariantMap firstInternalStorageMap()
 {
-    const QList<QStorageInfo> volumes = internalStorageVolumes();
-    if (volumes.isEmpty())
-        return {};
-
-    return storageToMap(volumes.constFirst());
+    return storageToMap(QStringLiteral("NX_ROOT"));
 }
 } // namespace
 
@@ -402,12 +371,17 @@ QString AboutInfo::memoryAvailable() const
 
 QVariantList AboutInfo::storageVolumes() const
 {
-    QVariantList volumes;
-    const QList<QStorageInfo> internalVolumes = internalStorageVolumes();
-    volumes.reserve(internalVolumes.size());
+    static const QStringList labels = {
+        QStringLiteral("NX_ROOT"),
+        QStringLiteral("NX_HOME"),
+        QStringLiteral("NX_VAR_LIB"),
+    };
 
-    for (const QStorageInfo &storage : internalVolumes)
-        volumes.append(storageToMap(storage));
+    QVariantList volumes;
+    volumes.reserve(labels.size());
+
+    for (const QString &label : labels)
+        volumes.append(storageToMap(label));
 
     return volumes;
 }
