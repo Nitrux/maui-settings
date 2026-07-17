@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QLocale>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStorageInfo>
 #include <QStringList>
 #include <QSysInfo>
@@ -248,6 +249,88 @@ qint64 diskTotalBytes(const QString &diskName)
     return readSysfsInteger(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/size")) * 512;
 }
 
+bool isGpuController(const QString &className)
+{
+    const QString lowerClass = className.toLower();
+    return lowerClass.contains(QStringLiteral("vga compatible controller")) || lowerClass.contains(QStringLiteral("3d controller")) || lowerClass.contains(QStringLiteral("display controller"));
+}
+
+QString cleanGpuModel(const QString &description)
+{
+    QString model = description.trimmed();
+    model.remove(QRegularExpression(QStringLiteral(R"(\s+\(rev [^)]+\)$)")));
+    model.remove(QRegularExpression(QStringLiteral(R"(\s+\[[0-9a-fA-F]{4}:[0-9a-fA-F]{4}\]$)")));
+    return model.simplified();
+}
+
+QVariantMap graphicsDeviceToMap(const QString &address, const QString &model, const QString &driver)
+{
+    const QString safeDriver = driver.isEmpty() ? QStringLiteral("Unknown driver") : driver;
+
+    QVariantMap data;
+    data.insert(QStringLiteral("title"), model.isEmpty() ? address : model);
+    data.insert(QStringLiteral("address"), address);
+    data.insert(QStringLiteral("driver"), safeDriver);
+    data.insert(QStringLiteral("subtitle"), QStringLiteral("%1 · %2").arg(safeDriver, address));
+    return data;
+}
+
+QVariantList graphicsDeviceList()
+{
+    QProcess process;
+    process.start(QStringLiteral("lspci"), {QStringLiteral("-Dnnk")});
+    if (!process.waitForFinished(3000) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+        return {};
+
+    const QString output = QString::fromUtf8(process.readAllStandardOutput());
+    const QStringList lines = output.split(QRegularExpression(QStringLiteral(R"(\r?\n)")), Qt::SkipEmptyParts);
+    QVariantList devices;
+
+    QString currentAddress;
+    QString currentClass;
+    QString currentDescription;
+    QString currentDriver;
+
+    const QRegularExpression headerRegex(QStringLiteral(R"(^([0-9a-fA-F:.]+)\s+([^:]+):\s*(.*)$)"));
+
+    auto commit = [&]() {
+        if (!currentAddress.isEmpty() && isGpuController(currentClass))
+            devices.append(graphicsDeviceToMap(currentAddress, cleanGpuModel(currentDescription), currentDriver));
+
+        currentAddress.clear();
+        currentClass.clear();
+        currentDescription.clear();
+        currentDriver.clear();
+    };
+
+    for (const QString &line : lines)
+    {
+        if (line.startsWith(QLatin1Char(' ')) || line.startsWith(QLatin1Char('\t')))
+        {
+            if (line.contains(QStringLiteral("Kernel driver in use:")))
+            {
+                const QString driver = line.section(QLatin1Char(':'), 1).trimmed();
+                if (!driver.isEmpty())
+                    currentDriver = driver;
+            }
+            continue;
+        }
+
+        commit();
+
+        const QRegularExpressionMatch match = headerRegex.match(line);
+        if (!match.hasMatch())
+            continue;
+
+        currentAddress = match.captured(1);
+        currentClass = match.captured(2);
+        currentDescription = match.captured(3);
+    }
+
+    commit();
+    return devices;
+}
+
 bool isPhysicalDisk(const QString &diskName)
 {
     if (!QFileInfo::exists(QStringLiteral("/sys/class/block/") + diskName + QStringLiteral("/device")))
@@ -350,8 +433,14 @@ QVariantList storageDeviceList()
 }
 } // namespace
 
+QVariantList AboutInfo::graphicsDeviceList()
+{
+    return ::graphicsDeviceList();
+}
+
 AboutInfo::AboutInfo(QObject *parent)
     : QObject(parent)
+    , m_graphicsDevices(graphicsDeviceList())
 {
     auto *timer = new QTimer(this);
     timer->setInterval(2000);
@@ -453,6 +542,11 @@ QString AboutInfo::cpuArchitecture() const
 
     const QString architecture = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
     return architecture.isEmpty() ? QStringLiteral("Unknown architecture") : architecture;
+}
+
+QVariantList AboutInfo::graphicsDevices() const
+{
+    return m_graphicsDevices;
 }
 
 QString AboutInfo::memoryTotal() const

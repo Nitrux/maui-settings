@@ -8,6 +8,18 @@ Maui.ScrollColumn
 {
     readonly property var info: (typeof aboutInfo !== "undefined" && aboutInfo) ? aboutInfo : null
 
+    function componentByName(name)
+    {
+        const components = Maui.App.about.components || []
+        for (let i = 0; i < components.length; ++i)
+        {
+            if (components[i].name === name)
+                return components[i]
+        }
+
+        return null
+    }
+
     anchors.fill: parent
     spacing: Maui.Style.space.big
 
@@ -75,6 +87,92 @@ Maui.ScrollColumn
                 label1.text: i18n("Session")
                 label2.text: info ? info.osSession : i18n("Unknown")
                 label2.wrapMode: Text.WordWrap
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _softwareLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _softwareLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Software")
+                text2: i18n("Framework and toolkit versions in this computer.")
+            }
+
+            Repeater
+            {
+                model: ["MauiKit Core", "Qt", "KDE Frameworks"]
+
+                delegate: Maui.SectionItem
+                {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    flat: true
+                    label1.text: modelData
+                    label2.text: {
+                        const component = componentByName(modelData)
+                        return component ? component.version : i18n("Unknown")
+                    }
+                    label2.wrapMode: Text.WordWrap
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        visible: info && info.graphicsDevices.length > 0
+        implicitHeight: _graphicsLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _graphicsLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Graphics")
+                text2: i18n("GPU devices information and details.")
+            }
+
+            Repeater
+            {
+                model: info ? info.graphicsDevices : []
+
+                delegate: Maui.SectionItem
+                {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    flat: true
+                    label1.text: modelData.title
+                    label2.text: modelData.subtitle
+                    label2.wrapMode: Text.WordWrap
+                }
             }
         }
     }

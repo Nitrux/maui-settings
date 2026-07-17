@@ -16,6 +16,7 @@ class AboutInfo : public QObject
     Q_PROPERTY(QString cpuArchitecture READ cpuArchitecture CONSTANT)
     Q_PROPERTY(QString memoryTotal READ memoryTotal CONSTANT)
     Q_PROPERTY(QString memoryAvailable READ memoryAvailable CONSTANT)
+    Q_PROPERTY(QVariantList graphicsDevices READ graphicsDevices CONSTANT)
     Q_PROPERTY(QVariantList storageDevices READ storageDevices NOTIFY storageDevicesChanged)
     Q_PROPERTY(QVariantList storageVolumes READ storageDevices NOTIFY storageDevicesChanged)
 
@@ -31,6 +32,7 @@ public:
     QString cpuArchitecture() const;
     QString memoryTotal() const;
     QString memoryAvailable() const;
+    QVariantList graphicsDevices() const;
     QVariantList storageDevices() const;
 
 Q_SIGNALS:
@@ -44,6 +46,8 @@ private:
     static QString readReleaseValue(const QString &path, const QString &key);
     static qint64 readMemInfoValueKB(const QString &key);
     static QString readCpuModel();
+    static QVariantList graphicsDeviceList();
 
+    QVariantList m_graphicsDevices;
     QVariantList m_storageDevices;
 };
