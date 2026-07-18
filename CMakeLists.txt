@@ -44,7 +44,7 @@ if(QT_KNOWN_POLICY_QTP0004)
 endif()
 
 find_package(KF6 REQUIRED COMPONENTS CoreAddons I18n)
-find_package(MauiKit4 REQUIRED)
+find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
 
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_URL_CAST_FROM_STRING)
 
@@ -67,6 +67,7 @@ endif()
 set(settings_SRCS
     src/main.cpp
     src/controllers/aboutinfo.cpp
+    src/controllers/backgroundinfo.cpp
 )
 
 qt_add_executable(${APP_NAME}
@@ -86,6 +87,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/general/AboutPage.qml
     src/views/sidebar/appearance/AppearanceGroup.qml
     src/views/sidebar/appearance/BackgroundItem.qml
+    src/views/sidebar/appearance/BackgroundPage.qml
     src/views/sidebar/appearance/ThemeItem.qml
     src/views/sidebar/desktop_shell/DesktopShellGroup.qml
     src/views/sidebar/desktop_shell/DesktopItem.qml
@@ -109,6 +111,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
 target_link_libraries(${APP_NAME}
     PRIVATE
     MauiKit4
+    MauiKit4::FileBrowsing
     Qt6::Core
     Qt6::Gui
     Qt6::Qml

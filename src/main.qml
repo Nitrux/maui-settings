@@ -157,6 +157,49 @@ Maui.ApplicationWindow
                     visible: _sidebarToggleLoader.active
                     topPadding: 10
                     bottomPadding: 10
+                },
+
+                Loader
+                {
+                    id: _backgroundActionsLoader
+                    asynchronous: true
+                    active: root.currentSection === "appearance-background"
+                    visible: active
+
+                    sourceComponent: RowLayout
+                    {
+                        spacing: Maui.Style.space.small
+
+                        ToolButton
+                        {
+                            icon.name: "view-refresh"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Reload background settings")
+                            onClicked:
+                            {
+                                if (typeof backgroundInfo !== "undefined" && backgroundInfo)
+                                    backgroundInfo.reload()
+                            }
+                        }
+
+                        ToolButton
+                        {
+                            icon.name: "document-save"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Save background settings")
+                            onClicked:
+                            {
+                                if (typeof backgroundInfo !== "undefined" && backgroundInfo)
+                                    backgroundInfo.save()
+                            }
+                        }
+                    }
                 }
             ]
 
@@ -216,11 +259,19 @@ Maui.ApplicationWindow
                     source: active ? "views/sidebar/general/AboutPage.qml" : ""
                 }
 
+                Loader
+                {
+                    anchors.fill: parent
+                    active: root.currentSection === "appearance-background"
+                    visible: active
+                    source: active ? "views/sidebar/appearance/BackgroundPage.qml" : ""
+                }
+
                 Maui.Holder
                 {
                     anchors.centerIn: parent
                     width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                    visible: root.currentSection !== "general-about"
+                    visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background"
                     emoji: "documentinfo"
                     title: root.sectionTitle(root.currentSection)
                     body: i18n("This settings section is not implemented yet.")
