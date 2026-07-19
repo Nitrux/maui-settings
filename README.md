@@ -1,4 +1,4 @@
-# Maui Settings
+# Workspace Settings
 
 ![](https://mauikit.org/wp-content/uploads/2018/12/maui_project_logo.png)
 

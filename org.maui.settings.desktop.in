@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Workspace Settings
+Comment=Configure MauiKit and desktop settings
+Exec=@APP_NAME@
+Icon=preferences-desktop-theme
+Terminal=false
+Categories=Qt;KDE;Settings;
+StartupNotify=true

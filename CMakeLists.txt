@@ -45,6 +45,7 @@ endif()
 
 find_package(KF6 REQUIRED COMPONENTS CoreAddons I18n)
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
+find_package(MauiMan4 REQUIRED)
 
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_URL_CAST_FROM_STRING)
 
@@ -68,11 +69,17 @@ set(settings_SRCS
     src/main.cpp
     src/controllers/aboutinfo.cpp
     src/controllers/backgroundinfo.cpp
+    src/controllers/kdeglobalsinfo.cpp
 )
 
 qt_add_executable(${APP_NAME}
     MANUAL_FINALIZATION
     ${settings_SRCS}
+)
+
+configure_file(org.maui.settings.desktop.in
+    ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop
+    @ONLY
 )
 
 qt_add_qml_module(${APP_NAME} URI app.maui.settings
@@ -89,6 +96,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/appearance/BackgroundItem.qml
     src/views/sidebar/appearance/BackgroundPage.qml
     src/views/sidebar/appearance/ThemeItem.qml
+    src/views/sidebar/appearance/ThemePage.qml
     src/views/sidebar/desktop_shell/DesktopShellGroup.qml
     src/views/sidebar/desktop_shell/DesktopItem.qml
     src/views/sidebar/desktop_shell/PanelItem.qml
@@ -112,6 +120,7 @@ target_link_libraries(${APP_NAME}
     PRIVATE
     MauiKit4
     MauiKit4::FileBrowsing
+    MauiMan4::MauiMan4
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -122,6 +131,8 @@ target_link_libraries(${APP_NAME}
 )
 
 install(TARGETS ${APP_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop
+        DESTINATION ${KDE_INSTALL_APPDIR})
 
 if(NOT TARGET uninstall)
     configure_file(

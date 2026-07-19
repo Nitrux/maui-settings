@@ -18,9 +18,11 @@
 #include <KLocalizedString>
 
 #include <MauiKit4/Core/mauiapp.h>
+#include <MauiMan4/thememanager.h>
 
 #include "controllers/aboutinfo.h"
 #include "controllers/backgroundinfo.h"
+#include "controllers/kdeglobalsinfo.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
 
@@ -33,12 +35,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     app.setOrganizationName(QStringLiteral("Maui"));
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("preferences-system")));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("preferences-desktop-theme")));
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
     KAboutData about(QStringLiteral("maui-settings"),
-                     i18n("Maui Settings"),
+                     i18n("Workspace Settings"),
                      QStringLiteral("0.0.1"),
                      i18n("A simple settings shell built with MauiKit."),
                      KAboutLicense::GPL_V3,
@@ -53,7 +55,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     about.setDesktopFileName(QStringLiteral("org.maui.settings"));
     KAboutData::setApplicationData(about);
 
-    MauiApp::instance()->setIconName(QStringLiteral("preferences-system"));
+    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
@@ -63,6 +65,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     BackgroundInfo backgroundInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("backgroundInfo"), &backgroundInfo);
+
+    MauiMan::ThemeManager themeInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("themeInfo"), &themeInfo);
+
+    KdeGlobalsInfo kdeGlobalsInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("kdeGlobalsInfo"), &kdeGlobalsInfo);
 
     const QUrl url(QStringLiteral("qrc:/app/maui/settings/src/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url](QObject *obj, const QUrl &objUrl) {

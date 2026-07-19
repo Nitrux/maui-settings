@@ -10,7 +10,7 @@ import "views"
 Maui.ApplicationWindow
 {
     id: root
-    title: i18n("Maui Settings")
+    title: root.sectionTitle(root.currentSection)
     color: "transparent"
     background: null
 
@@ -112,13 +112,13 @@ Maui.ApplicationWindow
             clip: true
             background: null
 
-            split: width < 800
-            splitIn: ToolBar.Footer
+            split: false
+            splitIn: ToolBar.Header
             altHeader: Maui.Handy.isMobile
             Maui.Controls.showCSD: true
 
             headBar.visible: true
-            headBar.forceCenterMiddleContent: true
+            headBar.forceCenterMiddleContent: root.width >= 800
             headerMargins: Maui.Handy.isMobile ? 0 : Maui.Style.contentMargins
             footerMargins: headerMargins
 
@@ -207,10 +207,9 @@ Maui.ApplicationWindow
             {
                 id: _searchFieldLoader
                 asynchronous: true
-                Layout.fillWidth: true
                 Layout.minimumWidth: 100
                 Layout.maximumWidth: 500
-                Layout.alignment: Qt.AlignCenter
+                Layout.alignment: root.width >= 800 ? Qt.AlignHCenter : Qt.AlignLeft
 
                 sourceComponent: Maui.SearchField
                 {
@@ -267,11 +266,19 @@ Maui.ApplicationWindow
                     source: active ? "views/sidebar/appearance/BackgroundPage.qml" : ""
                 }
 
+                Loader
+                {
+                    anchors.fill: parent
+                    active: root.currentSection === "appearance-theme"
+                    visible: active
+                    source: active ? "views/sidebar/appearance/ThemePage.qml" : ""
+                }
+
                 Maui.Holder
                 {
                     anchors.centerIn: parent
                     width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                    visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background"
+                    visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme"
                     emoji: "documentinfo"
                     title: root.sectionTitle(root.currentSection)
                     body: i18n("This settings section is not implemented yet.")
