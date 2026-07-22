@@ -13,14 +13,14 @@ Loader
     focus: false
 
     required property string currentSection
-    required property string searchQuery
+    required property string filterQuery
     property var groups: []
 
     signal sectionSelected(string section)
 
     function matchesFilter(text)
     {
-        const query = searchQuery.trim().toLowerCase()
+        const query = filterQuery.trim().toLowerCase()
         if (!query.length)
             return true
 
@@ -29,7 +29,7 @@ Loader
 
     function visibleItemCount()
     {
-        const query = searchQuery.trim().toLowerCase()
+        const query = filterQuery.trim().toLowerCase()
         if (!query.length)
         {
             let total = 0
@@ -156,15 +156,27 @@ Loader
                 border.width: 1
             }
 
-            contentItem: Item
+            contentItem: ColumnLayout
             {
                 anchors.fill: parent
                 anchors.margins: Maui.Style.contentMargins
+                spacing: Maui.Style.space.small
+
+                Maui.SearchField
+                {
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Filter modules")
+                    icon.source: "view-filter"
+                    text: control.filterQuery
+                    onTextEdited: control.filterQuery = text
+                    onCleared: control.filterQuery = ""
+                }
 
                 ScrollView
                 {
                     id: _scrollView
-                    anchors.fill: parent
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
                     clip: true
                     focus: false
                     padding: 0

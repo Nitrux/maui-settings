@@ -1,11 +1,15 @@
 #include "kdeglobalsinfo.h"
 
 #include <QApplication>
+
+#include <algorithm>
 #include <QColor>
 #include <QDir>
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QIcon>
+#include <QVariant>
+#include <QVariantMap>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -32,6 +36,34 @@ void addUnique(QStringList &list, const QString &value)
     if (!trimmed.isEmpty() && !list.contains(trimmed))
         list.append(trimmed);
 }
+
+QColor readKdeColor(QSettings &settings, const QString &key, const QColor &fallback)
+{
+    const QVariant rawValue = settings.value(key);
+    const QStringList valueParts = rawValue.toStringList();
+    const QString value = (valueParts.size() > 1 ? valueParts.join(QLatin1Char(',')) : rawValue.toString()).trimmed();
+    const QColor namedColor(value);
+    if (namedColor.isValid())
+        return namedColor;
+
+    const QStringList components = value.split(QLatin1Char(','));
+    if (components.size() < 3 || components.size() > 4)
+        return fallback;
+
+    int channels[4] = {0, 0, 0, 255};
+    for (qsizetype index = 0; index < components.size(); ++index)
+    {
+        bool ok = false;
+        const int channel = components.at(index).trimmed().toInt(&ok);
+        if (!ok || channel < 0 || channel > 255)
+            return fallback;
+
+        channels[index] = channel;
+    }
+
+    return QColor(channels[0], channels[1], channels[2], channels[3]);
+}
+
 } // namespace
 
 KdeGlobalsInfo::KdeGlobalsInfo(QObject *parent)
@@ -168,8 +200,12 @@ bool KdeGlobalsInfo::save()
 
 QFont KdeGlobalsInfo::fontFromString(const QString &value) const
 {
+    const QString description = value.trimmed();
+    if (description.isEmpty())
+        return QApplication::font();
+
     QFont font;
-    font.fromString(value);
+    font.fromString(description);
     return font;
 }
 
@@ -180,8 +216,12 @@ QString KdeGlobalsInfo::fontToString(const QFont &font) const
 
 QString KdeGlobalsInfo::fontLabel(const QString &value) const
 {
+    const QString description = value.trimmed();
+    if (description.isEmpty())
+        return {};
+
     QFont font;
-    if (!font.fromString(value))
+    if (!font.fromString(description))
         return value.trimmed();
 
     const QString family = font.family().trimmed();
@@ -201,6 +241,146 @@ QString KdeGlobalsInfo::fontLabel(const QString &value) const
     return family;
 }
 
+
+QVariantList KdeGlobalsInfo::iconThemePreviewIcons(const QString &theme) const
+{
+    QVariantList icons;
+    const QString normalized = theme.trimmed();
+    if (normalized.isEmpty())
+        return icons;
+
+    const QString previousTheme = QIcon::themeName();
+    QIcon::setThemeName(normalized);
+
+    const QStringList iconNames = {
+        QStringLiteral("folder"),
+        QStringLiteral("document-open"),
+        QStringLiteral("preferences-desktop-icons"),
+        QStringLiteral("applications-system"),
+        QStringLiteral("media-playback-start"),
+        QStringLiteral("network-wireless"),
+        QStringLiteral("image-x-generic"),
+        QStringLiteral("system-run")
+    };
+
+    for (const QString &iconName : iconNames)
+    {
+        QIcon icon = QIcon::fromTheme(iconName);
+        if (icon.isNull())
+            icon = QIcon::fromTheme(QStringLiteral("image-missing"));
+
+        int nativeSize = 64;
+        const QList<QSize> availableSizes = icon.availableSizes();
+        if (!availableSizes.isEmpty())
+        {
+            nativeSize = 0;
+            for (const QSize &availableSize : availableSizes)
+            {
+                const int candidate = qMin(availableSize.width(), availableSize.height());
+                if (candidate <= 64)
+                    nativeSize = qMax(nativeSize, candidate);
+            }
+
+            if (nativeSize == 0)
+                nativeSize = 64;
+        }
+
+        QVariantMap previewIcon;
+        previewIcon.insert(QStringLiteral("icon"), QVariant::fromValue(icon));
+        previewIcon.insert(QStringLiteral("size"), nativeSize);
+        icons << previewIcon;
+    }
+
+    QIcon::setThemeName(previousTheme);
+
+    std::stable_sort(icons.begin(), icons.end(), [](const QVariant &left, const QVariant &right)
+    {
+        return left.toMap().value(QStringLiteral("size")).toInt() < right.toMap().value(QStringLiteral("size")).toInt();
+    });
+
+    return icons;
+}
+
+QVariantMap KdeGlobalsInfo::colorSchemePreview(const QString &scheme) const
+{
+    QVariantMap preview;
+    const QString normalized = scheme.trimmed();
+    if (normalized.isEmpty())
+        return preview;
+
+    QColor windowBackground(QStringLiteral("#232334"));
+    QColor windowForeground(QStringLiteral("#f2f2f7"));
+    QColor viewBackground(QStringLiteral("#1f1f2d"));
+    QColor viewForeground(QStringLiteral("#f2f2f7"));
+    QColor linkForeground(QStringLiteral("#26c6da"));
+    QColor visitedForeground(QStringLiteral("#b39ddb"));
+    QColor inactiveForeground(QStringLiteral("#888899"));
+    QColor selectionBackground(QStringLiteral("#26c6da"));
+    QColor selectionForeground(QStringLiteral("#ffffff"));
+    QColor selectionLinkForeground(QStringLiteral("#26c6da"));
+    QColor selectionVisitedForeground(QStringLiteral("#b39ddb"));
+    QColor buttonBackground(QStringLiteral("#3a3a4d"));
+    QColor buttonForeground(QStringLiteral("#f2f2f7"));
+    QColor focusColor(QStringLiteral("#26c6da"));
+
+    const QString filePath = colorSchemeFilePath(normalized);
+    if (!filePath.isEmpty())
+    {
+        QSettings settings(filePath, QSettings::IniFormat);
+
+        settings.beginGroup(QStringLiteral("Colors:Window"));
+        windowBackground = readKdeColor(settings, QStringLiteral("BackgroundNormal"), windowBackground);
+        windowForeground = readKdeColor(settings, QStringLiteral("ForegroundNormal"), windowForeground);
+        focusColor = readKdeColor(settings, QStringLiteral("DecorationFocus"), focusColor);
+        settings.endGroup();
+
+        settings.beginGroup(QStringLiteral("Colors:View"));
+        viewBackground = readKdeColor(settings, QStringLiteral("BackgroundNormal"), viewBackground);
+        viewForeground = readKdeColor(settings, QStringLiteral("ForegroundNormal"), viewForeground);
+        linkForeground = readKdeColor(settings, QStringLiteral("ForegroundLink"), linkForeground);
+        visitedForeground = readKdeColor(settings, QStringLiteral("ForegroundVisited"), visitedForeground);
+        inactiveForeground = readKdeColor(settings, QStringLiteral("ForegroundInactive"), inactiveForeground);
+        settings.endGroup();
+
+        settings.beginGroup(QStringLiteral("Colors:Selection"));
+        selectionBackground = readKdeColor(settings, QStringLiteral("BackgroundNormal"), selectionBackground);
+        selectionForeground = readKdeColor(settings, QStringLiteral("ForegroundNormal"), selectionForeground);
+        selectionLinkForeground = readKdeColor(settings, QStringLiteral("ForegroundLink"), selectionLinkForeground);
+        selectionVisitedForeground = readKdeColor(settings, QStringLiteral("ForegroundVisited"), selectionVisitedForeground);
+        settings.endGroup();
+
+        settings.beginGroup(QStringLiteral("Colors:Button"));
+        buttonBackground = readKdeColor(settings, QStringLiteral("BackgroundNormal"), buttonBackground);
+        buttonForeground = readKdeColor(settings, QStringLiteral("ForegroundNormal"), buttonForeground);
+        settings.endGroup();
+    }
+
+    preview.insert(QStringLiteral("windowBackground"), windowBackground.name());
+    preview.insert(QStringLiteral("windowForeground"), windowForeground.name());
+    preview.insert(QStringLiteral("viewBackground"), viewBackground.name());
+    preview.insert(QStringLiteral("viewForeground"), viewForeground.name());
+    preview.insert(QStringLiteral("linkForeground"), linkForeground.name());
+    preview.insert(QStringLiteral("visitedForeground"), visitedForeground.name());
+    preview.insert(QStringLiteral("inactiveForeground"), inactiveForeground.name());
+    preview.insert(QStringLiteral("selectionBackground"), selectionBackground.name());
+    preview.insert(QStringLiteral("selectionForeground"), selectionForeground.name());
+    preview.insert(QStringLiteral("selectionLinkForeground"), selectionLinkForeground.name());
+    preview.insert(QStringLiteral("selectionVisitedForeground"), selectionVisitedForeground.name());
+    preview.insert(QStringLiteral("buttonBackground"), buttonBackground.name());
+    preview.insert(QStringLiteral("buttonForeground"), buttonForeground.name());
+    preview.insert(QStringLiteral("focusColor"), focusColor.name());
+    preview.insert(QStringLiteral("colors"), QVariantList {
+        windowBackground.name(),
+        viewBackground.name(),
+        buttonBackground.name(),
+        selectionBackground.name(),
+        windowForeground.name(),
+        selectionForeground.name()
+    });
+
+    return preview;
+}
+
 QString KdeGlobalsInfo::colorSchemeFilePath(const QString &scheme) const
 {
     const QString trimmed = scheme.trimmed();
@@ -217,31 +397,6 @@ QString KdeGlobalsInfo::colorSchemeFilePath(const QString &scheme) const
     }
 
     return {};
-}
-
-QColor KdeGlobalsInfo::colorSchemePreviewColor(const QString &scheme) const
-{
-    const QString path = colorSchemeFilePath(scheme);
-    if (path.isEmpty())
-        return QColor(QStringLiteral("#26c6da"));
-
-    QSettings settings(path, QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("Colors:Selection"));
-    const QString focusColor = settings.value(QStringLiteral("DecorationFocus")).toString();
-    if (!focusColor.isEmpty())
-        return QColor(focusColor);
-
-    const QString background = settings.value(QStringLiteral("BackgroundNormal")).toString();
-    if (!background.isEmpty())
-        return QColor(background);
-
-    settings.endGroup();
-    settings.beginGroup(QStringLiteral("Colors:Window"));
-    const QString windowBackground = settings.value(QStringLiteral("BackgroundNormal")).toString();
-    if (!windowBackground.isEmpty())
-        return QColor(windowBackground);
-
-    return QColor(QStringLiteral("#26c6da"));
 }
 
 QStringList KdeGlobalsInfo::scanColorSchemes() const

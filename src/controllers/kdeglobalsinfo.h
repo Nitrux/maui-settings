@@ -5,6 +5,8 @@
 #include <QFont>
 #include <QString>
 #include <QStringList>
+#include <QVariantList>
+#include <QVariantMap>
 
 class KdeGlobalsInfo : public QObject
 {
@@ -42,7 +44,8 @@ public:
     Q_INVOKABLE QFont fontFromString(const QString &value) const;
     Q_INVOKABLE QString fontToString(const QFont &font) const;
     Q_INVOKABLE QString fontLabel(const QString &value) const;
-    Q_INVOKABLE QColor colorSchemePreviewColor(const QString &scheme) const;
+    Q_INVOKABLE QVariantMap colorSchemePreview(const QString &scheme) const;
+    Q_INVOKABLE QVariantList iconThemePreviewIcons(const QString &theme) const;
 
 Q_SIGNALS:
     void settingsChanged();

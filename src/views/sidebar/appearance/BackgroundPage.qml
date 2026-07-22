@@ -22,6 +22,18 @@ Maui.ScrollColumn
         { label: i18n("Random shuffle"), value: "random-shuffle" }
     ]
 
+    function reloadSettings()
+    {
+        if (info)
+            info.reload()
+    }
+
+    function saveSettings()
+    {
+        if (info)
+            info.save()
+    }
+
     function indexForValue(model, value)
     {
         for (let i = 0; i < model.length; ++i)

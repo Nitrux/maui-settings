@@ -15,7 +15,34 @@ Maui.ApplicationWindow
     background: null
 
     property string currentSection: "general-about"
-    property string searchQuery: ""
+    property string filterQuery: ""
+
+    function currentSettingsPage()
+    {
+        switch (root.currentSection)
+        {
+        case "appearance-background":
+            return _backgroundPageLoader.item
+        case "appearance-theme":
+            return _themePageLoader.item
+        default:
+            return null
+        }
+    }
+
+    function reloadCurrentSettings()
+    {
+        const settingsPage = currentSettingsPage()
+        if (settingsPage && typeof settingsPage.reloadSettings === "function")
+            settingsPage.reloadSettings()
+    }
+
+    function saveCurrentSettings()
+    {
+        const settingsPage = currentSettingsPage()
+        if (settingsPage && typeof settingsPage.saveSettings === "function")
+            settingsPage.saveSettings()
+    }
 
     function sectionTitle(section)
     {
@@ -97,7 +124,7 @@ Maui.ApplicationWindow
                 anchors.fill: parent
                 anchors.rightMargin: 0
                 currentSection: root.currentSection
-                searchQuery: root.searchQuery
+                filterQuery: root.filterQuery
                 onSectionSelected: (section) =>
                 {
                     root.currentSection = section
@@ -118,7 +145,7 @@ Maui.ApplicationWindow
             Maui.Controls.showCSD: true
 
             headBar.visible: true
-            headBar.forceCenterMiddleContent: root.width >= 800
+            headBar.forceCenterMiddleContent: false
             headerMargins: Maui.Handy.isMobile ? 0 : Maui.Style.contentMargins
             footerMargins: headerMargins
 
@@ -161,9 +188,9 @@ Maui.ApplicationWindow
 
                 Loader
                 {
-                    id: _backgroundActionsLoader
+                    id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -177,12 +204,8 @@ Maui.ApplicationWindow
                             ToolTip.delay: 1000
                             ToolTip.timeout: 5000
                             ToolTip.visible: hovered
-                            ToolTip.text: i18n("Reload background settings")
-                            onClicked:
-                            {
-                                if (typeof backgroundInfo !== "undefined" && backgroundInfo)
-                                    backgroundInfo.reload()
-                            }
+                            ToolTip.text: i18n("Reload settings")
+                            onClicked: root.reloadCurrentSettings()
                         }
 
                         ToolButton
@@ -192,33 +215,17 @@ Maui.ApplicationWindow
                             ToolTip.delay: 1000
                             ToolTip.timeout: 5000
                             ToolTip.visible: hovered
-                            ToolTip.text: i18n("Save background settings")
-                            onClicked:
-                            {
-                                if (typeof backgroundInfo !== "undefined" && backgroundInfo)
-                                    backgroundInfo.save()
-                            }
+                            ToolTip.text: i18n("Save settings")
+                            onClicked: root.saveCurrentSettings()
                         }
                     }
                 }
             ]
 
-            headBar.middleContent: Loader
-            {
-                id: _searchFieldLoader
-                asynchronous: true
-                Layout.minimumWidth: 100
-                Layout.maximumWidth: 500
-                Layout.alignment: root.width >= 800 ? Qt.AlignHCenter : Qt.AlignLeft
-
-                sourceComponent: Maui.SearchField
-                {
-                    placeholderText: i18n("Search settings")
-                    onTextEdited: root.searchQuery = text
-                }
-            }
+            headBar.middleContent: Item { implicitWidth: 0; implicitHeight: 0 }
 
             headBar.rightContent: [
+
                 ToolSeparator
                 {
                     topPadding: 10
@@ -249,39 +256,49 @@ Maui.ApplicationWindow
             Item
             {
                 anchors.fill: parent
-
-                Loader
+                Item
                 {
-                    anchors.fill: parent
-                    active: root.currentSection === "general-about"
-                    visible: active
-                    source: active ? "views/sidebar/general/AboutPage.qml" : ""
-                }
+                    id: _contentArea
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
 
-                Loader
-                {
-                    anchors.fill: parent
-                    active: root.currentSection === "appearance-background"
-                    visible: active
-                    source: active ? "views/sidebar/appearance/BackgroundPage.qml" : ""
-                }
+                    Loader
+                    {
+                        anchors.fill: parent
+                        active: root.currentSection === "general-about"
+                        visible: active
+                        source: active ? "views/sidebar/general/AboutPage.qml" : ""
+                    }
 
-                Loader
-                {
-                    anchors.fill: parent
-                    active: root.currentSection === "appearance-theme"
-                    visible: active
-                    source: active ? "views/sidebar/appearance/ThemePage.qml" : ""
-                }
+                    Loader
+                    {
+                        id: _backgroundPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "appearance-background"
+                        visible: active
+                        source: active ? "views/sidebar/appearance/BackgroundPage.qml" : ""
+                    }
 
-                Maui.Holder
-                {
-                    anchors.centerIn: parent
-                    width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                    visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme"
-                    emoji: "documentinfo"
-                    title: root.sectionTitle(root.currentSection)
-                    body: i18n("This settings section is not implemented yet.")
+                    Loader
+                    {
+                        id: _themePageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "appearance-theme"
+                        visible: active
+                        source: active ? "views/sidebar/appearance/ThemePage.qml" : ""
+                    }
+
+                    Maui.Holder
+                    {
+                        anchors.centerIn: parent
+                        width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme"
+                        emoji: "documentinfo"
+                        title: root.sectionTitle(root.currentSection)
+                        body: i18n("This settings section is not implemented yet.")
+                    }
                 }
             }
         }

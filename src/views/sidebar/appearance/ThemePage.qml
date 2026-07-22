@@ -6,8 +6,84 @@ import org.mauikit.controls as Maui
 
 Maui.ScrollColumn
 {
+    id: root
     readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
+
+    property int stagedStyleType: 0
+    property string stagedAccentColor: "#26c6da"
+    property string stagedWindowControlsTheme: "Nitrux"
+    property bool stagedEnableCSD: false
+    property bool stagedEnableEffects: false
+    property bool stagedAllowCustomStyling: false
+    property int stagedBorderRadius: 0
+    property int stagedIconSize: 16
+    property int stagedPaddingSize: 0
+    property int stagedMarginSize: 0
+    property int stagedSpacingSize: 0
+    property string stagedIconTheme: ""
+    property string stagedColorScheme: ""
+    property string stagedDefaultFont: ""
+    property string stagedSmallFont: ""
+    property string stagedMonospaceFont: ""
+
+    function reloadSettings()
+    {
+        if (kde)
+            kde.reload()
+
+        if (theme)
+        {
+            stagedStyleType = theme.styleType
+            stagedAccentColor = String(theme.accentColor)
+            stagedWindowControlsTheme = theme.windowControlsTheme
+            stagedEnableCSD = theme.enableCSD
+            stagedEnableEffects = theme.enableEffects
+            stagedAllowCustomStyling = theme.allowCustomStyling
+            stagedBorderRadius = theme.borderRadius
+            stagedIconSize = theme.iconSize
+            stagedPaddingSize = theme.paddingSize
+            stagedMarginSize = theme.marginSize
+            stagedSpacingSize = theme.spacingSize
+        }
+
+        if (kde)
+        {
+            stagedIconTheme = kde.iconTheme
+            stagedColorScheme = kde.colorScheme
+            stagedDefaultFont = kde.defaultFont
+            stagedSmallFont = kde.smallFont
+            stagedMonospaceFont = kde.monospaceFont
+        }
+    }
+
+    function saveSettings()
+    {
+        if (theme)
+        {
+            theme.styleType = stagedStyleType
+            theme.accentColor = stagedAccentColor
+            theme.windowControlsTheme = stagedWindowControlsTheme
+            theme.enableCSD = stagedEnableCSD
+            theme.enableEffects = stagedEnableEffects
+            theme.allowCustomStyling = stagedAllowCustomStyling
+            theme.borderRadius = stagedBorderRadius
+            theme.iconSize = stagedIconSize
+            theme.paddingSize = stagedPaddingSize
+            theme.marginSize = stagedMarginSize
+            theme.spacingSize = stagedSpacingSize
+        }
+
+        if (kde)
+        {
+            kde.iconTheme = stagedIconTheme
+            kde.colorScheme = stagedColorScheme
+            kde.defaultFont = stagedDefaultFont
+            kde.smallFont = stagedSmallFont
+            kde.monospaceFont = stagedMonospaceFont
+            kde.save()
+        }
+    }
 
     property var styleTypes: [
         i18n("Light"),
@@ -60,7 +136,7 @@ Maui.ScrollColumn
 
     function themeStyleType()
     {
-        return theme && theme.styleType !== undefined ? theme.styleType : 0
+        return stagedStyleType
     }
 
     function themeStyleTypeIndex()
@@ -70,7 +146,7 @@ Maui.ScrollColumn
 
     function themeAccentColor()
     {
-        return theme && theme.accentColor ? theme.accentColor : "#26c6da"
+        return stagedAccentColor
     }
 
     function accentColorVisible()
@@ -80,7 +156,7 @@ Maui.ScrollColumn
 
     function themeWindowControlsTheme()
     {
-        return theme && theme.windowControlsTheme ? theme.windowControlsTheme : "Nitrux"
+        return stagedWindowControlsTheme
     }
 
     function windowControlsThemeModel()
@@ -99,27 +175,47 @@ Maui.ScrollColumn
 
     function themeEnabled(propertyName)
     {
-        return theme && theme[propertyName] !== undefined ? theme[propertyName] : false
+        return propertyName === "enableCSD" ? stagedEnableCSD : propertyName === "enableEffects" ? stagedEnableEffects : stagedAllowCustomStyling
     }
 
     function themeNumber(propertyName, fallback)
     {
-        return theme && theme[propertyName] !== undefined ? theme[propertyName] : fallback
+        return propertyName === "borderRadius" ? stagedBorderRadius : propertyName === "iconSize" ? stagedIconSize : propertyName === "paddingSize" ? stagedPaddingSize : propertyName === "marginSize" ? stagedMarginSize : propertyName === "spacingSize" ? stagedSpacingSize : fallback
     }
 
     function kdeString(propertyName, fallback)
     {
-        return kde && kde[propertyName] !== undefined && kde[propertyName] !== null ? kde[propertyName] : fallback
+        return propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
     }
 
-    function openFontDialog(dialog, value)
+    function setStagedFont(settingName, font)
+    {
+        const value = kde.fontToString(font)
+        switch (settingName)
+        {
+        case "defaultFont":
+            stagedDefaultFont = value
+            break
+        case "smallFont":
+            stagedSmallFont = value
+            break
+        case "monospaceFont":
+            stagedMonospaceFont = value
+            break
+        }
+    }
+
+    function openFontDialog(settingName, value)
     {
         if (!kde)
             return
 
-        dialog.mfont = kde.fontFromString(value || "")
-        dialog.open()
+        _fontDialog.settingName = settingName
+        _fontPicker.mfont = kde.fontFromString(value || "")
+        _fontDialog.open()
     }
+
+    Component.onCompleted: reloadSettings()
 
     anchors.fill: parent
     spacing: Maui.Style.space.big
@@ -170,8 +266,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onActivated:
                     {
-                        if (theme)
-                            theme.styleType = styleTypeValues[currentIndex]
+                        root.stagedStyleType = styleTypeValues[currentIndex]
                     }
                 }
             }
@@ -207,8 +302,7 @@ Maui.ScrollColumn
                         enabled: theme !== null
                         onEditingFinished:
                         {
-                            if (theme)
-                                theme.accentColor = text.trim()
+                            root.stagedAccentColor = text.trim()
                         }
                     }
                 }
@@ -230,8 +324,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onActivated:
                     {
-                        if (theme)
-                            theme.windowControlsTheme = currentText.trim()
+                        root.stagedWindowControlsTheme = currentText.trim()
                     }
                 }
             }
@@ -250,8 +343,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onToggled:
                     {
-                        if (theme)
-                            theme.enableCSD = checked
+                        root.stagedEnableCSD = checked
                     }
                 }
             }
@@ -270,8 +362,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onToggled:
                     {
-                        if (theme)
-                            theme.enableEffects = checked
+                        root.stagedEnableEffects = checked
                     }
                 }
             }
@@ -290,8 +381,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onToggled:
                     {
-                        if (theme)
-                            theme.allowCustomStyling = checked
+                        root.stagedAllowCustomStyling = checked
                     }
                 }
             }
@@ -338,8 +428,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onValueModified:
                     {
-                        if (theme)
-                            theme.borderRadius = value
+                        root.stagedBorderRadius = value
                     }
                 }
             }
@@ -361,8 +450,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onValueModified:
                     {
-                        if (theme)
-                            theme.iconSize = value
+                        root.stagedIconSize = value
                     }
                 }
             }
@@ -384,8 +472,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onValueModified:
                     {
-                        if (theme)
-                            theme.paddingSize = value
+                        root.stagedPaddingSize = value
                     }
                 }
             }
@@ -407,8 +494,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onValueModified:
                     {
-                        if (theme)
-                            theme.marginSize = value
+                        root.stagedMarginSize = value
                     }
                 }
             }
@@ -430,8 +516,7 @@ Maui.ScrollColumn
                     enabled: theme !== null
                     onValueModified:
                     {
-                        if (theme)
-                            theme.spacingSize = value
+                        root.stagedSpacingSize = value
                     }
                 }
             }
@@ -473,34 +558,28 @@ Maui.ScrollColumn
                 {
                     spacing: Maui.Style.space.small
 
-                    Rectangle
-                    {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 2.25
-                        Layout.preferredHeight: Maui.Style.units.gridUnit * 2.25
-                        radius: Maui.Style.radiusV / 2
-                        color: Maui.Theme.alternateBackgroundColor
-                        border.color: Maui.Theme.backgroundColor
-                        border.width: 1
-
-                        Maui.Icon
-                        {
-                            anchors.centerIn: parent
-                            width: Maui.Style.units.gridUnit * 1.75
-                            height: Maui.Style.units.gridUnit * 1.75
-                            source: "preferences-desktop-icons"
-                        }
-                    }
-
                     ComboBox
                     {
+                        id: _iconThemeCombo
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.iconThemes : []
                         currentIndex: kde ? indexForString(kde.iconThemes, kdeString("iconTheme", "")) : -1
                         enabled: kde !== null
                         onActivated:
                         {
-                            if (kde)
-                                kde.iconTheme = currentText.trim()
+                            root.stagedIconTheme = currentText.trim()
+                        }
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _iconThemePreviewDialog.previewTheme = _iconThemeCombo.currentText.trim()
+                            _iconThemePreviewDialog.previewIcons = kde.iconThemePreviewIcons(_iconThemePreviewDialog.previewTheme)
+                            _iconThemePreviewDialog.open()
                         }
                     }
                 }
@@ -518,26 +597,28 @@ Maui.ScrollColumn
                 {
                     spacing: Maui.Style.space.small
 
-                    Rectangle
-                    {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 2.25
-                        Layout.preferredHeight: Maui.Style.units.gridUnit * 2.25
-                        radius: Maui.Style.radiusV / 2
-                        color: kde ? kde.colorSchemePreviewColor(kdeString("colorScheme", "")) : "transparent"
-                        border.color: Maui.Theme.backgroundColor
-                        border.width: 1
-                    }
-
                     ComboBox
                     {
+                        id: _colorSchemeCombo
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.colorSchemes : []
                         currentIndex: kde ? indexForString(kde.colorSchemes, kdeString("colorScheme", "")) : -1
                         enabled: kde !== null
                         onActivated:
                         {
-                            if (kde)
-                                kde.colorScheme = currentText.trim()
+                            root.stagedColorScheme = currentText.trim()
+                        }
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _colorSchemePreviewDialog.previewScheme = _colorSchemeCombo.currentText.trim()
+                            _colorSchemePreviewDialog.preview = kde.colorSchemePreview(_colorSchemePreviewDialog.previewScheme)
+                            _colorSchemePreviewDialog.open()
                         }
                     }
                 }
@@ -550,14 +631,14 @@ Maui.ScrollColumn
                 label2.text: i18n("Primary UI font used by Qt and KDE.")
                 label2.wrapMode: Text.WordWrap
 
-                template.content: ToolButton
+                template.content: Button
                 {
                     text: kde ? kde.fontLabel(kdeString("defaultFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
                     {
                         if (kde)
-                            openFontDialog(_defaultFontDialog, kdeString("defaultFont", ""))
+                            openFontDialog("defaultFont", kdeString("defaultFont", ""))
                     }
                 }
             }
@@ -570,14 +651,14 @@ Maui.ScrollColumn
                 label2.text: i18n("Font used for secondary text.")
                 label2.wrapMode: Text.WordWrap
 
-                template.content: ToolButton
+                template.content: Button
                 {
                     text: kde ? kde.fontLabel(kdeString("smallFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
                     {
                         if (kde)
-                            openFontDialog(_smallFontDialog, kdeString("smallFont", ""))
+                            openFontDialog("smallFont", kdeString("smallFont", ""))
                     }
                 }
             }
@@ -590,47 +671,308 @@ Maui.ScrollColumn
                 label2.text: i18n("Font used for code and fixed-width text.")
                 label2.wrapMode: Text.WordWrap
 
-                template.content: ToolButton
+                template.content: Button
                 {
                     text: kde ? kde.fontLabel(kdeString("monospaceFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
                     {
                         if (kde)
-                            openFontDialog(_monoFontDialog, kdeString("monospaceFont", ""))
+                            openFontDialog("monospaceFont", kdeString("monospaceFont", ""))
                     }
                 }
             }
         }
     }
 
-    Maui.FontPickerDialog
+    Maui.PopupPage
     {
-        id: _defaultFontDialog
-        onAccepted:
+        id: _iconThemePreviewDialog
+        title: i18n("Icon theme preview")
+        persistent: true
+
+        property string previewTheme
+        property var previewIcons: []
+
+        ColumnLayout
         {
-            if (kde)
-                kde.defaultFont = kde.fontToString(font)
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _iconThemePreviewDialog.previewTheme
+                text2: i18n("A small sample of icons rendered from the selected theme.")
+            }
+
+            GridLayout
+            {
+                Layout.alignment: Qt.AlignHCenter
+                columns: 4
+                columnSpacing: Maui.Style.space.small
+                rowSpacing: Maui.Style.space.small
+
+                Repeater
+                {
+                    model: _iconThemePreviewDialog.previewIcons
+
+                    Maui.IconItem
+                    {
+                        Layout.alignment: Qt.AlignHCenter
+                        iconSource: modelData.icon
+                        iconSizeHint: modelData.size
+                        smooth: false
+                    }
+                }
+            }
         }
     }
 
-    Maui.FontPickerDialog
+    Maui.PopupPage
     {
-        id: _smallFontDialog
-        onAccepted:
+        id: _colorSchemePreviewDialog
+        title: i18n("Color scheme preview")
+        persistent: true
+        maxWidth: Maui.Style.units.gridUnit * 24
+
+        property string previewScheme
+        property var preview: ({})
+
+        function schemeColor(role, fallback)
         {
-            if (kde)
-                kde.smallFont = kde.fontToString(font)
+            return preview && preview[role] ? preview[role] : fallback
+        }
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _colorSchemePreviewDialog.previewScheme
+                text2: i18n("A palette and interface sample using the selected scheme.")
+            }
+
+            Maui.ColorsRow
+            {
+                Layout.fillWidth: true
+                colors: _colorSchemePreviewDialog.preview.colors || []
+            }
+
+            Rectangle
+            {
+                Layout.fillWidth: true
+                Layout.preferredWidth: Maui.Style.units.gridUnit * 20
+                implicitHeight: _previewWindowLayout.implicitHeight + Maui.Style.contentMargins * 2
+                radius: Maui.Style.radiusV
+                color: _colorSchemePreviewDialog.schemeColor("windowBackground", Maui.Theme.backgroundColor)
+                border.color: _colorSchemePreviewDialog.schemeColor("focusColor", Maui.Theme.highlightColor)
+                border.width: 3
+                clip: true
+
+                ColumnLayout
+                {
+                    id: _previewWindowLayout
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: Maui.Style.contentMargins
+                    spacing: Maui.Style.space.small
+
+                    Label
+                    {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: i18n("Window title")
+                        color: _colorSchemePreviewDialog.schemeColor("windowForeground", Maui.Theme.textColor)
+                    }
+
+                    RowLayout
+                    {
+                        Layout.fillWidth: true
+                        spacing: Maui.Style.space.small
+
+                        Label
+                        {
+                            Layout.fillWidth: true
+                            text: i18n("Window text")
+                            color: _colorSchemePreviewDialog.schemeColor("windowForeground", Maui.Theme.textColor)
+                        }
+
+                        Button
+                        {
+                            Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+                            text: i18n("Button")
+                            Maui.Theme.backgroundColor: _colorSchemePreviewDialog.schemeColor("buttonBackground", "#3a3a4d")
+                            Maui.Theme.textColor: _colorSchemePreviewDialog.schemeColor("buttonForeground", "#f2f2f7")
+                            Maui.Theme.highlightColor: _colorSchemePreviewDialog.schemeColor("focusColor", "#26c6da")
+                            Maui.Theme.highlightedTextColor: _colorSchemePreviewDialog.schemeColor("selectionForeground", "#ffffff")
+                        }
+                    }
+
+                    Rectangle
+                    {
+                        Layout.fillWidth: true
+                        implicitHeight: _previewViewLayout.implicitHeight + Maui.Style.contentMargins * 2
+                        radius: Maui.Style.radiusV / 2
+                        color: _colorSchemePreviewDialog.schemeColor("viewBackground", Maui.Theme.alternateBackgroundColor)
+
+                        ColumnLayout
+                        {
+                            id: _previewViewLayout
+                            anchors.fill: parent
+                            anchors.margins: Maui.Style.contentMargins
+                            spacing: Maui.Style.space.small
+
+                            RowLayout
+                            {
+                                Layout.fillWidth: true
+                                spacing: Maui.Style.space.small
+
+                                Label
+                                {
+                                    text: i18n("Normal text")
+                                    color: _colorSchemePreviewDialog.schemeColor("viewForeground", Maui.Theme.textColor)
+                                }
+
+                                Label
+                                {
+                                    text: i18n("Link")
+                                    color: _colorSchemePreviewDialog.schemeColor("linkForeground", Maui.Theme.linkColor)
+                                    font.underline: true
+                                }
+
+                                Label
+                                {
+                                    text: i18n("Visited")
+                                    color: _colorSchemePreviewDialog.schemeColor("visitedForeground", Maui.Theme.linkColor)
+                                    font.underline: true
+                                }
+                            }
+
+                            Rectangle
+                            {
+                                Layout.fillWidth: true
+                                implicitHeight: _selectedTextRow.implicitHeight + Maui.Style.space.small
+                                radius: Maui.Style.radiusV / 2
+                                color: _colorSchemePreviewDialog.schemeColor("selectionBackground", Maui.Theme.highlightColor)
+
+                                RowLayout
+                                {
+                                    id: _selectedTextRow
+                                    anchors.fill: parent
+                                    anchors.leftMargin: Maui.Style.space.small
+                                    anchors.rightMargin: Maui.Style.space.small
+                                    spacing: Maui.Style.space.small
+
+                                    Label
+                                    {
+                                        text: i18n("Selected text")
+                                        color: _colorSchemePreviewDialog.schemeColor("selectionForeground", Maui.Theme.highlightedTextColor)
+                                    }
+
+                                    Label
+                                    {
+                                        text: i18n("Link")
+                                        color: _colorSchemePreviewDialog.schemeColor("selectionLinkForeground", Maui.Theme.highlightedTextColor)
+                                        font.underline: true
+                                    }
+
+                                    Label
+                                    {
+                                        text: i18n("Visited")
+                                        color: _colorSchemePreviewDialog.schemeColor("selectionVisitedForeground", Maui.Theme.highlightedTextColor)
+                                        font.underline: true
+                                    }
+                                }
+                            }
+
+                            RowLayout
+                            {
+                                Layout.fillWidth: true
+                                spacing: Maui.Style.space.small
+
+                                Label
+                                {
+                                    text: i18n("Disabled text")
+                                    color: _colorSchemePreviewDialog.schemeColor("inactiveForeground", Maui.Theme.disabledTextColor)
+                                }
+
+                                Label
+                                {
+                                    text: i18n("Link")
+                                    color: _colorSchemePreviewDialog.schemeColor("inactiveForeground", Maui.Theme.disabledTextColor)
+                                    font.underline: true
+                                }
+
+                                Item
+                                {
+                                    Layout.fillWidth: true
+                                }
+
+                                ToolButton
+                                {
+                                    icon.name: "document-open"
+                                    display: ToolButton.IconOnly
+                                    flat: false
+                                    Maui.Theme.backgroundColor: _colorSchemePreviewDialog.schemeColor("buttonBackground", "#3a3a4d")
+                                    Maui.Theme.textColor: _colorSchemePreviewDialog.schemeColor("buttonForeground", "#f2f2f7")
+                                    Maui.Theme.highlightColor: _colorSchemePreviewDialog.schemeColor("focusColor", "#26c6da")
+                                    Maui.Theme.highlightedTextColor: _colorSchemePreviewDialog.schemeColor("selectionForeground", "#ffffff")
+                                }
+
+                                ToolButton
+                                {
+                                    enabled: false
+                                    icon.name: "edit-delete"
+                                    display: ToolButton.IconOnly
+                                    flat: false
+                                    Maui.Theme.backgroundColor: _colorSchemePreviewDialog.schemeColor("buttonBackground", "#3a3a4d")
+                                    Maui.Theme.textColor: _colorSchemePreviewDialog.schemeColor("inactiveForeground", "#888899")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
-    Maui.FontPickerDialog
+    Maui.PopupPage
     {
-        id: _monoFontDialog
-        onAccepted:
+        id: _fontDialog
+        title: i18n("Fonts")
+        persistent: true
+
+        property string settingName
+
+        Maui.FontPicker
         {
-            if (kde)
-                kde.monospaceFont = kde.fontToString(font)
+            id: _fontPicker
+            Layout.fillWidth: true
+            showStyle: false
+            model.onlyMonospaced: _fontDialog.settingName === "monospaceFont"
         }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: _fontDialog.close()
+            },
+            Action
+            {
+                text: i18n("Accept")
+                onTriggered:
+                {
+                    if (kde && _fontDialog.settingName.length > 0)
+                        root.setStagedFont(_fontDialog.settingName, _fontPicker.mfont)
+
+                    _fontDialog.close()
+                }
+            }
+        ]
     }
 }
