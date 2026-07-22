@@ -13,6 +13,7 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 include(CheckCXXCompilerFlag)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Widgets)
+find_package(X11 REQUIRED COMPONENTS Xcursor)
 
 find_package(Git QUIET)
 if(Git_FOUND)
@@ -126,6 +127,7 @@ target_link_libraries(${APP_NAME}
     Qt6::Qml
     Qt6::Quick
     Qt6::Widgets
+    X11::Xcursor
     KF6::CoreAddons
     KF6::I18n
 )

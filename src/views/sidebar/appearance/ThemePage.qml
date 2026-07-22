@@ -22,6 +22,7 @@ Maui.ScrollColumn
     property int stagedMarginSize: 0
     property int stagedSpacingSize: 0
     property string stagedIconTheme: ""
+    property string stagedCursorTheme: ""
     property string stagedColorScheme: ""
     property string stagedDefaultFont: ""
     property string stagedSmallFont: ""
@@ -50,6 +51,7 @@ Maui.ScrollColumn
         if (kde)
         {
             stagedIconTheme = kde.iconTheme
+            stagedCursorTheme = kde.cursorTheme
             stagedColorScheme = kde.colorScheme
             stagedDefaultFont = kde.defaultFont
             stagedSmallFont = kde.smallFont
@@ -77,6 +79,7 @@ Maui.ScrollColumn
         if (kde)
         {
             kde.iconTheme = stagedIconTheme
+            kde.cursorTheme = stagedCursorTheme
             kde.colorScheme = stagedColorScheme
             kde.defaultFont = stagedDefaultFont
             kde.smallFont = stagedSmallFont
@@ -563,21 +566,22 @@ Maui.ScrollColumn
                         id: _iconThemeCombo
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.iconThemes : []
-                        currentIndex: kde ? indexForString(kde.iconThemes, kdeString("iconTheme", "")) : -1
+                        currentIndex: kde ? indexForString(kde.iconThemeIds, stagedIconTheme) : -1
                         enabled: kde !== null
                         onActivated:
                         {
-                            root.stagedIconTheme = currentText.trim()
+                            root.stagedIconTheme = kde.iconThemeIds[currentIndex]
                         }
                     }
 
                     ToolButton
                     {
-                        enabled: kde !== null
+                        enabled: kde !== null && _iconThemeCombo.currentIndex >= 0
                         icon.name: "view-preview"
                         onClicked:
                         {
-                            _iconThemePreviewDialog.previewTheme = _iconThemeCombo.currentText.trim()
+                            _iconThemePreviewDialog.previewTheme = kde.iconThemeIds[_iconThemeCombo.currentIndex]
+                            _iconThemePreviewDialog.previewName = _iconThemeCombo.currentText
                             _iconThemePreviewDialog.previewIcons = kde.iconThemePreviewIcons(_iconThemePreviewDialog.previewTheme)
                             _iconThemePreviewDialog.open()
                         }
@@ -685,6 +689,114 @@ Maui.ScrollColumn
         }
     }
 
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _cursorThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _cursorThemeLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Cursor Theme")
+                text2: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Cursor theme")
+                label2.text: i18n("Preferred desktop pointer theme.")
+                label2.wrapMode: Text.WordWrap
+
+                template.content: RowLayout
+                {
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _cursorThemeCombo
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
+                        model: kde ? kde.cursorThemes : []
+                        currentIndex: kde ? indexForString(kde.cursorThemeIds, stagedCursorTheme) : -1
+                        enabled: kde !== null
+                        onActivated: root.stagedCursorTheme = kde.cursorThemeIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null && _cursorThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _cursorThemePreviewDialog.previewTheme = kde.cursorThemeIds[_cursorThemeCombo.currentIndex]
+                            _cursorThemePreviewDialog.previewName = _cursorThemeCombo.currentText
+                            _cursorThemePreviewDialog.previewImages = kde.cursorThemePreviewImages(_cursorThemePreviewDialog.previewTheme)
+                            _cursorThemePreviewDialog.open()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Maui.PopupPage
+    {
+        id: _cursorThemePreviewDialog
+        title: i18n("Cursor theme preview")
+        persistent: true
+
+        property string previewTheme
+        property string previewName
+        property var previewImages: []
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _cursorThemePreviewDialog.previewName
+                text2: i18n("A sample of pointers rendered from the selected theme.")
+            }
+
+            GridLayout
+            {
+                Layout.alignment: Qt.AlignHCenter
+                columns: 3
+                columnSpacing: Maui.Style.space.big
+                rowSpacing: Maui.Style.space.big
+
+                Repeater
+                {
+                    model: _cursorThemePreviewDialog.previewImages
+
+                    Maui.IconItem
+                    {
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        iconSource: modelData.image
+                        iconSizeHint: Math.max(modelData.width, modelData.height)
+                        isMask: false
+                        smooth: false
+                    }
+                }
+            }
+        }
+    }
+
     Maui.PopupPage
     {
         id: _iconThemePreviewDialog
@@ -692,6 +804,7 @@ Maui.ScrollColumn
         persistent: true
 
         property string previewTheme
+        property string previewName
         property var previewIcons: []
 
         ColumnLayout
@@ -702,7 +815,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: _iconThemePreviewDialog.previewTheme
+                text1: _iconThemePreviewDialog.previewName
                 text2: i18n("A small sample of icons rendered from the selected theme.")
             }
 
@@ -722,6 +835,7 @@ Maui.ScrollColumn
                         Layout.alignment: Qt.AlignHCenter
                         iconSource: modelData.icon
                         iconSizeHint: modelData.size
+                        isMask: false
                         smooth: false
                     }
                 }

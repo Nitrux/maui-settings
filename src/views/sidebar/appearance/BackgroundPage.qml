@@ -9,18 +9,20 @@ Maui.ScrollColumn
 {
     readonly property var info: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
 
-    property var fitModes: [
-        { label: i18n("Cover"), value: "cover" },
-        { label: i18n("Contain"), value: "contain" },
-        { label: i18n("Tile"), value: "tile" },
-        { label: i18n("Fill"), value: "fit" }
+    property var fitModeLabels: [
+        i18n("Cover"),
+        i18n("Contain"),
+        i18n("Tile"),
+        i18n("Fill")
     ]
+    property var fitModeValues: ["cover", "contain", "tile", "fit"]
 
-    property var wallpaperOrders: [
-        { label: i18n("Default"), value: "default" },
-        { label: i18n("Random"), value: "random" },
-        { label: i18n("Random shuffle"), value: "random-shuffle" }
+    property var wallpaperOrderLabels: [
+        i18n("Default"),
+        i18n("Random"),
+        i18n("Random shuffle")
     ]
+    property var wallpaperOrderValues: ["default", "random", "random-shuffle"]
 
     function reloadSettings()
     {
@@ -38,7 +40,7 @@ Maui.ScrollColumn
     {
         for (let i = 0; i < model.length; ++i)
         {
-            if (model[i].value === value)
+            if (model[i] === value)
                 return i
         }
 
@@ -183,14 +185,12 @@ Maui.ScrollColumn
                 template.content: ComboBox
                 {
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 11
-                    model: fitModes
-                    textRole: "label"
-                    valueRole: "value"
-                    currentIndex: info ? indexForValue(fitModes, info.wallpaperFitMode) : 0
+                    model: fitModeLabels
+                    currentIndex: info ? indexForValue(fitModeValues, info.wallpaperFitMode) : 0
                     onActivated:
                     {
                         if (info)
-                            info.wallpaperFitMode = currentValue
+                            info.wallpaperFitMode = fitModeValues[currentIndex]
                     }
                 }
             }
@@ -206,14 +206,12 @@ Maui.ScrollColumn
                 template.content: ComboBox
                 {
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 13
-                    model: wallpaperOrders
-                    textRole: "label"
-                    valueRole: "value"
-                    currentIndex: info ? indexForValue(wallpaperOrders, info.wallpaperOrder) : 0
+                    model: wallpaperOrderLabels
+                    currentIndex: info ? indexForValue(wallpaperOrderValues, info.wallpaperOrder) : 0
                     onActivated:
                     {
                         if (info)
-                            info.wallpaperOrder = currentValue
+                            info.wallpaperOrder = wallpaperOrderValues[currentIndex]
                     }
                 }
             }

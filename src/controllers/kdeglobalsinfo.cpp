@@ -8,10 +8,15 @@
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QIcon>
+#include <QImage>
+#include <QLocale>
+#include <QSet>
 #include <QVariant>
 #include <QVariantMap>
 #include <QSettings>
 #include <QStandardPaths>
+
+#include <X11/Xcursor/Xcursor.h>
 
 namespace
 {
@@ -64,11 +69,133 @@ QColor readKdeColor(QSettings &settings, const QString &key, const QColor &fallb
     return QColor(channels[0], channels[1], channels[2], channels[3]);
 }
 
+QStringList iniStringList(const QVariant &value)
+{
+    QStringList values = value.toStringList();
+    if (values.size() == 1 && values.constFirst().contains(QLatin1Char(',')))
+        values = values.constFirst().split(QLatin1Char(','), Qt::SkipEmptyParts);
+
+    for (QString &entry : values)
+        entry = entry.trimmed();
+
+    values.removeAll(QString());
+    return values;
+}
+
+QString localizedThemeName(QSettings &settings, const QString &fallback)
+{
+    const QLocale locale = QLocale::system();
+    const QString localeName = locale.name();
+    const QString languageName = localeName.section(QLatin1Char('_'), 0, 0);
+    const QStringList keys = {
+        QStringLiteral("Name[%1]").arg(localeName),
+        QStringLiteral("Name[%1]").arg(languageName),
+        QStringLiteral("Name")
+    };
+
+    for (const QString &key : keys)
+    {
+        const QString name = settings.value(key).toString().trimmed();
+        if (!name.isEmpty())
+            return name;
+    }
+
+    return fallback;
+}
+
+QVariantList scanThemeOptions(bool cursorThemes)
+{
+    QVariantList themes;
+    QSet<QString> seenThemes;
+
+    QStringList locations;
+    addUnique(locations, QDir::homePath() + QStringLiteral("/.icons"));
+
+    const QStringList dataLocations = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    for (const QString &dataLocation : dataLocations)
+        addUnique(locations, dataLocation + QStringLiteral("/icons"));
+
+    const QStringList iconSearchPaths = QIcon::themeSearchPaths();
+    for (const QString &iconSearchPath : iconSearchPaths)
+        addUnique(locations, iconSearchPath);
+
+    for (const QString &basePath : locations)
+    {
+        const QDir baseDirectory(basePath);
+        const QFileInfoList entries = baseDirectory.entryInfoList(QDir::Dirs | QDir::Readable | QDir::NoDotAndDotDot, QDir::Name);
+        for (const QFileInfo &entry : entries)
+        {
+            const QString themeId = entry.fileName();
+            if (seenThemes.contains(themeId))
+                continue;
+
+            const QString indexPath = entry.absoluteFilePath() + QStringLiteral("/index.theme");
+            if (!QFileInfo::exists(indexPath))
+                continue;
+
+            QSettings metadata(indexPath, QSettings::IniFormat);
+            metadata.beginGroup(QStringLiteral("Icon Theme"));
+            const QString baseName = metadata.value(QStringLiteral("Name")).toString().trimmed();
+            const bool hidden = metadata.value(QStringLiteral("Hidden"), false).toBool();
+            const bool hasIconDirectories = !iniStringList(metadata.value(QStringLiteral("Directories"))).isEmpty()
+                || !iniStringList(metadata.value(QStringLiteral("ScaledDirectories"))).isEmpty();
+            const bool hasInheritedThemes = !iniStringList(metadata.value(QStringLiteral("Inherits"))).isEmpty();
+            const QString displayName = localizedThemeName(metadata, baseName);
+            metadata.endGroup();
+
+            if (baseName.isEmpty())
+                continue;
+
+            const bool hasCursorDirectory = QDir(entry.absoluteFilePath() + QStringLiteral("/cursors")).exists();
+            const bool isCursorTheme = hasCursorDirectory || (!hasIconDirectories && hasInheritedThemes);
+            if (hidden || (cursorThemes ? !isCursorTheme : !hasIconDirectories))
+                continue;
+
+            seenThemes.insert(themeId);
+
+            QVariantMap option;
+            option.insert(QStringLiteral("label"), displayName);
+            option.insert(QStringLiteral("value"), themeId);
+            themes << option;
+        }
+    }
+
+    std::stable_sort(themes.begin(), themes.end(), [](const QVariant &left, const QVariant &right)
+    {
+        return QString::localeAwareCompare(left.toMap().value(QStringLiteral("label")).toString(),
+                                           right.toMap().value(QStringLiteral("label")).toString()) < 0;
+    });
+
+    return themes;
+}
+
+QImage loadCursorImage(const QString &theme, const QString &cursorName, int requestedSize)
+{
+    const QByteArray themeName = theme.toUtf8();
+    const QByteArray name = cursorName.toUtf8();
+    XcursorImage *cursor = XcursorLibraryLoadImage(name.constData(), themeName.constData(), requestedSize);
+    if (!cursor || !cursor->pixels || cursor->width == 0 || cursor->height == 0)
+    {
+        if (cursor)
+            XcursorImageDestroy(cursor);
+        return {};
+    }
+
+    const QImage image(reinterpret_cast<const uchar *>(cursor->pixels),
+                       static_cast<int>(cursor->width),
+                       static_cast<int>(cursor->height),
+                       QImage::Format_ARGB32);
+    const QImage detachedImage = image.copy();
+    XcursorImageDestroy(cursor);
+    return detachedImage;
+}
+
 } // namespace
 
 KdeGlobalsInfo::KdeGlobalsInfo(QObject *parent)
     : QObject(parent)
     , m_configPath(QDir::homePath() + QStringLiteral("/.config/kdeglobals"))
+    , m_inputConfigPath(QDir::homePath() + QStringLiteral("/.config/kcminputrc"))
 {
     load();
 }
@@ -86,6 +213,11 @@ QString KdeGlobalsInfo::colorScheme() const
 QString KdeGlobalsInfo::iconTheme() const
 {
     return m_iconTheme;
+}
+
+QString KdeGlobalsInfo::cursorTheme() const
+{
+    return m_cursorTheme;
 }
 
 QString KdeGlobalsInfo::defaultFont() const
@@ -113,6 +245,21 @@ QStringList KdeGlobalsInfo::iconThemes() const
     return m_iconThemes;
 }
 
+QStringList KdeGlobalsInfo::iconThemeIds() const
+{
+    return m_iconThemeIds;
+}
+
+QStringList KdeGlobalsInfo::cursorThemes() const
+{
+    return m_cursorThemes;
+}
+
+QStringList KdeGlobalsInfo::cursorThemeIds() const
+{
+    return m_cursorThemeIds;
+}
+
 void KdeGlobalsInfo::setChanged()
 {
     Q_EMIT settingsChanged();
@@ -135,6 +282,16 @@ void KdeGlobalsInfo::setIconTheme(const QString &value)
         return;
 
     m_iconTheme = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setCursorTheme(const QString &value)
+{
+    const QString normalized = value.trimmed();
+    if (m_cursorTheme == normalized)
+        return;
+
+    m_cursorTheme = normalized;
     setChanged();
 }
 
@@ -195,7 +352,14 @@ bool KdeGlobalsInfo::save()
     settings.endGroup();
 
     settings.sync();
-    return settings.status() == QSettings::NoError;
+
+    QSettings inputSettings(m_inputConfigPath, QSettings::IniFormat);
+    inputSettings.beginGroup(QStringLiteral("Mouse"));
+    inputSettings.setValue(QStringLiteral("cursorTheme"), m_cursorTheme);
+    inputSettings.endGroup();
+    inputSettings.sync();
+
+    return settings.status() == QSettings::NoError && inputSettings.status() == QSettings::NoError;
 }
 
 QFont KdeGlobalsInfo::fontFromString(const QString &value) const
@@ -285,8 +449,12 @@ QVariantList KdeGlobalsInfo::iconThemePreviewIcons(const QString &theme) const
                 nativeSize = 64;
         }
 
+        const QImage renderedIcon = icon.pixmap(nativeSize, nativeSize).toImage();
+        if (renderedIcon.isNull())
+            continue;
+
         QVariantMap previewIcon;
-        previewIcon.insert(QStringLiteral("icon"), QVariant::fromValue(icon));
+        previewIcon.insert(QStringLiteral("icon"), renderedIcon);
         previewIcon.insert(QStringLiteral("size"), nativeSize);
         icons << previewIcon;
     }
@@ -299,6 +467,38 @@ QVariantList KdeGlobalsInfo::iconThemePreviewIcons(const QString &theme) const
     });
 
     return icons;
+}
+
+QVariantList KdeGlobalsInfo::cursorThemePreviewImages(const QString &theme) const
+{
+    QVariantList cursors;
+    const QString normalized = theme.trimmed();
+    if (normalized.isEmpty())
+        return cursors;
+
+    const QStringList cursorNames = {
+        QStringLiteral("left_ptr"),
+        QStringLiteral("hand2"),
+        QStringLiteral("xterm"),
+        QStringLiteral("crosshair"),
+        QStringLiteral("watch"),
+        QStringLiteral("size_all")
+    };
+
+    for (const QString &cursorName : cursorNames)
+    {
+        const QImage image = loadCursorImage(normalized, cursorName, 48);
+        if (image.isNull())
+            continue;
+
+        QVariantMap previewCursor;
+        previewCursor.insert(QStringLiteral("image"), image);
+        previewCursor.insert(QStringLiteral("width"), image.width());
+        previewCursor.insert(QStringLiteral("height"), image.height());
+        cursors << previewCursor;
+    }
+
+    return cursors;
 }
 
 QVariantMap KdeGlobalsInfo::colorSchemePreview(const QString &scheme) const
@@ -415,30 +615,21 @@ QStringList KdeGlobalsInfo::scanColorSchemes() const
     return schemes;
 }
 
-QStringList KdeGlobalsInfo::scanIconThemes() const
+QVariantList KdeGlobalsInfo::scanIconThemes() const
 {
-    QStringList themes;
-    const QStringList locations = QIcon::themeSearchPaths();
-    for (const QString &basePath : locations)
-    {
-        const QDir dir(basePath);
-        const QFileInfoList entries = dir.entryInfoList(QDir::Dirs | QDir::Readable | QDir::NoDotAndDotDot);
-        for (const QFileInfo &info : entries)
-        {
-            const QString indexThemePath = info.absoluteFilePath() + QStringLiteral("/index.theme");
-            if (QFileInfo::exists(indexThemePath))
-                addUnique(themes, info.fileName());
-        }
-    }
+    return scanThemeOptions(false);
+}
 
-    addUnique(themes, m_iconTheme);
-    return themes;
+QVariantList KdeGlobalsInfo::scanCursorThemes() const
+{
+    return scanThemeOptions(true);
 }
 
 void KdeGlobalsInfo::load()
 {
     m_colorScheme.clear();
     m_iconTheme.clear();
+    m_cursorTheme.clear();
     m_defaultFont.clear();
     m_smallFont.clear();
     m_monospaceFont.clear();
@@ -461,6 +652,11 @@ void KdeGlobalsInfo::load()
     m_iconTheme = settings.value(QStringLiteral("Theme")).toString();
     settings.endGroup();
 
+    QSettings inputSettings(m_inputConfigPath, QSettings::IniFormat);
+    inputSettings.beginGroup(QStringLiteral("Mouse"));
+    m_cursorTheme = inputSettings.value(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME")).toString();
+    inputSettings.endGroup();
+
     if (m_defaultFont.isEmpty())
         m_defaultFont = systemDefaultFont();
     if (m_smallFont.isEmpty())
@@ -469,7 +665,25 @@ void KdeGlobalsInfo::load()
         m_monospaceFont = systemMonospaceFont();
 
     m_colorSchemes = scanColorSchemes();
-    m_iconThemes = scanIconThemes();
+    m_iconThemes.clear();
+    m_iconThemeIds.clear();
+    const QVariantList iconThemeOptions = scanIconThemes();
+    for (const QVariant &optionValue : iconThemeOptions)
+    {
+        const QVariantMap option = optionValue.toMap();
+        m_iconThemes.append(option.value(QStringLiteral("label")).toString());
+        m_iconThemeIds.append(option.value(QStringLiteral("value")).toString());
+    }
+
+    m_cursorThemes.clear();
+    m_cursorThemeIds.clear();
+    const QVariantList cursorThemeOptions = scanCursorThemes();
+    for (const QVariant &optionValue : cursorThemeOptions)
+    {
+        const QVariantMap option = optionValue.toMap();
+        m_cursorThemes.append(option.value(QStringLiteral("label")).toString());
+        m_cursorThemeIds.append(option.value(QStringLiteral("value")).toString());
+    }
 
     setChanged();
 }
