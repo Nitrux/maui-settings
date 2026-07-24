@@ -38,6 +38,7 @@ $APT_COMMAND install -y --no-install-recommends \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
     lintian \
+    libxcursor-dev \
     qt6-base-dev \
     qt6-declarative-dev \
     qt6-svg-dev \
