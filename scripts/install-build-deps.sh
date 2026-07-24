@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2025-2026 <Nitrux Latinoamericana S.C. <hello@nxos.org>>
+# Copyright 2024-2025 <Nitrux Latinoamericana S.C. <hello@nxos.org>>
 
 
 # -- Exit on errors.
@@ -22,20 +22,26 @@ fi
 
 $APT_COMMAND update -q
 $APT_COMMAND install -y --no-install-recommends \
+    appstream \
+    automake \
+    autotools-dev \
     build-essential \
+    checkinstall \
+    clang \
     cmake \
     curl \
-    git \
+    devscripts \
+    equivs \
+    extra-cmake-modules \
+    gettext \
+    gnupg2 \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
-    liblayershellqtinterface-dev \
-    libwayland-dev \
-    meson \
-    ninja-build \
-    pkg-config \
+    lintian \
     qt6-base-dev \
     qt6-declarative-dev \
-    qt6-declarative-dev-tools
+    qt6-svg-dev \
+    qt6-wayland-dev
 
 
 # -- Add package from our repository.
@@ -56,4 +62,4 @@ EOF
 
 $APT_COMMAND update -q
 $APT_COMMAND install -y --no-install-recommends \
-    mauikit
+	mauikit-filebrowsing
