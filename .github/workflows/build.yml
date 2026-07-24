@@ -1,0 +1,95 @@
+name: Workspace Settings Deb
+
+on:
+  workflow_dispatch:
+    inputs:
+      packageCloudRepo:
+        description: 'Package Cloud Repo'
+        required: true
+        default: 'testing'
+        type: choice
+        options:
+        - testing
+      packageVersion:
+        description: 'Package Version'
+        required: true
+        type: string
+
+jobs:
+  build-amd64:
+    runs-on: ubuntu-24.04
+    container:
+      image: debian:stable
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+
+    steps:
+      - name: Install CA certificates
+        run: apt update && apt install -y ca-certificates
+
+      - name: Update APT sources and upgrade
+        run: |
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until
+          cat <<EOF > /etc/apt/sources.list.d/debian.sources
+          Types: deb
+          URIs: https://snapshot.debian.org/archive/debian/20260514T142722Z
+          Suites: testing testing-updates
+          Components: main non-free non-free-firmware contrib
+          Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+          Architectures: amd64
+          EOF
+          apt update && apt full-upgrade -y
+      - name: Setup amd64 environment
+        run: apt install -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
+      - run: gem install package_cloud
+      - uses: actions/checkout@v4
+      - run: ./scripts/install-build-deps.sh
+      - run: ./scripts/build-deb.sh
+        env:
+          PACKAGE_VERSION: ${{ inputs.packageVersion }}
+          TARGET_ARCH: amd64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-package-amd64
+          path: ./build/*.deb
+      - run: package_cloud push nitrux/${{ inputs.packageCloudRepo }}/debian/duke ./build/*.deb
+
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    container:
+      image: arm64v8/debian:stable
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+
+    steps:
+      - name: Install CA certificates
+        run: apt update && apt install -y ca-certificates
+
+      - name: Update APT sources and upgrade
+        run: |
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until
+          cat <<EOF > /etc/apt/sources.list.d/debian.sources
+          Types: deb
+          URIs: https://snapshot.debian.org/archive/debian/20260514T142722Z
+          Suites: testing testing-updates
+          Components: main non-free non-free-firmware contrib
+          Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+          Architectures: arm64
+          EOF
+          apt update && apt full-upgrade -y
+      - name: Setup arm64 environment
+        run: apt install -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
+      - run: gem install package_cloud
+      - uses: actions/checkout@v4
+      - run: ./scripts/install-build-deps.sh
+      - run: ./scripts/build-deb.sh
+        env:
+          PACKAGE_VERSION: ${{ inputs.packageVersion }}
+          TARGET_ARCH: arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-package-arm64
+          path: ./build/*.deb
+      - run: package_cloud push nitrux/${{ inputs.packageCloudRepo }}/debian/duke ./build/*.deb
