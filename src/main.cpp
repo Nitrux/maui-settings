@@ -23,6 +23,9 @@
 #include "controllers/aboutinfo.h"
 #include "controllers/backgroundinfo.h"
 #include "controllers/kdeglobalsinfo.h"
+#include "controllers/marinainfo.h"
+#include "controllers/nudgeosdinfo.h"
+#include "controllers/valenzinfo.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
 
@@ -71,6 +74,15 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KdeGlobalsInfo kdeGlobalsInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("kdeGlobalsInfo"), &kdeGlobalsInfo);
+
+    MarinaInfo marinaInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("marinaInfo"), &marinaInfo);
+
+    NudgeOsdInfo nudgeOsdInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("nudgeOsdInfo"), &nudgeOsdInfo);
+
+    ValenzInfo valenzInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);
 
     const QUrl url(QStringLiteral("qrc:/app/maui/settings/src/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url](QObject *obj, const QUrl &objUrl) {

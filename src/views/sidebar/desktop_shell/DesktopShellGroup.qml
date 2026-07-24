@@ -5,26 +5,33 @@ Item
     width: 0
     height: 0
     visible: false
-    property string title: i18n("Desktop & Shell")
+    property string title: i18n("Desktop")
     property var items: []
 
     Component
     {
-        id: desktopComponent
-        DesktopItem {}
+        id: valenzComponent
+        ValenzItem {}
     }
 
     Component
     {
-        id: panelComponent
-        PanelItem {}
+        id: nudgeOsdComponent
+        NudgeOsdItem {}
+    }
+
+    Component
+    {
+        id: marinaComponent
+        MarinaItem {}
     }
 
     Component.onCompleted:
     {
         items = [
-            desktopComponent.createObject(this),
-            panelComponent.createObject(this)
+            valenzComponent.createObject(this),
+            nudgeOsdComponent.createObject(this),
+            marinaComponent.createObject(this)
         ]
     }
 }

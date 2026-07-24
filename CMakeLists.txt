@@ -71,6 +71,9 @@ set(settings_SRCS
     src/controllers/aboutinfo.cpp
     src/controllers/backgroundinfo.cpp
     src/controllers/kdeglobalsinfo.cpp
+    src/controllers/marinainfo.cpp
+    src/controllers/nudgeosdinfo.cpp
+    src/controllers/valenzinfo.cpp
 )
 
 qt_add_executable(${APP_NAME}
@@ -99,8 +102,12 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/appearance/ThemeItem.qml
     src/views/sidebar/appearance/ThemePage.qml
     src/views/sidebar/desktop_shell/DesktopShellGroup.qml
-    src/views/sidebar/desktop_shell/DesktopItem.qml
-    src/views/sidebar/desktop_shell/PanelItem.qml
+    src/views/sidebar/desktop_shell/MarinaItem.qml
+    src/views/sidebar/desktop_shell/MarinaPage.qml
+    src/views/sidebar/desktop_shell/ValenzItem.qml
+    src/views/sidebar/desktop_shell/ValenzPage.qml
+    src/views/sidebar/desktop_shell/NudgeOsdItem.qml
+    src/views/sidebar/desktop_shell/NudgeOsdPage.qml
     src/views/sidebar/applications/ApplicationsGroup.qml
     src/views/sidebar/applications/DefaultsItem.qml
     src/views/sidebar/applications/CacheItem.qml

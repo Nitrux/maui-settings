@@ -25,6 +25,12 @@ Maui.ApplicationWindow
             return _backgroundPageLoader.item
         case "appearance-theme":
             return _themePageLoader.item
+        case "desktop-valenz":
+            return _valenzPageLoader.item
+        case "desktop-nudge-osd":
+            return _nudgeOsdPageLoader.item
+        case "desktop-marina":
+            return _marinaPageLoader.item
         default:
             return null
         }
@@ -41,7 +47,15 @@ Maui.ApplicationWindow
     {
         const settingsPage = currentSettingsPage()
         if (settingsPage && typeof settingsPage.saveSettings === "function")
-            settingsPage.saveSettings()
+        {
+            const saved = settingsPage.saveSettings()
+
+            if (!saved)
+                return
+
+            if (root.currentSection === "desktop-marina")
+                root.notify("view-refresh", i18n("Marina"), i18n("Restarting the desktop dock..."), [], false)
+        }
     }
 
     function sectionTitle(section)
@@ -54,10 +68,12 @@ Maui.ApplicationWindow
             return i18n("Background")
         case "appearance-theme":
             return i18n("Theme")
-        case "desktop-shell-desktop":
-            return i18n("Desktop")
-        case "desktop-shell-panel":
-            return i18n("Panel")
+        case "desktop-valenz":
+            return i18n("Valenz Settings")
+        case "desktop-nudge-osd":
+            return i18n("NudgeOSD Settings")
+        case "desktop-marina":
+            return i18n("Marina Settings")
         case "applications-defaults":
             return i18n("Defaults")
         case "applications-cache":
@@ -190,7 +206,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -290,11 +306,38 @@ Maui.ApplicationWindow
                         source: active ? "views/sidebar/appearance/ThemePage.qml" : ""
                     }
 
+                    Loader
+                    {
+                        id: _valenzPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "desktop-valenz"
+                        visible: active
+                        source: active ? "views/sidebar/desktop_shell/ValenzPage.qml" : ""
+                    }
+
+                    Loader
+                    {
+                        id: _nudgeOsdPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "desktop-nudge-osd"
+                        visible: active
+                        source: active ? "views/sidebar/desktop_shell/NudgeOsdPage.qml" : ""
+                    }
+
+                    Loader
+                    {
+                        id: _marinaPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "desktop-marina"
+                        visible: active
+                        source: active ? "views/sidebar/desktop_shell/MarinaPage.qml" : ""
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")
