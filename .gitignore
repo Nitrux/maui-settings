@@ -1,64 +1,10 @@
-3rdparty/kirigami/
-3rdparty/mauikit/
-3rdparty/
-3rdparty/breeze-icons/
-build/
-build.6/
-build.5/
-.directory
-
-*.*~
-#~*.*
-#~.*
-
-# C++ objects and libs
-*.slo
-*.lo
-*.o
-*.a
-*.la
-*.lai
-#*.so
-*.dll
-*.dylib
-
-# Qt-es
-object_script.*.Release
-object_script.*.Debug
-*_plugin_import.cpp
-/.qmake.cache
-/.qmake.stash
-*.pro.user
-*.pro.user.*
-*.qbs.user
-*.qbs.user.*
-*.moc
-moc_*.cpp
-moc_*.h
-qrc_*.cpp
-ui_*.h
+# Compiled source #
+###################
+*.directory
+*.DS_Store
+*.bak
+/.project
+*.db
 *.qmlc
-*.jsc
-Makefile*
-*build-*
-
-# Qt unit tests
-target_wrapper.*
-
-# QtCreator
-*.autosave
-
-# QtCreator Qml
-*.qmlproject.user
-*.qmlproject.user.*
-
-# QtCreator CMake
-CMakeLists.txt.user*
-
-# LSP & IDE
-/.clang-format
-/compile_commands.json
-.clangd
-.cache
-.idea
-/cmake-build*
+*build/
+*mauikit/
