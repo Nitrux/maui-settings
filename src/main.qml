@@ -31,6 +31,8 @@ Maui.ApplicationWindow
             return _nudgeOsdPageLoader.item
         case "desktop-marina":
             return _marinaPageLoader.item
+        case "hardware-sound-accessibility":
+            return _accessibilityPageLoader.item
         default:
             return null
         }
@@ -206,7 +208,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "hardware-sound-accessibility"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -333,11 +335,20 @@ Maui.ApplicationWindow
                         source: active ? "views/sidebar/desktop_shell/MarinaPage.qml" : ""
                     }
 
+                    Loader
+                    {
+                        id: _accessibilityPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "hardware-sound-accessibility"
+                        visible: active
+                        source: active ? "views/sidebar/hardware_sound/AccessibilityPage.qml" : ""
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "hardware-sound-accessibility"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

@@ -18,6 +18,7 @@ class KdeGlobalsInfo : public QObject
     Q_PROPERTY(QString defaultFont READ defaultFont WRITE setDefaultFont NOTIFY settingsChanged)
     Q_PROPERTY(QString smallFont READ smallFont WRITE setSmallFont NOTIFY settingsChanged)
     Q_PROPERTY(QString monospaceFont READ monospaceFont WRITE setMonospaceFont NOTIFY settingsChanged)
+    Q_PROPERTY(bool singleClick READ singleClick WRITE setSingleClick NOTIFY settingsChanged)
     Q_PROPERTY(QStringList colorSchemes READ colorSchemes NOTIFY settingsChanged)
     Q_PROPERTY(QStringList iconThemes READ iconThemes NOTIFY settingsChanged)
     Q_PROPERTY(QStringList iconThemeIds READ iconThemeIds NOTIFY settingsChanged)
@@ -34,6 +35,7 @@ public:
     QString defaultFont() const;
     QString smallFont() const;
     QString monospaceFont() const;
+    bool singleClick() const;
     QStringList colorSchemes() const;
     QStringList iconThemes() const;
     QStringList iconThemeIds() const;
@@ -46,6 +48,7 @@ public:
     void setDefaultFont(const QString &value);
     void setSmallFont(const QString &value);
     void setMonospaceFont(const QString &value);
+    void setSingleClick(bool value);
 
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
@@ -77,6 +80,7 @@ private:
     QString m_defaultFont;
     QString m_smallFont;
     QString m_monospaceFont;
+    bool m_singleClick = true;
     QStringList m_colorSchemes;
     QStringList m_iconThemes;
     QStringList m_iconThemeIds;

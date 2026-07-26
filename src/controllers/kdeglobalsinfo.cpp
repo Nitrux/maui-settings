@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QStyleHints>
 
 #include <X11/Xcursor/Xcursor.h>
 
@@ -235,6 +236,11 @@ QString KdeGlobalsInfo::monospaceFont() const
     return m_monospaceFont;
 }
 
+bool KdeGlobalsInfo::singleClick() const
+{
+    return m_singleClick;
+}
+
 QStringList KdeGlobalsInfo::colorSchemes() const
 {
     return m_colorSchemes;
@@ -325,6 +331,15 @@ void KdeGlobalsInfo::setMonospaceFont(const QString &value)
     setChanged();
 }
 
+void KdeGlobalsInfo::setSingleClick(bool value)
+{
+    if (m_singleClick == value)
+        return;
+
+    m_singleClick = value;
+    setChanged();
+}
+
 void KdeGlobalsInfo::reload()
 {
     load();
@@ -345,6 +360,7 @@ bool KdeGlobalsInfo::save()
 
     settings.beginGroup(QStringLiteral("KDE"));
     settings.setValue(QStringLiteral("ColorScheme"), m_colorScheme);
+    settings.setValue(QStringLiteral("SingleClick"), m_singleClick);
     settings.endGroup();
 
     settings.beginGroup(QStringLiteral("Icons"));
@@ -646,6 +662,7 @@ void KdeGlobalsInfo::load()
     settings.beginGroup(QStringLiteral("KDE"));
     if (m_colorScheme.isEmpty())
         m_colorScheme = settings.value(QStringLiteral("ColorScheme")).toString();
+    m_singleClick = settings.value(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation()).toBool();
     settings.endGroup();
 
     settings.beginGroup(QStringLiteral("Icons"));

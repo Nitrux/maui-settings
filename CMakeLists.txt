@@ -119,6 +119,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/hardware_sound/FormFactorItem.qml
     src/views/sidebar/hardware_sound/AccessibilityItem.qml
+    src/views/sidebar/hardware_sound/AccessibilityPage.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
     src/views/sidebar/security_login/LockScreenItem.qml
