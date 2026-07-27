@@ -14,8 +14,17 @@ Item
         AboutItem {}
     }
 
+    Component
+    {
+        id: accessibilityComponent
+        AccessibilityItem {}
+    }
+
     Component.onCompleted:
     {
-        items = [aboutComponent.createObject(this)]
+        items = [
+            aboutComponent.createObject(this),
+            accessibilityComponent.createObject(this)
+        ]
     }
 }

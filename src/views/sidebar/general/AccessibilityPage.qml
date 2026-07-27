@@ -8,25 +8,42 @@ Maui.ScrollColumn
 {
     id: root
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
+    readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
+    readonly property bool scrollBarOnLeftAvailable: theme !== null && typeof theme.scrollBarOnLeft === "boolean"
 
     property bool stagedSingleClick: true
+    property bool stagedScrollBarOnLeft: false
 
     function reloadSettings()
     {
-        if (!kde)
-            return
+        if (kde)
+        {
+            kde.reload()
+            stagedSingleClick = kde.singleClick
+        }
 
-        kde.reload()
-        stagedSingleClick = kde.singleClick
+        if (scrollBarOnLeftAvailable)
+            stagedScrollBarOnLeft = theme.scrollBarOnLeft
     }
 
     function saveSettings()
     {
-        if (!kde)
-            return false
+        let saved = true
 
-        kde.singleClick = stagedSingleClick
-        return kde.save()
+        if (kde)
+        {
+            kde.singleClick = stagedSingleClick
+            saved = kde.save()
+        } else {
+            saved = false
+        }
+
+        if (scrollBarOnLeftAvailable)
+            theme.scrollBarOnLeft = stagedScrollBarOnLeft
+        else
+            saved = false
+
+        return saved
     }
 
     anchors.fill: parent
@@ -59,7 +76,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Interaction")
-                text2: i18n("Choose how files, folders, and other items are activated.")
+                text2: i18n("Choose how items are activated and vertical scroll bars are positioned.")
             }
 
             Maui.SectionItem
@@ -75,6 +92,22 @@ Maui.ScrollColumn
                     checked: root.stagedSingleClick
                     enabled: root.kde !== null
                     onToggled: root.stagedSingleClick = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Terminal scroll bars placement")
+                label2.text: i18n("Show vertical scroll bars on the left side instead of the right side on all terminals.")
+                label2.wrapMode: Text.WordWrap
+
+                template.content: Switch
+                {
+                    checked: root.stagedScrollBarOnLeft
+                    enabled: root.scrollBarOnLeftAvailable
+                    onToggled: root.stagedScrollBarOnLeft = checked
                 }
             }
         }

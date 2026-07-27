@@ -96,6 +96,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/general/GeneralGroup.qml
     src/views/sidebar/general/AboutItem.qml
     src/views/sidebar/general/AboutPage.qml
+    src/views/sidebar/general/AccessibilityItem.qml
+    src/views/sidebar/general/AccessibilityPage.qml
     src/views/sidebar/appearance/AppearanceGroup.qml
     src/views/sidebar/appearance/BackgroundItem.qml
     src/views/sidebar/appearance/BackgroundPage.qml
@@ -118,8 +120,6 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/AudioItem.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/hardware_sound/FormFactorItem.qml
-    src/views/sidebar/hardware_sound/AccessibilityItem.qml
-    src/views/sidebar/hardware_sound/AccessibilityPage.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
     src/views/sidebar/security_login/LockScreenItem.qml

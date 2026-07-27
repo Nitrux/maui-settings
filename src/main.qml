@@ -31,7 +31,7 @@ Maui.ApplicationWindow
             return _nudgeOsdPageLoader.item
         case "desktop-marina":
             return _marinaPageLoader.item
-        case "hardware-sound-accessibility":
+        case "general-accessibility":
             return _accessibilityPageLoader.item
         default:
             return null
@@ -90,7 +90,7 @@ Maui.ApplicationWindow
             return i18n("Input Devices")
         case "hardware-sound-form-factor":
             return i18n("Form Factor")
-        case "hardware-sound-accessibility":
+        case "general-accessibility":
             return i18n("Accessibility")
         case "security-login-greeter":
             return i18n("Greeter")
@@ -208,7 +208,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "hardware-sound-accessibility"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -339,16 +339,16 @@ Maui.ApplicationWindow
                     {
                         id: _accessibilityPageLoader
                         anchors.fill: parent
-                        active: root.currentSection === "hardware-sound-accessibility"
+                        active: root.currentSection === "general-accessibility"
                         visible: active
-                        source: active ? "views/sidebar/hardware_sound/AccessibilityPage.qml" : ""
+                        source: active ? "views/sidebar/general/AccessibilityPage.qml" : ""
                     }
 
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "hardware-sound-accessibility"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

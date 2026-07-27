@@ -26,19 +26,12 @@ Item
         FormFactorItem {}
     }
 
-    Component
-    {
-        id: accessibilityComponent
-        AccessibilityItem {}
-    }
-
     Component.onCompleted:
     {
         items = [
             audioComponent.createObject(this),
             inputDevicesComponent.createObject(this),
-            formFactorComponent.createObject(this),
-            accessibilityComponent.createObject(this)
+            formFactorComponent.createObject(this)
         ]
     }
 }
