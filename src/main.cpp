@@ -23,6 +23,7 @@
 #include "controllers/aboutinfo.h"
 #include "controllers/backgroundinfo.h"
 #include "controllers/bluetoothcontroller.h"
+#include "controllers/desklockcontroller.h"
 #include "controllers/kdeglobalsinfo.h"
 #include "controllers/marinainfo.h"
 #include "controllers/mimecontroller.h"
@@ -74,6 +75,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     BluetoothController bluetoothController;
     engine.rootContext()->setContextProperty(QStringLiteral("bluetoothController"), &bluetoothController);
+
+    DesklockController desklockController;
+    engine.rootContext()->setContextProperty(QStringLiteral("desklockController"), &desklockController);
 
     MauiMan::ThemeManager themeInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("themeInfo"), &themeInfo);

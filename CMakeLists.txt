@@ -71,6 +71,7 @@ set(settings_SRCS
     src/controllers/aboutinfo.cpp
     src/controllers/backgroundinfo.cpp
     src/controllers/bluetoothcontroller.cpp
+    src/controllers/desklockcontroller.cpp
     src/controllers/kdeglobalsinfo.cpp
     src/controllers/marinainfo.cpp
     src/controllers/mimecontroller.cpp
@@ -128,6 +129,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
     src/views/sidebar/security_login/LockScreenItem.qml
+    src/views/sidebar/security_login/LockScreen.qml
 )
 
 target_link_libraries(${APP_NAME}

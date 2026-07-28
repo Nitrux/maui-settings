@@ -39,6 +39,8 @@ Maui.ApplicationWindow
             return _networkPageLoader.item
         case "connectivity-bluetooth":
             return _bluetoothPageLoader.item
+        case "security-login-lock-screen":
+            return _lockScreenPageLoader.item
         default:
             return null
         }
@@ -377,11 +379,20 @@ Maui.ApplicationWindow
                         source: "views/sidebar/connectivity/BluetoothPage.qml"
                     }
 
+                    Loader
+                    {
+                        id: _lockScreenPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-lock-screen"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/LockScreen.qml" : ""
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

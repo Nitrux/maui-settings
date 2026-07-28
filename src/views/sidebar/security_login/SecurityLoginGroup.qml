@@ -5,7 +5,7 @@ Item
     width: 0
     height: 0
     visible: false
-    property string title: i18n("Security & Login")
+    property string title: i18n("Security and Login")
     property var items: []
 
     Component
