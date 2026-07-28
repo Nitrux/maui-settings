@@ -33,11 +33,6 @@ Maui.ScrollColumn
         return info ? info.save() : false
     }
 
-    function automaticSizeText(value)
-    {
-        return value === 0 ? i18n("Automatic") : value.toString()
-    }
-
     anchors.fill: parent
     spacing: Maui.Style.space.big
 
@@ -225,12 +220,71 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                label1.text: i18n("Manual sizing")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Set the dock width and height manually.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    id: manualSizeSwitch
+
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    checked: info ? info.dockWidth > 0 || info.dockHeight > 0 : false
+                    onToggled:
+                    {
+                        if (!info)
+                            return
+
+                        if (checked)
+                        {
+                            if (info.dockWidth <= 0)
+                                info.dockWidth = dockWidthSpinBox.value
+                            if (info.dockHeight <= 0)
+                                info.dockHeight = dockHeightSpinBox.value
+                        }
+                        else
+                        {
+                            info.dockWidth = 0
+                            info.dockHeight = 0
+                        }
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: manualSizeSwitch.checked
                 label1.text: i18n("Dock width")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Minimum surface width in pixels, or Automatic for content sizing.")
+                label2.text: i18n("Minimum surface width in pixels.")
                 label2.wrapMode: Text.Wrap
                 template.content: SpinBox
                 {
+                    id: dockWidthSpinBox
+
                     property Item wideParent
                     property Item responsiveSectionItem
                     readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
@@ -255,11 +309,10 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    from: 0
+                    from: 96
                     to: 4096
                     stepSize: 16
-                    value: info ? info.dockWidth : 0
-                    textFromValue: (value, locale) => root.automaticSizeText(value)
+                    value: info && info.dockWidth > 0 ? info.dockWidth : 96
                     onValueModified: if (info) info.dockWidth = value
                 }
             }
@@ -268,12 +321,15 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                enabled: manualSizeSwitch.checked
                 label1.text: i18n("Dock height")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Surface height in pixels, or Automatic to derive it from icon size.")
+                label2.text: i18n("Surface height in pixels.")
                 label2.wrapMode: Text.Wrap
                 template.content: SpinBox
                 {
+                    id: dockHeightSpinBox
+
                     property Item wideParent
                     property Item responsiveSectionItem
                     readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
@@ -298,11 +354,10 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    from: 0
+                    from: info ? info.iconSize + 8 : 56
                     to: 256
                     stepSize: 4
-                    value: info ? info.dockHeight : 0
-                    textFromValue: (value, locale) => root.automaticSizeText(value)
+                    value: info && info.dockHeight > 0 ? info.dockHeight : (info ? info.iconSize + 24 : 72)
                     onValueModified: if (info) info.dockHeight = value
                 }
             }
