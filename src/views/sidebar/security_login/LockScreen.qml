@@ -27,7 +27,7 @@ Maui.ScrollColumn
 
     function saveSettings()
     {
-        return true
+        return controller ? controller.save() : false
     }
 
     function displayPath(path)
@@ -52,6 +52,20 @@ Maui.ScrollColumn
         _wallpaperDialog.open()
     }
 
+    function pickAvatar()
+    {
+        _avatarDialog.currentPath = controller && controller.avatarDirectory
+            ? controller.avatarDirectory : FB.FM.homePath()
+        _avatarDialog.browser.settings.viewType = FB.FMList.ICON_VIEW
+        _avatarDialog.browser.settings.filterType = FB.FMList.IMAGE
+        _avatarDialog.callback = (paths) =>
+        {
+            if (controller && paths && paths.length)
+                controller.avatarPath = paths[0]
+        }
+        _avatarDialog.open()
+    }
+
     FB.FileDialog
     {
         id: _wallpaperDialog
@@ -60,6 +74,16 @@ Maui.ScrollColumn
         mode: FB.FileDialog.Modes.Open
         currentPath: controller && controller.wallpaperDirectory
             ? controller.wallpaperDirectory : FB.FM.homePath()
+    }
+
+    FB.FileDialog
+    {
+        id: _avatarDialog
+        singleSelection: true
+        searchBar: true
+        mode: FB.FileDialog.Modes.Open
+        currentPath: controller && controller.avatarDirectory
+            ? controller.avatarDirectory : FB.FM.homePath()
     }
 
     Maui.SectionHeader
@@ -131,6 +155,130 @@ Maui.ScrollColumn
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: i18n("Choose")
                     onClicked: root.pickWallpaper()
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Avatar image")
+                label1.elide: Text.ElideRight
+                label2.text: controller && controller.avatarPath.length
+                    ? root.displayPath(controller.avatarPath) : i18n("Automatic")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: i18n("Choose")
+                    onClicked: root.pickAvatar()
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Background blur")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Blur radius in pixels. Set to 0 to disable blur.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+                    from: 0
+                    to: 128
+                    stepSize: 4
+                    value: controller ? controller.backgroundBlurRadius : 64
+                    editable: true
+                    onValueModified: if (controller) controller.backgroundBlurRadius = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Overlay opacity")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Background overlay opacity as a percentage.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+                    from: 0
+                    to: 100
+                    value: controller ? Math.round(controller.backgroundOverlayOpacity * 100) : 76
+                    editable: true
+                    onValueModified: if (controller) controller.backgroundOverlayOpacity = value / 100.0
                 }
             }
 
@@ -225,6 +373,40 @@ Maui.ScrollColumn
                         if (controller)
                             controller.dateFormat = text
                     }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Lowercase date")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Display the formatted date using lowercase letters.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: controller ? controller.lowercaseDate : false
+                    onToggled: if (controller) controller.lowercaseDate = checked
                 }
             }
 
@@ -438,6 +620,48 @@ Maui.ScrollColumn
                 }
             }
 
+            // Maui.SectionItem
+            // {
+            //     Layout.fillWidth: true
+            //     flat: true
+            //     enabled: controller ? controller.showSystemMonitor : true
+            //     label1.text: i18n("System monitor interval")
+            //     label1.elide: Text.ElideRight
+            //     label2.text: i18n("Polling interval in milliseconds.")
+            //     label2.wrapMode: Text.Wrap
+
+            //     template.content: SpinBox
+            //     {
+            //         property Item wideParent
+            //         property Item responsiveSectionItem
+            //         readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+            //         function updateResponsiveParent()
+            //         {
+            //             if (!wideParent || !responsiveSectionItem)
+            //                 return
+            //             parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+            //         }
+            //         onResponsiveNarrowChanged: updateResponsiveParent()
+            //         Component.onCompleted:
+            //         {
+            //             const originalParent = parent
+            //             responsiveSectionItem = originalParent.parent.parent.parent
+            //             wideParent = originalParent
+            //             updateResponsiveParent()
+            //         }
+            //         Layout.fillWidth: responsiveNarrow
+            //         Layout.minimumWidth: responsiveNarrow ? 0 : -1
+            //         Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+            //         Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+            //         from: 1000
+            //         to: 3600000
+            //         stepSize: 1000
+            //         value: controller ? controller.systemMonitorUpdateInterval : 3000
+            //         editable: true
+            //         onValueModified: if (controller) controller.systemMonitorUpdateInterval = value
+            //     }
+            // }
+
             Maui.SectionItem
             {
                 Layout.fillWidth: true
@@ -478,6 +702,48 @@ Maui.ScrollColumn
                     }
                 }
             }
+
+            // Maui.SectionItem
+            // {
+            //     Layout.fillWidth: true
+            //     flat: true
+            //     enabled: controller ? controller.showBattery : true
+            //     label1.text: i18n("Battery check interval")
+            //     label1.elide: Text.ElideRight
+            //     label2.text: i18n("Polling interval in milliseconds.")
+            //     label2.wrapMode: Text.Wrap
+
+            //     template.content: SpinBox
+            //     {
+            //         property Item wideParent
+            //         property Item responsiveSectionItem
+            //         readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+            //         function updateResponsiveParent()
+            //         {
+            //             if (!wideParent || !responsiveSectionItem)
+            //                 return
+            //             parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+            //         }
+            //         onResponsiveNarrowChanged: updateResponsiveParent()
+            //         Component.onCompleted:
+            //         {
+            //             const originalParent = parent
+            //             responsiveSectionItem = originalParent.parent.parent.parent
+            //             wideParent = originalParent
+            //             updateResponsiveParent()
+            //         }
+            //         Layout.fillWidth: responsiveNarrow
+            //         Layout.minimumWidth: responsiveNarrow ? 0 : -1
+            //         Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+            //         Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+            //         from: 1000
+            //         to: 3600000
+            //         stepSize: 1000
+            //         value: controller ? controller.batteryUpdateInterval : 30000
+            //         editable: true
+            //         onValueModified: if (controller) controller.batteryUpdateInterval = value
+            //     }
+            // }
 
             Maui.SectionItem
             {
@@ -544,6 +810,39 @@ Maui.ScrollColumn
                 text1: i18n("Lock Behavior")
                 text2: i18n("Configure timing values used by the session lock integration.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Hide cursor")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Hide the pointer while the lock screen is active.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: controller ? controller.hideCursor : true
+                    onToggled: if (controller) controller.hideCursor = checked
+                }
             }
 
             Maui.SectionItem
@@ -644,32 +943,6 @@ Maui.ScrollColumn
                             controller.gracePeriod = value
                     }
                 }
-            }
-        }
-    }
-
-    Rectangle
-    {
-        Layout.fillWidth: true
-        visible: controller && controller.lastError.length > 0
-        color: Maui.Theme.alternateBackgroundColor
-        radius: Maui.Style.radiusV
-        border.color: Maui.Theme.negativeBackgroundColor
-        border.width: 1
-        implicitHeight: _errorLayout.implicitHeight + Maui.Style.contentMargins * 2
-
-        ColumnLayout
-        {
-            id: _errorLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Configuration Error")
-                text2: controller ? controller.lastError : ""
-                label2.wrapMode: Text.Wrap
             }
         }
     }

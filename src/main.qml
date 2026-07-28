@@ -216,7 +216,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-lock-screen"
                     visible: active
 
                     sourceComponent: RowLayout
