@@ -239,15 +239,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _mauiThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _mauiThemeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("MauiKit Theme")
-            description: i18n("These values are written to MauiMan and used by MauiKit components.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("MauiKit Theme")
+                text2: i18n("These values are written to MauiMan and used by MauiKit components.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -539,15 +544,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _layoutLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _layoutLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Spacing and Shape")
-            description: i18n("These values map to the global Maui UI shape and spacing settings.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Spacing and Shape")
+                text2: i18n("These values map to the global Maui UI shape and spacing settings.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -795,15 +805,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _kdeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _kdeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Desktop Integration")
-            description: i18n("These values come from ~/.config/kdeglobals and affect KDE/Qt apps.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Desktop Integration")
+                text2: i18n("These values come from ~/.config/kdeglobals and affect KDE/Qt apps.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -1083,15 +1098,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _cursorThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _cursorThemeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Cursor Theme")
-            description: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Cursor Theme")
+                text2: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {

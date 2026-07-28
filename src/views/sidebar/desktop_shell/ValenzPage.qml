@@ -56,15 +56,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _barLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _barLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Desktop Bar")
-            description: i18n("Control the bar size, screen placement, and layer-shell margins.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Desktop Bar")
+                text2: i18n("Control the bar size, screen placement, and layer-shell margins.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -364,15 +369,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _controlCenterLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _controlCenterLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Control Center")
-            description: i18n("Configure the Control Center presentation and actions.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Control Center")
+                text2: i18n("Configure the Control Center presentation and actions.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -546,15 +556,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _mediaLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _mediaLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Media")
-            description: i18n("Configure the media controls shown in the bar.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Media")
+                text2: i18n("Configure the media controls shown in the bar.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -603,15 +618,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _weatherLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _weatherLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Weather")
-            description: i18n("Set the location and update behavior for weather information.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Weather")
+                text2: i18n("Set the location and update behavior for weather information.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {

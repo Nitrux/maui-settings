@@ -52,15 +52,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _appearanceLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _appearanceLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Appearance")
-            description: i18n("Configure the icon source and OSD dimensions.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Appearance")
+                text2: i18n("Configure the icon source and OSD dimensions.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -196,15 +201,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _positionLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _positionLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Position")
-            description: i18n("Configure the OSD position on the active screen.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Position")
+                text2: i18n("Configure the OSD position on the active screen.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -258,15 +268,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _behaviorLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _behaviorLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Behavior")
-            description: i18n("Configure visibility and animation timing.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Behavior")
+                text2: i18n("Configure visibility and animation timing.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -405,15 +420,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _controlsLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _controlsLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Controls")
-            description: i18n("Set the default adjustment made by NudgeOSD commands.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Controls")
+                text2: i18n("Set the default adjustment made by NudgeOSD commands.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {

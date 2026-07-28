@@ -98,15 +98,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _wallpaperLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _wallpaperLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Wallpaper")
-            description: i18n("Choose an image or a folder for hyprpaper to use.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Wallpaper")
+                text2: i18n("Choose an image or a folder for hyprpaper to use.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -205,15 +210,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _optionsLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _optionsLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Wallpaper Options")
-            description: i18n("These map directly to hyprpaper's wallpaper block.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Wallpaper Options")
+                text2: i18n("These map directly to hyprpaper's wallpaper block.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -406,15 +416,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _runtimeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _runtimeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Runtime Options")
-            description: i18n("Hyprpaper global behavior toggles.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Runtime Options")
+                text2: i18n("Hyprpaper global behavior toggles.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {

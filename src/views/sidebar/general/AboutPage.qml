@@ -40,15 +40,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _osLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _osLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("OS")
-            description: i18n("Distribution and session details.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("OS")
+                text2: i18n("Distribution and session details.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -101,15 +106,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _softwareLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _softwareLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Software")
-            description: i18n("Framework and toolkit versions in this computer.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Software")
+                text2: i18n("Framework and toolkit versions in this computer.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {
@@ -143,15 +153,20 @@ Maui.ScrollColumn
         visible: info && info.graphicsDevices.length > 0
         implicitHeight: _graphicsLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _graphicsLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Graphics")
-            description: i18n("GPU devices information and details.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Graphics")
+                text2: i18n("GPU devices information and details.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {
@@ -181,15 +196,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _systemLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _systemLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("System")
-            description: i18n("Hardware and memory details.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("System")
+                text2: i18n("Hardware and memory details.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -252,15 +272,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _storageLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _storageLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Storage")
-            description: i18n("Physical disks and their storage usage.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Storage")
+                text2: i18n("Physical disks and their storage usage.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {

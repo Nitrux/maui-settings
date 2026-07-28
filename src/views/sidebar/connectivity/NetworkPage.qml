@@ -195,17 +195,22 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _wiredLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _wiredLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Wired Connectivity")
-            description: root.controller && root.controller.wiredConnections.length > 0
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Wired Connectivity")
+                text2: root.controller && root.controller.wiredConnections.length > 0
                        ? i18n("Ethernet interfaces and saved wired connections.")
                        : i18n("No Ethernet interface was found.")
-            template.label2.wrapMode: Text.Wrap
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {
@@ -254,17 +259,22 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _radioLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _radioLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Wireless Connectivity")
-            description: root.controller && root.controller.available
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Wireless Connectivity")
+                text2: root.controller && root.controller.available
                        ? i18n("Control the wireless radio and scan for networks.")
                        : i18n("No Wi-Fi adapter was found.")
-            template.label2.wrapMode: Text.Wrap
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -407,17 +417,22 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _networksLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _networksLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Available WiFi Networks")
-            description: root.controller && root.controller.scanning
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Available WiFi Networks")
+                text2: root.controller && root.controller.scanning
                        ? i18n("Scanning for wireless networks…")
                        : i18n("Networks are ordered by connection state and signal strength.")
-            template.label2.wrapMode: Text.Wrap
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {

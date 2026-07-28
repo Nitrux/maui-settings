@@ -294,17 +294,22 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _adapterLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _adapterLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Bluetooth Devices")
-            description: root.controller && root.controller.available
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Bluetooth Devices")
+                text2: root.controller && root.controller.available
                        ? i18n("Ready to connect and discover nearby Bluetooth devices.")
                        : i18n("No Bluetooth adapter or BlueZ service was found.")
-            template.label2.wrapMode: Text.Wrap
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -396,15 +401,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _devicesLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _devicesLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Devices")
-            description: i18n("Connected and paired devices appear first.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Devices")
+                text2: i18n("Connected and paired devices appear first.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Repeater
             {

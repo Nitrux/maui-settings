@@ -57,15 +57,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _appearanceLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _appearanceLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Appearance")
-            description: i18n("Configure launcher sizing and spacing from the screen edge.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Appearance")
+                text2: i18n("Configure launcher sizing and spacing from the screen edge.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -160,15 +165,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _windowLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _windowLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Placement and Size")
-            description: i18n("Choose where Marina appears and how its surface is sized.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Placement and Size")
+                text2: i18n("Choose where Marina appears and how its surface is sized.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
@@ -344,15 +354,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _behaviorLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _behaviorLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Behavior")
-            description: i18n("Configure when the dock hides.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Behavior")
+                text2: i18n("Configure when the dock hides.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {

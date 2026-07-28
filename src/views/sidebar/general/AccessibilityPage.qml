@@ -65,15 +65,20 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _interactionLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        Maui.SectionGroup
+        ColumnLayout
         {
             id: _interactionLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            padding: 0
-            title: i18n("Interaction")
-            description: i18n("Choose how items are activated and vertical scroll bars are positioned.")
-            template.label2.wrapMode: Text.Wrap
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Interaction")
+                text2: i18n("Choose how items are activated and vertical scroll bars are positioned.")
+                label2.wrapMode: Text.Wrap
+            }
 
             Maui.SectionItem
             {
