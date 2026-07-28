@@ -33,6 +33,10 @@ Maui.ApplicationWindow
             return _marinaPageLoader.item
         case "general-accessibility":
             return _accessibilityPageLoader.item
+        case "connectivity-network":
+            return _networkPageLoader.item
+        case "connectivity-bluetooth":
+            return _bluetoothPageLoader.item
         default:
             return null
         }
@@ -344,11 +348,29 @@ Maui.ApplicationWindow
                         source: active ? "views/sidebar/general/AccessibilityPage.qml" : ""
                     }
 
+                    Loader
+                    {
+                        id: _networkPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "connectivity-network" || item
+                        visible: root.currentSection === "connectivity-network"
+                        source: "views/sidebar/connectivity/NetworkPage.qml"
+                    }
+
+                    Loader
+                    {
+                        id: _bluetoothPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "connectivity-bluetooth" || item
+                        visible: root.currentSection === "connectivity-bluetooth"
+                        source: "views/sidebar/connectivity/BluetoothPage.qml"
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

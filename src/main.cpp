@@ -22,9 +22,11 @@
 
 #include "controllers/aboutinfo.h"
 #include "controllers/backgroundinfo.h"
+#include "controllers/bluetoothcontroller.h"
 #include "controllers/kdeglobalsinfo.h"
 #include "controllers/marinainfo.h"
 #include "controllers/nudgeosdinfo.h"
+#include "controllers/networkcontroller.h"
 #include "controllers/valenzinfo.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
@@ -69,6 +71,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     BackgroundInfo backgroundInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("backgroundInfo"), &backgroundInfo);
 
+    BluetoothController bluetoothController;
+    engine.rootContext()->setContextProperty(QStringLiteral("bluetoothController"), &bluetoothController);
+
     MauiMan::ThemeManager themeInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("themeInfo"), &themeInfo);
 
@@ -80,6 +85,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     NudgeOsdInfo nudgeOsdInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("nudgeOsdInfo"), &nudgeOsdInfo);
+
+    NetworkController networkController;
+    engine.rootContext()->setContextProperty(QStringLiteral("networkController"), &networkController);
 
     ValenzInfo valenzInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);

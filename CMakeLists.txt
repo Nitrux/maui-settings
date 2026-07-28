@@ -12,7 +12,7 @@ include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(CheckCXXCompilerFlag)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Qml Quick Widgets)
 find_package(X11 REQUIRED COMPONENTS Xcursor)
 
 find_package(Git QUIET)
@@ -44,7 +44,7 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-find_package(KF6 REQUIRED COMPONENTS CoreAddons I18n)
+find_package(KF6 REQUIRED COMPONENTS BluezQt CoreAddons I18n NetworkManagerQt)
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
 find_package(MauiMan4 REQUIRED)
 
@@ -70,9 +70,11 @@ set(settings_SRCS
     src/main.cpp
     src/controllers/aboutinfo.cpp
     src/controllers/backgroundinfo.cpp
+    src/controllers/bluetoothcontroller.cpp
     src/controllers/kdeglobalsinfo.cpp
     src/controllers/marinainfo.cpp
     src/controllers/nudgeosdinfo.cpp
+    src/controllers/networkcontroller.cpp
     src/controllers/valenzinfo.cpp
 )
 
@@ -115,7 +117,9 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/applications/CacheItem.qml
     src/views/sidebar/connectivity/ConnectivityGroup.qml
     src/views/sidebar/connectivity/BluetoothItem.qml
+    src/views/sidebar/connectivity/BluetoothPage.qml
     src/views/sidebar/connectivity/NetworkItem.qml
+    src/views/sidebar/connectivity/NetworkPage.qml
     src/views/sidebar/hardware_sound/HardwareSoundGroup.qml
     src/views/sidebar/hardware_sound/AudioItem.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
@@ -131,13 +135,16 @@ target_link_libraries(${APP_NAME}
     MauiKit4::FileBrowsing
     MauiMan4::MauiMan4
     Qt6::Core
+    Qt6::DBus
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
     Qt6::Widgets
     X11::Xcursor
+    KF6::BluezQt
     KF6::CoreAddons
     KF6::I18n
+    KF6::NetworkManagerQt
 )
 
 install(TARGETS ${APP_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
