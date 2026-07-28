@@ -73,6 +73,7 @@ set(settings_SRCS
     src/controllers/bluetoothcontroller.cpp
     src/controllers/kdeglobalsinfo.cpp
     src/controllers/marinainfo.cpp
+    src/controllers/mimecontroller.cpp
     src/controllers/nudgeosdinfo.cpp
     src/controllers/networkcontroller.cpp
     src/controllers/valenzinfo.cpp
@@ -114,7 +115,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/desktop_shell/NudgeOsdPage.qml
     src/views/sidebar/applications/ApplicationsGroup.qml
     src/views/sidebar/applications/DefaultsItem.qml
-    src/views/sidebar/applications/CacheItem.qml
+    src/views/sidebar/applications/DefaultsPage.qml
     src/views/sidebar/connectivity/ConnectivityGroup.qml
     src/views/sidebar/connectivity/BluetoothItem.qml
     src/views/sidebar/connectivity/BluetoothPage.qml

@@ -2,7 +2,7 @@ import QtQuick
 
 QtObject
 {
-    property string label: i18n("Defaults")
+    property string label: i18n("MIME Defaults")
     property string section: "applications-defaults"
-    property string icon: "document-open"
+    property string icon: "maui-settings-defaults"
 }

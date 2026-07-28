@@ -33,6 +33,8 @@ Maui.ApplicationWindow
             return _marinaPageLoader.item
         case "general-accessibility":
             return _accessibilityPageLoader.item
+        case "applications-defaults":
+            return _defaultsPageLoader.item
         case "connectivity-network":
             return _networkPageLoader.item
         case "connectivity-bluetooth":
@@ -81,7 +83,7 @@ Maui.ApplicationWindow
         case "desktop-marina":
             return i18n("Marina Settings")
         case "applications-defaults":
-            return i18n("Defaults")
+            return i18n("Default Applications")
         case "applications-cache":
             return i18n("Cache")
         case "connectivity-bluetooth":
@@ -350,6 +352,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _defaultsPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "applications-defaults"
+                        visible: active
+                        source: active ? "views/sidebar/applications/DefaultsPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _networkPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "connectivity-network" || item
@@ -370,7 +381,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

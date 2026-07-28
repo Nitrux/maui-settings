@@ -239,30 +239,51 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _mauiThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _mauiThemeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("MauiKit Theme")
-                text2: i18n("These values are written to MauiMan and used by MauiKit components.")
-            }
+            padding: 0
+            title: i18n("MauiKit Theme")
+            description: i18n("These values are written to MauiMan and used by MauiKit components.")
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Style type")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Light, dark, adaptive, auto, true black, or inverted.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: ComboBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 12
                     model: styleTypes
                     currentIndex: themeStyleTypeIndex()
@@ -280,11 +301,36 @@ Maui.ScrollColumn
                 flat: true
                 visible: accentColorVisible()
                 label1.text: i18n("MauiKit accent override")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Overrides the MauiKit highlight color in Light and Dark modes only.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
 
                     Rectangle
@@ -299,6 +345,8 @@ Maui.ScrollColumn
 
                     TextField
                     {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 12
                         text: themeAccentColor()
                         placeholderText: "#26c6da"
@@ -316,11 +364,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Window controls theme")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Theme used for MauiKit client-side decoration buttons.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: ComboBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 14
                     model: windowControlsThemeModel()
                     currentIndex: windowControlsThemeIndex()
@@ -337,11 +410,33 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable CSD")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Use client-side decorations for applications.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: themeEnabled("enableCSD")
                     enabled: theme !== null
                     onToggled:
@@ -356,11 +451,33 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable effects")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Allow visual effects such as blur and animations.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: themeEnabled("enableEffects")
                     enabled: theme !== null
                     onToggled:
@@ -375,11 +492,33 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Allow custom styling")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Permit third-party Qt Quick Controls styles to opt in.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: themeEnabled("allowCustomStyling")
                     enabled: theme !== null
                     onToggled:
@@ -400,30 +539,51 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _layoutLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _layoutLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Spacing and Shape")
-                text2: i18n("These values map to the global Maui UI shape and spacing settings.")
-            }
+            padding: 0
+            title: i18n("Spacing and Shape")
+            description: i18n("These values map to the global Maui UI shape and spacing settings.")
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Border radius")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Corner radius for surfaces and controls.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 0
                     to: 64
@@ -441,11 +601,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Icon size")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred icon size in controls and menus.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 8
                     to: 64
@@ -463,11 +648,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Padding")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Internal padding used by controls.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 0
                     to: 32
@@ -485,11 +695,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Margin")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Margins used around views and sections.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 0
                     to: 32
@@ -507,11 +742,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Spacing")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Spacing used between elements in layouts.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 0
                     to: 32
@@ -535,35 +795,58 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _kdeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _kdeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Desktop Integration")
-                text2: i18n("These values come from ~/.config/kdeglobals and affect KDE/Qt apps.")
-            }
+            padding: 0
+            title: i18n("Desktop Integration")
+            description: i18n("These values come from ~/.config/kdeglobals and affect KDE/Qt apps.")
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Icon theme")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred desktop icon theme.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
 
                     ComboBox
                     {
                         id: _iconThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.iconThemes : []
                         currentIndex: kde ? indexForString(kde.iconThemeIds, stagedIconTheme) : -1
@@ -594,16 +877,43 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Color scheme")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Current KDE color scheme.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
 
                     ComboBox
                     {
                         id: _colorSchemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.colorSchemes : []
                         currentIndex: kde ? indexForString(kde.colorSchemes, kdeString("colorScheme", "")) : -1
@@ -632,11 +942,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Default font")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Primary UI font used by Qt and KDE.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Button
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: kde ? kde.fontLabel(kdeString("defaultFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
@@ -652,11 +987,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Small font")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Font used for secondary text.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Button
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: kde ? kde.fontLabel(kdeString("smallFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
@@ -672,11 +1032,36 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Monospaced font")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Font used for code and fixed-width text.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Button
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: kde ? kde.fontLabel(kdeString("monospaceFont", "")) : ""
                     enabled: kde !== null
                     onClicked:
@@ -698,35 +1083,58 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _cursorThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _cursorThemeLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Cursor Theme")
-                text2: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
-            }
+            padding: 0
+            title: i18n("Cursor Theme")
+            description: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Cursor theme")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred desktop pointer theme.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
 
                     ComboBox
                     {
                         id: _cursorThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
                         model: kde ? kde.cursorThemes : []
                         currentIndex: kde ? indexForString(kde.cursorThemeIds, stagedCursorTheme) : -1

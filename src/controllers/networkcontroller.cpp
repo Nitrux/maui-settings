@@ -30,6 +30,7 @@ struct NetworkEntry {
     int signalStrength = 0;
     QString security;
     bool secure = false;
+    bool passwordRequired = false;
     bool connected = false;
     bool saved = false;
     bool autoConnect = false;
@@ -93,6 +94,7 @@ public:
     bool scanning = false;
     int scanRequests = 0;
     QString errorMessage;
+    QVariantList wiredConnections;
     QTimer *rebuildTimer = nullptr;
 };
 
@@ -153,6 +155,8 @@ QVariant NetworkController::data(const QModelIndex &index, int role) const
         return entry.security;
     case SecureRole:
         return entry.secure;
+    case PasswordRequiredRole:
+        return entry.passwordRequired;
     case ConnectedRole:
         return entry.connected;
     case SavedRole:
@@ -175,6 +179,7 @@ QHash<int, QByteArray> NetworkController::roleNames() const
         {SignalStrengthRole, "signalStrength"},
         {SecurityRole, "security"},
         {SecureRole, "secure"},
+        {PasswordRequiredRole, "passwordRequired"},
         {ConnectedRole, "connected"},
         {SavedRole, "saved"},
         {AutoConnectRole, "autoConnect"},
@@ -214,6 +219,11 @@ bool NetworkController::scanning() const
 QString NetworkController::errorMessage() const
 {
     return d->errorMessage;
+}
+
+QVariantList NetworkController::wiredConnections() const
+{
+    return d->wiredConnections;
 }
 
 void NetworkController::requestScan()
@@ -432,9 +442,66 @@ void NetworkController::clearError()
 void NetworkController::rebuild()
 {
     QList<NetworkEntry> entries;
+    QVariantList wiredConnections;
     bool hasWirelessDevice = false;
 
     for (const auto &baseDevice : NetworkManager::networkInterfaces()) {
+        if (baseDevice->type() == NetworkManager::Device::Ethernet) {
+            connect(baseDevice.data(), &NetworkManager::Device::availableConnectionAppeared,
+                    this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+            connect(baseDevice.data(), &NetworkManager::Device::availableConnectionDisappeared,
+                    this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+            connect(baseDevice.data(), &NetworkManager::Device::ipV4ConfigChanged,
+                    this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+            connect(baseDevice.data(), &NetworkManager::Device::stateChanged,
+                    this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+
+            const auto activeConnection = baseDevice->activeConnection();
+            const auto activeProfile = activeConnection ? activeConnection->connection() : NetworkManager::Connection::Ptr();
+            const bool connecting = baseDevice->state() >= NetworkManager::Device::Preparing
+                && baseDevice->state() < NetworkManager::Device::Activated;
+            QString ipAddress;
+            if (baseDevice->ipV4Config().isValid() && !baseDevice->ipV4Config().addresses().isEmpty()) {
+                ipAddress = baseDevice->ipV4Config().addresses().constFirst().ip().toString();
+            }
+
+            bool hasWiredProfile = false;
+            for (const auto &connection : baseDevice->availableConnections()) {
+                const auto settings = connection->settings();
+                if (!settings || settings->connectionType() != NetworkManager::ConnectionSettings::Wired) {
+                    continue;
+                }
+
+                hasWiredProfile = true;
+                connect(connection.data(), &NetworkManager::Connection::updated,
+                        this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+
+                const bool connected = activeProfile && activeProfile->path() == connection->path()
+                    && baseDevice->state() == NetworkManager::Device::Activated;
+                const bool profileConnecting = activeProfile && activeProfile->path() == connection->path() && connecting;
+                wiredConnections.append(QVariantMap{
+                    {QStringLiteral("interfaceName"), baseDevice->interfaceName()},
+                    {QStringLiteral("connectionName"), connection->name()},
+                    {QStringLiteral("connected"), connected},
+                    {QStringLiteral("connecting"), profileConnecting},
+                    {QStringLiteral("ipAddress"), connected ? ipAddress : QString()},
+                    {QStringLiteral("hasProfile"), true},
+                });
+            }
+
+            if (!hasWiredProfile) {
+                wiredConnections.append(QVariantMap{
+                    {QStringLiteral("interfaceName"), baseDevice->interfaceName()},
+                    {QStringLiteral("connectionName"), QString()},
+                    {QStringLiteral("connected"), baseDevice->state() == NetworkManager::Device::Activated},
+                    {QStringLiteral("connecting"), connecting},
+                    {QStringLiteral("ipAddress"), ipAddress},
+                    {QStringLiteral("hasProfile"), false},
+                });
+            }
+            continue;
+        }
+
         if (baseDevice->type() != NetworkManager::Device::Wifi) {
             continue;
         }
@@ -477,7 +544,8 @@ void NetworkController::rebuild()
             entry.ssid = network->ssid();
             entry.signalStrength = network->signalStrength();
             entry.security = securityName(type);
-            entry.secure = type != NetworkManager::NoneSecurity && type != NetworkManager::OWE;
+            entry.secure = type != NetworkManager::NoneSecurity;
+            entry.passwordRequired = type != NetworkManager::NoneSecurity && type != NetworkManager::OWE;
             entry.connected = entry.ssid == activeSsid;
             entry.devicePath = device->uni();
             entry.accessPointPath = accessPoint->uni();
@@ -541,6 +609,11 @@ void NetworkController::rebuild()
     if (d->available != hasWirelessDevice) {
         d->available = hasWirelessDevice;
         Q_EMIT availableChanged();
+    }
+
+    if (d->wiredConnections != wiredConnections) {
+        d->wiredConnections = wiredConnections;
+        Q_EMIT wiredConnectionsChanged();
     }
 }
 

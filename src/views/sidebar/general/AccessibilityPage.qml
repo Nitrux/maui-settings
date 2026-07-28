@@ -65,30 +65,48 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _interactionLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _interactionLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Interaction")
-                text2: i18n("Choose how items are activated and vertical scroll bars are positioned.")
-            }
+            padding: 0
+            title: i18n("Interaction")
+            description: i18n("Choose how items are activated and vertical scroll bars are positioned.")
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Single-click activation")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Open files and folders with one click instead of a double-click.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: root.stagedSingleClick
                     enabled: root.kde !== null
                     onToggled: root.stagedSingleClick = checked
@@ -100,11 +118,33 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Terminal scroll bars placement")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Show vertical scroll bars on the left side instead of the right side on all terminals.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: root.stagedScrollBarOnLeft
                     enabled: root.scrollBarOnLeftAvailable
                     onToggled: root.stagedScrollBarOnLeft = checked

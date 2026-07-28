@@ -14,17 +14,10 @@ Item
         DefaultsItem {}
     }
 
-    Component
-    {
-        id: cacheComponent
-        CacheItem {}
-    }
-
     Component.onCompleted:
     {
         items = [
-            defaultsComponent.createObject(this),
-            cacheComponent.createObject(this)
+            defaultsComponent.createObject(this)
         ]
     }
 }

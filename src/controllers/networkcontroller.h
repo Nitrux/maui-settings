@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QVariantList>
 
 class NetworkController : public QAbstractListModel
 {
@@ -14,6 +15,7 @@ class NetworkController : public QAbstractListModel
     Q_PROPERTY(bool hardwareEnabled READ hardwareEnabled NOTIFY hardwareEnabledChanged)
     Q_PROPERTY(bool scanning READ scanning NOTIFY scanningChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
+    Q_PROPERTY(QVariantList wiredConnections READ wiredConnections NOTIFY wiredConnectionsChanged)
 
 public:
     enum Role {
@@ -21,6 +23,7 @@ public:
         SignalStrengthRole,
         SecurityRole,
         SecureRole,
+        PasswordRequiredRole,
         ConnectedRole,
         SavedRole,
         AutoConnectRole,
@@ -42,6 +45,7 @@ public:
     bool hardwareEnabled() const;
     bool scanning() const;
     QString errorMessage() const;
+    QVariantList wiredConnections() const;
 
     Q_INVOKABLE void requestScan();
     Q_INVOKABLE void connectToNetwork(const QString &devicePath,
@@ -61,6 +65,7 @@ Q_SIGNALS:
     void hardwareEnabledChanged();
     void scanningChanged();
     void errorMessageChanged();
+    void wiredConnectionsChanged();
 
 private:
     class Private;

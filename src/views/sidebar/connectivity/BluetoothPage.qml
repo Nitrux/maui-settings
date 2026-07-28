@@ -56,8 +56,9 @@ Maui.ScrollColumn
             flat: true
             template.iconSource: "dialog-error"
             label1.text: i18n("Bluetooth error")
+            label1.elide: Text.ElideRight
             label2.text: _errorToast.message
-            label2.wrapMode: Text.WordWrap
+            label2.wrapMode: Text.Wrap
         }
 
         Timer
@@ -158,10 +159,35 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Device name")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Use a local name that is easier to recognize.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
                 template.content: TextField
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     id: _deviceNameField
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 12
                     placeholderText: i18n("Device name")
@@ -173,10 +199,32 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Trusted device")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Allow future connections without another authorization prompt.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     id: _trustedSwitch
                 }
             }
@@ -246,31 +294,49 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _adapterLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _adapterLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Bluetooth Devices")
-                text2: root.controller && root.controller.available
+            padding: 0
+            title: i18n("Bluetooth Devices")
+            description: root.controller && root.controller.available
                        ? i18n("Ready to connect and discover nearby Bluetooth devices.")
                        : i18n("No Bluetooth adapter or BlueZ service was found.")
-            }
+            template.label2.wrapMode: Text.Wrap
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable Bluetooth")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Allow this computer to communicate with Bluetooth devices.")
-                label2.wrapMode: Text.WordWrap
+                label2.wrapMode: Text.Wrap
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: root.controller ? root.controller.powered : false
                     enabled: root.controller && root.controller.available
                     onToggled: if (root.controller) root.controller.powered = checked
@@ -282,11 +348,37 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Device discovery")
+                label1.elide: Text.ElideRight
                 label2.text: root.controller && root.controller.discovering
                              ? i18n("Searching for nearby Bluetooth devices…")
                              : i18n("Search for nearby Bluetooth devices.")
+                label2.wrapMode: Text.Wrap
                 template.content: Button
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: root.controller && root.controller.discovering ? i18n("Stop") : i18n("Scan")
                     enabled: root.controller && root.controller.powered
                     onClicked: root.controller.setDiscoveryEnabled(!root.controller.discovering)
@@ -304,19 +396,15 @@ Maui.ScrollColumn
         border.width: 1
         implicitHeight: _devicesLayout.implicitHeight + Maui.Style.contentMargins * 2
 
-        ColumnLayout
+        Maui.SectionGroup
         {
             id: _devicesLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Devices")
-                text2: i18n("Connected and paired devices appear first.")
-            }
+            padding: 0
+            title: i18n("Devices")
+            description: i18n("Connected and paired devices appear first.")
+            template.label2.wrapMode: Text.Wrap
 
             Repeater
             {
@@ -337,6 +425,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: true
                     flat: true
                     label1.text: name
+                    label1.elide: Text.ElideRight
                     label2.text: connected
                                  ? i18n("Connected · %1", address)
                                  : paired
@@ -344,10 +433,35 @@ Maui.ScrollColumn
                                    : signalStrength !== 0
                                      ? i18n("Available · RSSI %1 dBm", signalStrength)
                                      : i18n("Available · %1", address)
-                    label2.wrapMode: Text.WordWrap
+                    label2.wrapMode: Text.Wrap
                     template.iconSource: iconName.length > 0 ? iconName : "preferences-system-bluetooth"
+                    template.iconSizeHint: Maui.Style.iconSizes.small
                     template.content: RowLayout
                     {
+                        property Item wideParent
+                        property Item responsiveSectionItem
+                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                        function updateResponsiveParent()
+                        {
+                            if (!wideParent || !responsiveSectionItem)
+                                return
+
+                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        }
+
+                        onResponsiveNarrowChanged: updateResponsiveParent()
+
+                        Component.onCompleted:
+                        {
+                            const originalParent = parent
+                            responsiveSectionItem = originalParent.parent.parent.parent
+                            wideParent = originalParent
+                            updateResponsiveParent()
+                        }
+                        Layout.fillWidth: responsiveNarrow
+                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                         spacing: Maui.Style.space.small
 
                         Button
@@ -401,7 +515,9 @@ Maui.ScrollColumn
                 visible: root.controller && root.controller.powered && _devicesRepeater.count === 0
                 flat: true
                 label1.text: i18n("No devices found")
+                label1.elide: Text.ElideRight
                 label2.text: i18n("Start discovery and make sure the other device is visible.")
+                label2.wrapMode: Text.Wrap
             }
         }
     }

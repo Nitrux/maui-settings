@@ -25,6 +25,7 @@
 #include "controllers/bluetoothcontroller.h"
 #include "controllers/kdeglobalsinfo.h"
 #include "controllers/marinainfo.h"
+#include "controllers/mimecontroller.h"
 #include "controllers/nudgeosdinfo.h"
 #include "controllers/networkcontroller.h"
 #include "controllers/valenzinfo.h"
@@ -82,6 +83,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     MarinaInfo marinaInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("marinaInfo"), &marinaInfo);
+
+    MimeController mimeController;
+    engine.rootContext()->setContextProperty(QStringLiteral("mimeController"), &mimeController);
 
     NudgeOsdInfo nudgeOsdInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("nudgeOsdInfo"), &nudgeOsdInfo);
