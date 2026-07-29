@@ -36,6 +36,7 @@ $APT_COMMAND install -y --no-install-recommends \
     gettext \
     gnupg2 \
     libkf6auth-dev \
+    libkf6bluezqt-dev \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
     libkf6networkmanagerqt-dev \
