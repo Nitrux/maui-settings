@@ -29,6 +29,7 @@
 #include "controllers/mimecontroller.h"
 #include "controllers/nudgeosdinfo.h"
 #include "controllers/networkcontroller.h"
+#include "controllers/qmlgreetcontroller.h"
 #include "controllers/valenzinfo.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
@@ -96,6 +97,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     NetworkController networkController;
     engine.rootContext()->setContextProperty(QStringLiteral("networkController"), &networkController);
+
+    QmlGreetController qmlGreetController;
+    engine.rootContext()->setContextProperty(QStringLiteral("qmlGreetController"), &qmlGreetController);
 
     ValenzInfo valenzInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);

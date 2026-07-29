@@ -41,6 +41,8 @@ Maui.ApplicationWindow
             return _bluetoothPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
+        case "security-login-greeter":
+            return _greeterPageLoader.item
         default:
             return null
         }
@@ -51,6 +53,13 @@ Maui.ApplicationWindow
         const settingsPage = currentSettingsPage()
         if (settingsPage && typeof settingsPage.reloadSettings === "function")
             settingsPage.reloadSettings()
+    }
+
+    function currentSettingsSaveAvailable()
+    {
+        const settingsPage = currentSettingsPage()
+        return !settingsPage || typeof settingsPage.saveAvailable === "undefined"
+            ? true : settingsPage.saveAvailable
     }
 
     function saveCurrentSettings()
@@ -216,7 +225,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-lock-screen"
+                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -237,6 +246,7 @@ Maui.ApplicationWindow
                         ToolButton
                         {
                             icon.name: "document-save"
+                            enabled: root.currentSettingsSaveAvailable()
                             display: ToolButton.IconOnly
                             ToolTip.delay: 1000
                             ToolTip.timeout: 5000
@@ -381,18 +391,27 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _greeterPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-greeter"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/GreeterPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _lockScreenPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-lock-screen"
                         visible: active
-                        source: active ? "views/sidebar/security_login/LockScreen.qml" : ""
+                        source: active ? "views/sidebar/security_login/LockScreenPage.qml" : ""
                     }
 
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

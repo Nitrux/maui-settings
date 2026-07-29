@@ -1,0 +1,7 @@
+[Domain]
+Name=QMLGreet settings
+
+[org.maui.settings.qmlgreet.save]
+Name=Save QMLGreet settings
+Description=Authentication is required to modify the system-wide QMLGreet configuration
+Policy=auth_admin

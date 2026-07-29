@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 project(maui-settings VERSION 0.1 LANGUAGES CXX)
 
@@ -44,7 +44,7 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-find_package(KF6 REQUIRED COMPONENTS BluezQt CoreAddons I18n NetworkManagerQt)
+find_package(KF6 REQUIRED COMPONENTS Auth BluezQt CoreAddons I18n NetworkManagerQt)
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
 find_package(MauiMan4 REQUIRED)
 
@@ -73,6 +73,7 @@ set(settings_SRCS
     src/controllers/bluetoothcontroller.cpp
     src/controllers/desklockcontroller.cpp
     src/controllers/kdeglobalsinfo.cpp
+    src/controllers/qmlgreetcontroller.cpp
     src/controllers/marinainfo.cpp
     src/controllers/mimecontroller.cpp
     src/controllers/nudgeosdinfo.cpp
@@ -84,6 +85,22 @@ qt_add_executable(${APP_NAME}
     MANUAL_FINALIZATION
     ${settings_SRCS}
 )
+
+target_compile_features(${APP_NAME} PRIVATE cxx_std_23)
+
+set(QMLGREET_HELPER_TARGET maui-settings-qmlgreet-helper)
+set(QMLGREET_HELPER_ID org.maui.settings.qmlgreet)
+
+add_executable(${QMLGREET_HELPER_TARGET}
+    src/helpers/qmlgreethelper.cpp
+)
+
+target_compile_features(${QMLGREET_HELPER_TARGET} PRIVATE cxx_std_23)
+target_link_libraries(${QMLGREET_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
+
+install(TARGETS ${QMLGREET_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
+kauth_install_helper_files(${QMLGREET_HELPER_TARGET} ${QMLGREET_HELPER_ID} root)
+kauth_install_actions(${QMLGREET_HELPER_ID} src/helpers/org.maui.settings.qmlgreet.actions)
 
 configure_file(org.maui.settings.desktop.in
     ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop
@@ -127,8 +144,9 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
+    src/views/sidebar/security_login/GreeterPage.qml
     src/views/sidebar/security_login/LockScreenItem.qml
-    src/views/sidebar/security_login/LockScreen.qml
+    src/views/sidebar/security_login/LockScreenPage.qml
 )
 
 target_link_libraries(${APP_NAME}
@@ -143,6 +161,7 @@ target_link_libraries(${APP_NAME}
     Qt6::Quick
     Qt6::Widgets
     X11::Xcursor
+    KF6::AuthCore
     KF6::BluezQt
     KF6::CoreAddons
     KF6::I18n

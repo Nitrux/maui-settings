@@ -35,10 +35,11 @@ $APT_COMMAND install -y --no-install-recommends \
     extra-cmake-modules \
     gettext \
     gnupg2 \
+    libkf6auth-dev \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
-    lintian \
     libxcursor-dev \
+    lintian \
     qt6-base-dev \
     qt6-declarative-dev \
     qt6-svg-dev \
