@@ -20,18 +20,11 @@ Item
         InputDevicesItem {}
     }
 
-    Component
-    {
-        id: formFactorComponent
-        FormFactorItem {}
-    }
-
     Component.onCompleted:
     {
         items = [
             audioComponent.createObject(this),
-            inputDevicesComponent.createObject(this),
-            formFactorComponent.createObject(this)
+            inputDevicesComponent.createObject(this)
         ]
     }
 }
