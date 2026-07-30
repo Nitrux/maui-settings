@@ -72,7 +72,11 @@ Maui.ScrollColumn
     Maui.PopupPage
     {
         id: _pairingDialog
-        title: i18n("Bluetooth pairing request")
+        property string requestId: ""
+
+        title: root.controller && root.controller.pairingServiceUuid.length > 0
+               ? i18n("Bluetooth service request")
+               : i18n("Bluetooth pairing request")
         persistent: true
         maxWidth: Maui.Style.units.gridUnit * 28
 
@@ -85,13 +89,28 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text: root.controller
-                      ? root.controller.pairingCode.length > 0
+                      ? root.controller.pairingServiceUuid.length > 0
+                        ? i18n("Allow %1 to use Bluetooth service %2?",
+                               root.controller.pairingDeviceName,
+                               root.controller.pairingServiceUuid)
+                        : root.controller.pairingCode.length > 0
                         ? root.controller.pairingConfirmationRequired
                           ? i18n("Pair with %1? Confirm that this passkey is shown on the other device.", root.controller.pairingDeviceName)
                           : i18n("Enter this passkey on %1 to complete pairing.", root.controller.pairingDeviceName)
                         : i18n("Allow %1 to pair with this computer?", root.controller.pairingDeviceName)
                       : ""
+                textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
+            }
+
+            Label
+            {
+                Layout.fillWidth: true
+                visible: root.controller && root.controller.pairingDeviceAddress.length > 0
+                text: root.controller ? i18n("Device address: %1", root.controller.pairingDeviceAddress) : ""
+                textFormat: Text.PlainText
+                opacity: 0.7
+                wrapMode: Text.WrapAnywhere
             }
 
             Rectangle
@@ -117,20 +136,34 @@ Maui.ScrollColumn
         actions: [
             Action
             {
-                text: root.controller && root.controller.pairingConfirmationRequired ? i18n("Cancel") : i18n("Close")
+                text: root.controller && root.controller.pairingConfirmationRequired ? i18n("Deny") : i18n("Close")
                 onTriggered:
                 {
                     if (root.controller)
-                        root.controller.respondToPairingPrompt(false)
+                    {
+                        if (_pairingDialog.requestId.length > 0)
+                            root.controller.respondToPairingPrompt(_pairingDialog.requestId, false)
+                        else
+                            root.controller.dismissPairingPrompt()
+                    }
                 }
             },
             Action
             {
-                text: root.controller && root.controller.pairingConfirmationRequired ? i18n("Pair") : i18n("Done")
+                text: root.controller && root.controller.pairingServiceUuid.length > 0
+                      ? i18n("Allow")
+                      : root.controller && root.controller.pairingConfirmationRequired
+                        ? i18n("Pair")
+                        : i18n("Done")
                 onTriggered:
                 {
                     if (root.controller)
-                        root.controller.respondToPairingPrompt(true)
+                    {
+                        if (_pairingDialog.requestId.length > 0)
+                            root.controller.respondToPairingPrompt(_pairingDialog.requestId, true)
+                        else
+                            root.controller.dismissPairingPrompt()
+                    }
                 }
             }
         ]
@@ -138,7 +171,12 @@ Maui.ScrollColumn
         onClosed:
         {
             if (root.controller && root.controller.pairingPromptActive)
-                root.controller.respondToPairingPrompt(false)
+            {
+                if (_pairingDialog.requestId.length > 0)
+                    root.controller.respondToPairingPrompt(_pairingDialog.requestId, false)
+                else
+                    root.controller.dismissPairingPrompt()
+            }
         }
     }
 
@@ -263,9 +301,15 @@ Maui.ScrollColumn
         function onPairingPromptChanged()
         {
             if (root.controller.pairingPromptActive)
+            {
+                _pairingDialog.requestId = root.controller.pairingRequestId
                 _pairingDialog.open()
+            }
             else
+            {
                 _pairingDialog.close()
+                _pairingDialog.requestId = ""
+            }
         }
 
         function onErrorMessageChanged()

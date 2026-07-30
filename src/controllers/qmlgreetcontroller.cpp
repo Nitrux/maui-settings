@@ -143,7 +143,7 @@ SET_STRING_SETTING(setWallpaperPath, m_wallpaperPath, wallpaperPathChanged, norm
 SET_STRING_SETTING(setColorSchemePath, m_colorSchemePath, colorSchemePathChanged, normalizeLocalPath(value))
 SET_STRING_SETTING(setIconTheme, m_iconTheme, iconThemeChanged, value.trimmed())
 SET_STRING_SETTING(setFontFamily, m_fontFamily, fontFamilyChanged, value.trimmed())
-SET_STRING_SETTING(setAvatarPath, m_avatarPath, avatarPathChanged, value.trimmed())
+SET_STRING_SETTING(setAvatarPath, m_avatarPath, avatarPathChanged, normalizeLocalPath(value))
 SET_STRING_SETTING(setTimeFormat, m_timeFormat, timeFormatChanged,
                    value.trimmed().isEmpty() ? QStringLiteral("hh:mm") : value.trimmed())
 SET_STRING_SETTING(setDateFormat, m_dateFormat, dateFormatChanged,
@@ -230,7 +230,7 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_fontFamily = values.value(
         QStringLiteral("fontFamily"), QStringLiteral("Noto Sans")).toString().trimmed();
     m_fontSize = qBound(1, values.value(QStringLiteral("fontSize"), 10).toInt(), 256);
-    m_avatarPath = values.value(QStringLiteral("avatarPath")).toString().trimmed();
+    m_avatarPath = normalizeLocalPath(values.value(QStringLiteral("avatarPath")).toString());
     m_timeFormat = values.value(QStringLiteral("timeFormat"), QStringLiteral("hh:mm")).toString();
     m_dateFormat = values.value(
         QStringLiteral("dateFormat"), QStringLiteral("dddd, d MMMM yyyy")).toString();

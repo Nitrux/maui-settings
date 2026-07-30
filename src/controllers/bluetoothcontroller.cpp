@@ -18,6 +18,7 @@
 #include <QDBusObjectPath>
 #include <QRandomGenerator>
 #include <QTimer>
+#include <QUuid>
 
 namespace
 {
@@ -36,7 +37,12 @@ struct BluetoothEntry {
 class PairingAgent : public BluezQt::Agent
 {
 public:
-    using PromptHandler = std::function<void(const QString &, const QString &, bool)>;
+    using PromptHandler = std::function<void(const QString &,
+                                             const QString &,
+                                             const QString &,
+                                             const QString &,
+                                             const QString &,
+                                             bool)>;
 
     explicit PairingAgent(PromptHandler handler, QObject *parent = nullptr)
         : BluezQt::Agent(parent)
@@ -53,73 +59,86 @@ public:
     {
         const QString pin = randomCode();
         request.accept(pin);
-        m_handler(device->name(), pin, false);
+        showInformationalPrompt(device, pin);
     }
 
     void displayPinCode(BluezQt::DevicePtr device, const QString &pinCode) override
     {
-        m_handler(device->name(), pinCode, false);
+        showInformationalPrompt(device, pinCode);
     }
 
     void requestPasskey(BluezQt::DevicePtr device, const BluezQt::Request<quint32> &request) override
     {
         const QString passkey = randomCode();
         request.accept(passkey.toUInt());
-        m_handler(device->name(), passkey, false);
+        showInformationalPrompt(device, passkey);
     }
 
     void displayPasskey(BluezQt::DevicePtr device, const QString &passkey, const QString &entered) override
     {
         Q_UNUSED(entered)
-        m_handler(device->name(), passkey, false);
+        showInformationalPrompt(device, passkey);
     }
 
     void requestConfirmation(BluezQt::DevicePtr device,
                              const QString &passkey,
                              const BluezQt::Request<> &request) override
     {
-        m_request = request;
-        m_requestPending = true;
-        m_handler(device->name(), passkey, true);
+        beginRequest(device, passkey, {}, request);
     }
 
     void requestAuthorization(BluezQt::DevicePtr device, const BluezQt::Request<> &request) override
     {
-        m_request = request;
-        m_requestPending = true;
-        m_handler(device->name(), {}, true);
+        beginRequest(device, {}, {}, request);
     }
 
     void authorizeService(BluezQt::DevicePtr device,
                           const QString &uuid,
                           const BluezQt::Request<> &request) override
     {
-        Q_UNUSED(uuid)
-        if (device->isPaired()) {
+        if (device && device->isTrusted()) {
             request.accept();
             return;
         }
-        m_request = request;
-        m_requestPending = true;
-        m_handler(device->name(), {}, true);
+        beginRequest(device, {}, uuid, request);
     }
 
     void cancel() override
     {
         if (m_requestPending) {
             m_request.cancel();
-            m_requestPending = false;
+            clearPendingRequest();
         }
-        m_handler({}, {}, false);
+        clearPrompt();
     }
 
-    void respond(bool accepted)
+    bool respond(const QString &requestId, bool accepted)
+    {
+        if (!m_requestPending || requestId.isEmpty() || requestId != m_requestId)
+            return false;
+
+        accepted ? m_request.accept() : m_request.reject();
+        clearPendingRequest();
+        clearPrompt();
+        return true;
+    }
+
+    void dismissPrompt()
     {
         if (m_requestPending) {
-            accepted ? m_request.accept() : m_request.reject();
-            m_requestPending = false;
+            m_request.reject();
+            clearPendingRequest();
         }
-        m_handler({}, {}, false);
+        clearPrompt();
+    }
+
+    void cancelPendingRequest()
+    {
+        if (m_requestPending) {
+            m_request.cancel();
+            clearPendingRequest();
+        }
+        clearPrompt();
     }
 
 private:
@@ -128,9 +147,62 @@ private:
         return QStringLiteral("%1").arg(QRandomGenerator::global()->bounded(1000000), 6, 10, QLatin1Char('0'));
     }
 
+    void beginRequest(BluezQt::DevicePtr device,
+                      const QString &code,
+                      const QString &serviceUuid,
+                      const BluezQt::Request<> &request)
+    {
+        if (m_requestPending) {
+            request.reject();
+            return;
+        }
+
+        m_request = request;
+        m_requestPending = true;
+        m_requestId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        m_handler(deviceName(device),
+                  device ? device->address() : QString(),
+                  code,
+                  serviceUuid,
+                  m_requestId,
+                  true);
+    }
+
+    void showInformationalPrompt(BluezQt::DevicePtr device, const QString &code)
+    {
+        if (m_requestPending)
+            return;
+
+        m_handler(deviceName(device),
+                  device ? device->address() : QString(),
+                  code,
+                  {},
+                  {},
+                  false);
+    }
+
+    static QString deviceName(const BluezQt::DevicePtr &device)
+    {
+        if (!device)
+            return {};
+        return device->name().isEmpty() ? device->address() : device->name();
+    }
+
+    void clearPendingRequest()
+    {
+        m_requestPending = false;
+        m_requestId.clear();
+    }
+
+    void clearPrompt()
+    {
+        m_handler({}, {}, {}, {}, {}, false);
+    }
+
     PromptHandler m_handler;
     BluezQt::Request<> m_request;
     bool m_requestPending = false;
+    QString m_requestId;
 };
 
 class BluetoothController::Private
@@ -148,7 +220,10 @@ public:
     bool agentRegistrationRequested = false;
     QString errorMessage;
     QString pairingDeviceName;
+    QString pairingDeviceAddress;
     QString pairingCode;
+    QString pairingServiceUuid;
+    QString pairingRequestId;
     bool pairingPromptActive = false;
     bool pairingConfirmationRequired = false;
     QTimer *rebuildTimer = nullptr;
@@ -163,8 +238,18 @@ BluetoothController::BluetoothController(QObject *parent)
     d->rebuildTimer->setInterval(250);
     connect(d->rebuildTimer, &QTimer::timeout, this, &BluetoothController::rebuild);
 
-    d->agent = new PairingAgent([this](const QString &deviceName, const QString &code, bool confirmationRequired) {
-        setPairingPrompt(deviceName, code, confirmationRequired);
+    d->agent = new PairingAgent([this](const QString &deviceName,
+                                      const QString &deviceAddress,
+                                      const QString &code,
+                                      const QString &serviceUuid,
+                                      const QString &requestId,
+                                      bool confirmationRequired) {
+        setPairingPrompt(deviceName,
+                         deviceAddress,
+                         code,
+                         serviceUuid,
+                         requestId,
+                         confirmationRequired);
     }, this);
 
     connect(d->manager, &BluezQt::Manager::operationalChanged, this, [this] {
@@ -347,9 +432,24 @@ QString BluetoothController::pairingDeviceName() const
     return d->pairingDeviceName;
 }
 
+QString BluetoothController::pairingDeviceAddress() const
+{
+    return d->pairingDeviceAddress;
+}
+
 QString BluetoothController::pairingCode() const
 {
     return d->pairingCode;
+}
+
+QString BluetoothController::pairingServiceUuid() const
+{
+    return d->pairingServiceUuid;
+}
+
+QString BluetoothController::pairingRequestId() const
+{
+    return d->pairingRequestId;
 }
 
 void BluetoothController::setDiscoveryEnabled(bool enabled)
@@ -373,7 +473,7 @@ void BluetoothController::pairDevice(const QString &devicePath)
     }
     auto *call = device->pair();
     connect(call, &BluezQt::PendingCall::finished, this, [this] {
-        d->agent->respond(false);
+        d->agent->cancelPendingRequest();
     });
     watchCall(call, true);
 }
@@ -431,9 +531,15 @@ void BluetoothController::updateDevice(const QString &devicePath,
     }
 }
 
-void BluetoothController::respondToPairingPrompt(bool accepted)
+void BluetoothController::respondToPairingPrompt(const QString &requestId, bool accepted)
 {
-    d->agent->respond(accepted);
+    if (!d->agent->respond(requestId, accepted))
+        setErrorMessage(tr("The Bluetooth authorization request is no longer active."));
+}
+
+void BluetoothController::dismissPairingPrompt()
+{
+    d->agent->dismissPrompt();
 }
 
 void BluetoothController::clearError()
@@ -551,11 +657,17 @@ void BluetoothController::setErrorMessage(const QString &message)
 }
 
 void BluetoothController::setPairingPrompt(const QString &deviceName,
+                                           const QString &deviceAddress,
                                            const QString &code,
+                                           const QString &serviceUuid,
+                                           const QString &requestId,
                                            bool confirmationRequired)
 {
     d->pairingDeviceName = deviceName;
+    d->pairingDeviceAddress = deviceAddress;
     d->pairingCode = code;
+    d->pairingServiceUuid = serviceUuid;
+    d->pairingRequestId = requestId;
     d->pairingConfirmationRequired = confirmationRequired;
     d->pairingPromptActive = !deviceName.isEmpty();
     Q_EMIT pairingPromptChanged();

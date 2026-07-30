@@ -17,7 +17,10 @@ class BluetoothController : public QAbstractListModel
     Q_PROPERTY(bool pairingPromptActive READ pairingPromptActive NOTIFY pairingPromptChanged)
     Q_PROPERTY(bool pairingConfirmationRequired READ pairingConfirmationRequired NOTIFY pairingPromptChanged)
     Q_PROPERTY(QString pairingDeviceName READ pairingDeviceName NOTIFY pairingPromptChanged)
+    Q_PROPERTY(QString pairingDeviceAddress READ pairingDeviceAddress NOTIFY pairingPromptChanged)
     Q_PROPERTY(QString pairingCode READ pairingCode NOTIFY pairingPromptChanged)
+    Q_PROPERTY(QString pairingServiceUuid READ pairingServiceUuid NOTIFY pairingPromptChanged)
+    Q_PROPERTY(QString pairingRequestId READ pairingRequestId NOTIFY pairingPromptChanged)
 
 public:
     enum Role {
@@ -48,7 +51,10 @@ public:
     bool pairingPromptActive() const;
     bool pairingConfirmationRequired() const;
     QString pairingDeviceName() const;
+    QString pairingDeviceAddress() const;
     QString pairingCode() const;
+    QString pairingServiceUuid() const;
+    QString pairingRequestId() const;
 
     Q_INVOKABLE void setDiscoveryEnabled(bool enabled);
     Q_INVOKABLE void pairDevice(const QString &devicePath);
@@ -58,7 +64,8 @@ public:
     Q_INVOKABLE void updateDevice(const QString &devicePath,
                                   const QString &name,
                                   bool trusted);
-    Q_INVOKABLE void respondToPairingPrompt(bool accepted);
+    Q_INVOKABLE void respondToPairingPrompt(const QString &requestId, bool accepted);
+    Q_INVOKABLE void dismissPairingPrompt();
     Q_INVOKABLE void clearError();
 
 Q_SIGNALS:
@@ -76,6 +83,11 @@ private:
     void rebuild();
     void scheduleRebuild();
     void watchCall(QObject *call, bool ignoreCancellation = false);
-    void setPairingPrompt(const QString &deviceName, const QString &code, bool confirmationRequired);
+    void setPairingPrompt(const QString &deviceName,
+                          const QString &deviceAddress,
+                          const QString &code,
+                          const QString &serviceUuid,
+                          const QString &requestId,
+                          bool confirmationRequired);
     void setErrorMessage(const QString &message);
 };
