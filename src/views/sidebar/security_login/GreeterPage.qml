@@ -137,7 +137,7 @@ Maui.SettingsPage
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Appearance and Visuals")
+                text1: i18n("Appearance")
                 text2: i18n("Choose the background, clock formats, theme, and visual effects.")
                 label2.wrapMode: Text.Wrap
             }
@@ -459,7 +459,7 @@ Maui.SettingsPage
                 flat: true
                 label1.text: i18n("Time format")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("A Qt date/time format string, for example hh:mm.")
+                label2.text: i18n("Specify the display format for the time.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: TextField
@@ -506,7 +506,7 @@ Maui.SettingsPage
                 flat: true
                 label1.text: i18n("Date format")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("A Qt date/time format string, for example dddd, d MMMM yyyy.")
+                label2.text: i18n("Specify the display format for the date.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: TextField
@@ -741,11 +741,13 @@ Maui.SettingsPage
                 flat: true
                 label1.text: i18n("Default Wayland session")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Select a discovered session or enter its exact display name.")
+                label2.text: i18n("Select a discovered session.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: ComboBox
                 {
+                    Maui.Theme.colorSet: Maui.Theme.Button
+
                     property Item wideParent
                     property Item responsiveSectionItem
                     readonly property bool responsiveNarrow: responsiveSectionItem
@@ -772,19 +774,12 @@ Maui.SettingsPage
                     Layout.maximumWidth: responsiveNarrow
                         ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 16
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 14
-                    editable: true
                     model: controller ? controller.availableSessions : []
                     currentIndex: controller ? model.indexOf(controller.defaultSession) : -1
-                    editText: currentIndex < 0 && controller ? controller.defaultSession : ""
                     onActivated:
                     {
                         if (controller)
                             controller.defaultSession = currentText
-                    }
-                    onAccepted:
-                    {
-                        if (controller)
-                            controller.defaultSession = editText
                     }
                 }
             }
