@@ -926,7 +926,7 @@ Maui.SettingsPage
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Power and System Indicators")
+                text1: i18n("System Indicators")
                 text2: i18n("Control the information shown alongside the login controls.")
                 label2.wrapMode: Text.Wrap
             }
@@ -965,43 +965,6 @@ Maui.SettingsPage
 
                     checked: controller ? controller.showBattery : true
                     onToggled: if (controller) controller.showBattery = checked
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                label1.text: i18n("System resource indicators")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Show system resource information on the login screen.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: Switch
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem
-                        && (Maui.Handy.isMobile
-                            || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    checked: controller ? controller.showSystemResources : true
-                    onToggled: if (controller) controller.showSystemResources = checked
                 }
             }
         }

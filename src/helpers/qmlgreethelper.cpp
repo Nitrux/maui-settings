@@ -58,8 +58,6 @@ QVariantMap readSettings()
             QStringLiteral("Behavior/RememberLastUser"), true)},
         {QStringLiteral("showBattery"), settings.value(
             QStringLiteral("Indicators/ShowBattery"), true)},
-        {QStringLiteral("showSystemResources"), settings.value(
-            QStringLiteral("Indicators/ShowSystemResources"), true)},
     };
 }
 
@@ -311,7 +309,6 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         {QStringLiteral("Behavior"), QStringLiteral("ShowAvatars"), QStringLiteral("showAvatars"), boolValue(QStringLiteral("showAvatars"), true)},
         {QStringLiteral("Behavior"), QStringLiteral("RememberLastUser"), QStringLiteral("rememberLastUser"), boolValue(QStringLiteral("rememberLastUser"), true)},
         {QStringLiteral("Indicators"), QStringLiteral("ShowBattery"), QStringLiteral("showBattery"), boolValue(QStringLiteral("showBattery"), true)},
-        {QStringLiteral("Indicators"), QStringLiteral("ShowSystemResources"), QStringLiteral("showSystemResources"), boolValue(QStringLiteral("showSystemResources"), true)},
     };
 
     QList<IniValue> changedEntries;

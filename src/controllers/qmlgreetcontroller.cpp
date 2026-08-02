@@ -63,8 +63,6 @@ QVariantMap readSettings(QSettings &settings)
             QStringLiteral("Behavior/RememberLastUser"), true)},
         {QStringLiteral("showBattery"), settings.value(
             QStringLiteral("Indicators/ShowBattery"), true)},
-        {QStringLiteral("showSystemResources"), settings.value(
-            QStringLiteral("Indicators/ShowSystemResources"), true)},
     };
 }
 }
@@ -120,7 +118,6 @@ QString QmlGreetController::defaultSession() const { return m_defaultSession; }
 bool QmlGreetController::showAvatars() const { return m_showAvatars; }
 bool QmlGreetController::rememberLastUser() const { return m_rememberLastUser; }
 bool QmlGreetController::showBattery() const { return m_showBattery; }
-bool QmlGreetController::showSystemResources() const { return m_showSystemResources; }
 bool QmlGreetController::dirty() const { return m_dirty; }
 bool QmlGreetController::loading() const { return m_loading; }
 bool QmlGreetController::saving() const { return m_saving; }
@@ -176,7 +173,6 @@ SET_BOOLEAN_SETTING(setOverlayEnabled, m_overlayEnabled, overlayEnabledChanged)
 SET_BOOLEAN_SETTING(setShowAvatars, m_showAvatars, showAvatarsChanged)
 SET_BOOLEAN_SETTING(setRememberLastUser, m_rememberLastUser, rememberLastUserChanged)
 SET_BOOLEAN_SETTING(setShowBattery, m_showBattery, showBatteryChanged)
-SET_BOOLEAN_SETTING(setShowSystemResources, m_showSystemResources, showSystemResourcesChanged)
 
 #undef SET_BOOLEAN_SETTING
 
@@ -235,7 +231,6 @@ QVariantMap QmlGreetController::stagedValues() const
         {QStringLiteral("showAvatars"), m_showAvatars},
         {QStringLiteral("rememberLastUser"), m_rememberLastUser},
         {QStringLiteral("showBattery"), m_showBattery},
-        {QStringLiteral("showSystemResources"), m_showSystemResources},
     };
 }
 
@@ -279,8 +274,6 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_showAvatars = values.value(QStringLiteral("showAvatars"), true).toBool();
     m_rememberLastUser = values.value(QStringLiteral("rememberLastUser"), true).toBool();
     m_showBattery = values.value(QStringLiteral("showBattery"), true).toBool();
-    m_showSystemResources = values.value(
-        QStringLiteral("showSystemResources"), true).toBool();
 
     Q_EMIT wallpaperPathChanged();
     Q_EMIT colorSchemePathChanged();
@@ -299,7 +292,6 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     Q_EMIT showAvatarsChanged();
     Q_EMIT rememberLastUserChanged();
     Q_EMIT showBatteryChanged();
-    Q_EMIT showSystemResourcesChanged();
 }
 
 void QmlGreetController::updateDirty()
