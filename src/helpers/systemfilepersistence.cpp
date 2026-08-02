@@ -132,3 +132,16 @@ bool SystemFilePersistence::persist(const QString &path, QString *errorMessage)
     qDebug() << "SystemFilePersistence: persistent lower file installed successfully";
     return true;
 }
+
+bool SystemFilePersistence::persistSymlink(const QString &target, const QString &path, QString *errorMessage)
+{
+    if (target.isEmpty() || !QFileInfo(target).isAbsolute() || !path.startsWith(QStringLiteral("/etc/")))
+        return fail(QStringLiteral("Refusing to persist an invalid system symlink."), errorMessage);
+    QProcess process;
+    process.setProgram(QString::fromLatin1(overlayrootChrootPath));
+    process.setArguments({QStringLiteral("ln"), QStringLiteral("-sfn"), target, path});
+    process.start();
+    if (!process.waitForStarted(processStartTimeoutMs) || !process.waitForFinished(processFinishTimeoutMs) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+        return fail(QStringLiteral("overlayroot-chroot could not persist symlink %1.").arg(path), errorMessage);
+    return true;
+}

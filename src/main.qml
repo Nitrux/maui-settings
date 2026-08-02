@@ -21,6 +21,8 @@ Maui.ApplicationWindow
     {
         switch (root.currentSection)
         {
+        case "general-date-time":
+            return _dateTimePageLoader.item
         case "appearance-background":
             return _backgroundPageLoader.item
         case "appearance-theme":
@@ -81,6 +83,8 @@ Maui.ApplicationWindow
     {
         switch (section)
         {
+        case "general-date-time":
+            return i18n("Date and Time")
         case "general-about":
             return i18n("About")
         case "appearance-background":
@@ -225,7 +229,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen"
+                    active: root.currentSection === "general-date-time" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -299,6 +303,15 @@ Maui.ApplicationWindow
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
+
+                    Loader
+                    {
+                        id: _dateTimePageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "general-date-time"
+                        visible: active
+                        source: active ? "views/sidebar/general/DateTimePage.qml" : ""
+                    }
 
                     Loader
                     {
@@ -411,7 +424,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "general-date-time" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

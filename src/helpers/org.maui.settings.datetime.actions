@@ -1,0 +1,7 @@
+[Domain]
+Name=Date and Time settings
+
+[org.maui.settings.datetime.set]
+Name=Change Date and Time settings
+Description=Authentication is required to modify the system timezone and clock
+Policy=auth_admin

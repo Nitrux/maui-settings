@@ -20,11 +20,18 @@ Item
         AccessibilityItem {}
     }
 
+    Component
+    {
+        id: dateTimeComponent
+        DateTimeItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
             aboutComponent.createObject(this),
-            accessibilityComponent.createObject(this)
+            accessibilityComponent.createObject(this),
+            dateTimeComponent.createObject(this)
         ]
     }
 }

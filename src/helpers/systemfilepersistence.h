@@ -12,4 +12,5 @@ namespace SystemFilePersistence
  * source file's owner, group, and mode are preserved.
  */
 bool persist(const QString &path, QString *errorMessage = nullptr);
+bool persistSymlink(const QString &target, const QString &path, QString *errorMessage = nullptr);
 }

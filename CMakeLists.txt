@@ -12,7 +12,7 @@ include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(CheckCXXCompilerFlag)
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Qml Quick Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Network Qml Quick Widgets)
 find_package(X11 REQUIRED COMPONENTS Xcursor)
 
 find_package(Git QUIET)
@@ -69,6 +69,7 @@ endif()
 set(settings_SRCS
     src/main.cpp
     src/controllers/aboutinfo.cpp
+    src/controllers/datetimemanager.cpp
     src/controllers/backgroundinfo.cpp
     src/controllers/bluetoothcontroller.cpp
     src/controllers/desklockcontroller.cpp
@@ -95,13 +96,24 @@ add_executable(${QMLGREET_HELPER_TARGET}
     src/helpers/qmlgreethelper.cpp
     src/helpers/systemfilepersistence.cpp
 )
-
 target_compile_features(${QMLGREET_HELPER_TARGET} PRIVATE cxx_std_23)
 target_link_libraries(${QMLGREET_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
-
 install(TARGETS ${QMLGREET_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
 kauth_install_helper_files(${QMLGREET_HELPER_TARGET} ${QMLGREET_HELPER_ID} root)
 kauth_install_actions(${QMLGREET_HELPER_ID} src/helpers/org.maui.settings.qmlgreet.actions)
+
+set(DATETIME_HELPER_TARGET maui-settings-datetime-helper)
+set(DATETIME_HELPER_ID org.maui.settings.datetime)
+add_executable(${DATETIME_HELPER_TARGET}
+    src/helpers/datetimehelper.cpp
+    src/helpers/datetimehelper.h
+    src/helpers/systemfilepersistence.cpp
+)
+target_compile_features(${DATETIME_HELPER_TARGET} PRIVATE cxx_std_23)
+target_link_libraries(${DATETIME_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
+install(TARGETS ${DATETIME_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
+kauth_install_helper_files(${DATETIME_HELPER_TARGET} ${DATETIME_HELPER_ID} root)
+kauth_install_actions(${DATETIME_HELPER_ID} src/helpers/org.maui.settings.datetime.actions)
 
 configure_file(org.maui.settings.desktop.in
     ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop
@@ -116,6 +128,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/main.qml
     src/views/Sidebar.qml
     src/views/sidebar/general/GeneralGroup.qml
+    src/views/sidebar/general/DateTimeItem.qml
+    src/views/sidebar/general/DateTimePage.qml
     src/views/sidebar/general/AboutItem.qml
     src/views/sidebar/general/AboutPage.qml
     src/views/sidebar/general/AccessibilityItem.qml
@@ -158,6 +172,7 @@ target_link_libraries(${APP_NAME}
     Qt6::Core
     Qt6::DBus
     Qt6::Gui
+    Qt6::Network
     Qt6::Qml
     Qt6::Quick
     Qt6::Widgets
