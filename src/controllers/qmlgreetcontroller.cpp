@@ -1,13 +1,10 @@
-// Copyright 2026 Nitrux Latinoamericana S.C.
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #include "qmlgreetcontroller.h"
 
 #include <QDir>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusReply>
+#include <QDebug>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QSet>
@@ -43,12 +40,14 @@ QVariantMap readSettings(QSettings &settings)
             QStringLiteral("Appearance/Font"), QStringLiteral("Noto Sans"))},
         {QStringLiteral("fontSize"), settings.value(
             QStringLiteral("Appearance/FontSize"), 10)},
+        {QStringLiteral("borderRadius"), settings.value(
+            QStringLiteral("Style/BorderRadius"), 8)},
         {QStringLiteral("avatarPath"), settings.value(
             QStringLiteral("Appearance/AvatarImage"))},
         {QStringLiteral("timeFormat"), settings.value(
             QStringLiteral("Clock/TimeFormat"), QStringLiteral("hh:mm"))},
         {QStringLiteral("dateFormat"), settings.value(
-            QStringLiteral("Clock/DateFormat"), QStringLiteral("dddd, d MMMM yyyy"))},
+            QStringLiteral("Clock/DateFormat"), QStringLiteral("dddd, dd MMMM yyyy"))},
         {QStringLiteral("blurEnabled"), settings.value(
             QStringLiteral("Appearance/BlurEnabled"), true)},
         {QStringLiteral("animationsEnabled"), settings.value(
@@ -100,6 +99,15 @@ QString QmlGreetController::colorSchemePath() const { return m_colorSchemePath; 
 QString QmlGreetController::iconTheme() const { return m_iconTheme; }
 QString QmlGreetController::fontFamily() const { return m_fontFamily; }
 int QmlGreetController::fontSize() const { return m_fontSize; }
+int QmlGreetController::borderRadius() const { return m_borderRadius; }
+
+QString QmlGreetController::avatarDirectory() const
+{
+    return m_avatarPath.isEmpty()
+        ? QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)
+        : QFileInfo(m_avatarPath).absolutePath();
+}
+
 QString QmlGreetController::avatarPath() const { return m_avatarPath; }
 QString QmlGreetController::timeFormat() const { return m_timeFormat; }
 QString QmlGreetController::dateFormat() const { return m_dateFormat; }
@@ -147,7 +155,7 @@ SET_STRING_SETTING(setAvatarPath, m_avatarPath, avatarPathChanged, normalizeLoca
 SET_STRING_SETTING(setTimeFormat, m_timeFormat, timeFormatChanged,
                    value.trimmed().isEmpty() ? QStringLiteral("hh:mm") : value.trimmed())
 SET_STRING_SETTING(setDateFormat, m_dateFormat, dateFormatChanged,
-                   value.trimmed().isEmpty() ? QStringLiteral("dddd, d MMMM yyyy") : value.trimmed())
+                   value.trimmed().isEmpty() ? QStringLiteral("dddd, dd MMMM yyyy") : value.trimmed())
 SET_STRING_SETTING(setDefaultSession, m_defaultSession, defaultSessionChanged, value.trimmed())
 
 #undef SET_STRING_SETTING
@@ -183,6 +191,19 @@ void QmlGreetController::setFontSize(int value)
     updateDirty();
 }
 
+void QmlGreetController::setBorderRadius(int value)
+{
+    value = qBound(0, value, 256);
+    if (m_borderRadius == value)
+        return;
+
+    qDebug() << "QmlGreetController: borderRadius changed"
+             << m_borderRadius << "->" << value;
+    m_borderRadius = value;
+    Q_EMIT borderRadiusChanged();
+    updateDirty();
+}
+
 void QmlGreetController::setOverlayOpacity(double value)
 {
     value = qBound(0.0, value, 1.0);
@@ -202,6 +223,7 @@ QVariantMap QmlGreetController::stagedValues() const
         {QStringLiteral("iconTheme"), m_iconTheme},
         {QStringLiteral("fontFamily"), m_fontFamily},
         {QStringLiteral("fontSize"), m_fontSize},
+        {QStringLiteral("borderRadius"), m_borderRadius},
         {QStringLiteral("avatarPath"), m_avatarPath},
         {QStringLiteral("timeFormat"), m_timeFormat},
         {QStringLiteral("dateFormat"), m_dateFormat},
@@ -217,6 +239,18 @@ QVariantMap QmlGreetController::stagedValues() const
     };
 }
 
+QVariantMap QmlGreetController::changedValues() const
+{
+    const QVariantMap staged = stagedValues();
+    QVariantMap changed;
+    for (auto it = staged.cbegin(); it != staged.cend(); ++it)
+    {
+        if (!m_savedValues.contains(it.key()) || m_savedValues.value(it.key()) != it.value())
+            changed.insert(it.key(), it.value());
+    }
+    return changed;
+}
+
 void QmlGreetController::applyValues(const QVariantMap &values)
 {
     m_wallpaperPath = normalizeLocalPath(values.value(
@@ -230,10 +264,12 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_fontFamily = values.value(
         QStringLiteral("fontFamily"), QStringLiteral("Noto Sans")).toString().trimmed();
     m_fontSize = qBound(1, values.value(QStringLiteral("fontSize"), 10).toInt(), 256);
+    m_borderRadius = qBound(
+        0, values.value(QStringLiteral("borderRadius"), 8).toInt(), 256);
     m_avatarPath = normalizeLocalPath(values.value(QStringLiteral("avatarPath")).toString());
     m_timeFormat = values.value(QStringLiteral("timeFormat"), QStringLiteral("hh:mm")).toString();
     m_dateFormat = values.value(
-        QStringLiteral("dateFormat"), QStringLiteral("dddd, d MMMM yyyy")).toString();
+        QStringLiteral("dateFormat"), QStringLiteral("dddd, dd MMMM yyyy")).toString();
     m_blurEnabled = values.value(QStringLiteral("blurEnabled"), true).toBool();
     m_animationsEnabled = values.value(QStringLiteral("animationsEnabled"), true).toBool();
     m_overlayEnabled = values.value(QStringLiteral("overlayEnabled"), true).toBool();
@@ -251,6 +287,7 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     Q_EMIT iconThemeChanged();
     Q_EMIT fontFamilyChanged();
     Q_EMIT fontSizeChanged();
+    Q_EMIT borderRadiusChanged();
     Q_EMIT avatarPathChanged();
     Q_EMIT timeFormatChanged();
     Q_EMIT dateFormatChanged();
@@ -292,6 +329,12 @@ void QmlGreetController::refreshSaveAvailability()
     const bool helperAvailable = (registered.isValid() && registered.value())
         || (activatable.isValid() && activatable.value().contains(serviceName));
     const bool available = action.isValid() && helperAvailable;
+    qDebug() << "QmlGreetController: save availability"
+             << "actionValid=" << action.isValid()
+             << "registered=" << (registered.isValid() && registered.value())
+             << "activatable=" << (activatable.isValid()
+                    && activatable.value().contains(serviceName))
+             << "available=" << available;
     if (m_saveAvailable == available)
         return;
 
@@ -403,15 +446,27 @@ void QmlGreetController::reload()
 
 bool QmlGreetController::save()
 {
+    qDebug() << "QmlGreetController::save"
+             << "loading=" << m_loading
+             << "saving=" << m_saving
+             << "saveAvailable=" << m_saveAvailable
+             << "dirty=" << m_dirty
+             << "borderRadius=" << m_borderRadius;
     if (m_loading || m_saving || !m_saveAvailable)
+    {
+        qWarning() << "QmlGreetController: save rejected by state guard";
         return false;
+    }
     if (!m_dirty)
     {
         setStatusMessage(QStringLiteral("No changes to save."));
         return true;
     }
 
-    const QVariantMap values = stagedValues();
+    const QVariantMap values = changedValues();
+    qDebug() << "QmlGreetController: executing KAuth save"
+             << "keys=" << values.keys()
+             << "borderRadius argument=" << values.value(QStringLiteral("borderRadius"));
     setSaving(true);
     setErrorMessage(QString());
     setStatusMessage(QStringLiteral("Waiting for administrator authentication…"));
@@ -426,6 +481,11 @@ bool QmlGreetController::save()
     connect(job, &KJob::result, this, [this, job](KJob *)
     {
         setSaving(false);
+        qDebug() << "QmlGreetController: KAuth save completed"
+                 << "error=" << job->error()
+                 << "errorText=" << job->errorText()
+                 << "returned borderRadius="
+                 << job->data().value(QStringLiteral("borderRadius"));
         if (job->error() != 0)
         {
             const bool cancelled = job->error() == KAuth::ActionReply::UserCancelledError;
@@ -436,7 +496,8 @@ bool QmlGreetController::save()
             return;
         }
 
-        m_savedValues = job->data();
+        applyValues(job->data());
+        m_savedValues = stagedValues();
         updateDirty();
         setErrorMessage(QString());
         setStatusMessage(m_dirty

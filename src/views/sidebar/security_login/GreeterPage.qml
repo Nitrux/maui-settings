@@ -11,6 +11,8 @@ Maui.SettingsPage
 
     readonly property var controller: (typeof qmlGreetController !== "undefined"
                                        && qmlGreetController) ? qmlGreetController : null
+    readonly property var kde: (typeof kdeGlobalsInfo !== "undefined"
+                                && kdeGlobalsInfo) ? kdeGlobalsInfo : null
     readonly property bool saveAvailable: controller ? controller.saveAvailable : false
     readonly property bool editable: saveAvailable && !controller.loading && !controller.saving
 
@@ -20,6 +22,9 @@ Maui.SettingsPage
 
     function reloadSettings()
     {
+        if (kde)
+            kde.reload()
+
         if (controller)
             controller.reload()
     }
@@ -37,6 +42,49 @@ Maui.SettingsPage
         return path.replace(/^file:\/\//, "")
     }
 
+    function indexForString(model, value)
+    {
+        const needle = (value || "").trim()
+        for (let i = 0; i < model.length; ++i)
+        {
+            if (String(model[i]).trim() === needle)
+                return i
+        }
+
+        return -1
+    }
+
+    function colorSchemeName(path)
+    {
+        const fileName = root.displayPath(path, "").split("/").pop()
+        return fileName.replace(/\.colors$/i, "")
+    }
+
+    function fontLabel()
+    {
+        if (!controller)
+            return ""
+
+        const font = Qt.font({
+            family: controller.fontFamily,
+            pointSize: controller.fontSize
+        })
+        return kde ? kde.fontLabel(kde.fontToString(font))
+                   : i18n("%1, %2", controller.fontFamily, controller.fontSize)
+    }
+
+    function openFontDialog()
+    {
+        if (!controller)
+            return
+
+        _fontPicker.mfont = Qt.font({
+            family: controller.fontFamily,
+            pointSize: controller.fontSize
+        })
+        _fontDialog.open()
+    }
+
     function pickWallpaper()
     {
         _wallpaperDialog.currentPath = controller && controller.wallpaperDirectory
@@ -51,23 +99,10 @@ Maui.SettingsPage
         _wallpaperDialog.open()
     }
 
-    function pickColorScheme()
-    {
-        _colorSchemeDialog.currentPath = controller && controller.colorSchemeDirectory
-            ? controller.colorSchemeDirectory : FB.FM.homePath()
-        _colorSchemeDialog.browser.settings.viewType = FB.FMList.LIST_VIEW
-        _colorSchemeDialog.browser.settings.filterType = FB.FMList.NONE
-        _colorSchemeDialog.callback = (paths) =>
-        {
-            if (controller && paths && paths.length)
-                controller.colorSchemePath = paths[0]
-        }
-        _colorSchemeDialog.open()
-    }
-
     function pickAvatar()
     {
-        _avatarDialog.currentPath = FB.FM.homePath()
+        _avatarDialog.currentPath = controller && controller.avatarDirectory
+            ? controller.avatarDirectory : FB.FM.homePath()
         _avatarDialog.browser.settings.viewType = FB.FMList.ICON_VIEW
         _avatarDialog.browser.settings.filterType = FB.FMList.IMAGE
         _avatarDialog.callback = (paths) =>
@@ -90,21 +125,12 @@ Maui.SettingsPage
 
     FB.FileDialog
     {
-        id: _colorSchemeDialog
-        singleSelection: true
-        searchBar: true
-        mode: FB.FileDialog.Modes.Open
-        currentPath: controller && controller.colorSchemeDirectory
-            ? controller.colorSchemeDirectory : FB.FM.homePath()
-    }
-
-    FB.FileDialog
-    {
         id: _avatarDialog
         singleSelection: true
         searchBar: true
         mode: FB.FileDialog.Modes.Open
-        currentPath: FB.FM.homePath()
+        currentPath: controller && controller.avatarDirectory
+            ? controller.avatarDirectory : FB.FM.homePath()
     }
 
     Maui.SectionHeader
@@ -153,7 +179,7 @@ Maui.SettingsPage
                     : i18n("No wallpaper selected")
                 label2.wrapMode: Text.Wrap
 
-                template.content: RowLayout
+                template.content: Button
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -163,8 +189,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -177,30 +205,11 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : Maui.Style.units.gridUnit * 14
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 20
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 18
-                    spacing: Maui.Style.space.small
-
-                    TextField
-                    {
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: controller ? controller.wallpaperPath : ""
-                        placeholderText: i18n("/path/to/wallpaper.png")
-                        onEditingFinished:
-                        {
-                            if (controller)
-                                controller.wallpaperPath = text
-                        }
-                    }
-
-                    Button
-                    {
-                        text: i18n("Choose")
-                        onClicked: root.pickWallpaper()
-                    }
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: i18n("Choose")
+                    onClicked: root.pickWallpaper()
                 }
             }
 
@@ -210,9 +219,7 @@ Maui.SettingsPage
                 flat: true
                 label1.text: i18n("Color scheme")
                 label1.elide: Text.ElideRight
-                label2.text: controller
-                    ? root.displayPath(controller.colorSchemePath, i18n("Use the default color scheme"))
-                    : i18n("Use the default color scheme")
+                label2.text: i18n("Color scheme used by the login screen.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
@@ -225,8 +232,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -239,29 +248,42 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : Maui.Style.units.gridUnit * 14
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 20
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 18
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
 
-                    TextField
+                    ComboBox
                     {
+                        id: _colorSchemeCombo
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
-                        text: controller ? controller.colorSchemePath : ""
-                        placeholderText: i18n("/path/to/theme.colors")
-                        onEditingFinished:
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
+                        model: kde ? kde.colorSchemes : []
+                        currentIndex: kde
+                            ? root.indexForString(model,
+                                root.colorSchemeName(controller ? controller.colorSchemePath : ""))
+                            : -1
+                        enabled: kde !== null
+                        onActivated:
                         {
                             if (controller)
-                                controller.colorSchemePath = text
+                                controller.colorSchemePath = kde.colorSchemeFilePath(currentText)
                         }
                     }
 
-                    Button
+                    ToolButton
                     {
-                        text: i18n("Choose")
-                        onClicked: root.pickColorScheme()
+                        enabled: kde !== null && _colorSchemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _colorSchemePreviewDialog.previewScheme =
+                                _colorSchemeCombo.currentText.trim()
+                            _colorSchemePreviewDialog.preview =
+                                kde.colorSchemePreview(_colorSchemePreviewDialog.previewScheme)
+                            _colorSchemePreviewDialog.open()
+                        }
                     }
                 }
             }
@@ -275,7 +297,7 @@ Maui.SettingsPage
                 label2.text: i18n("Icon theme used by the login screen.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: TextField
+                template.content: RowLayout
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -285,8 +307,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -299,13 +323,42 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: 0
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 14
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 12
-                    text: controller ? controller.iconTheme : ""
-                    placeholderText: i18n("hicolor")
-                    onEditingFinished: if (controller) controller.iconTheme = text
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _iconThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
+                        model: kde ? kde.iconThemes : []
+                        currentIndex: kde && controller
+                            ? root.indexForString(kde.iconThemeIds, controller.iconTheme) : -1
+                        enabled: kde !== null
+                        onActivated:
+                        {
+                            if (controller)
+                                controller.iconTheme = kde.iconThemeIds[currentIndex]
+                        }
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null && _iconThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _iconThemePreviewDialog.previewTheme =
+                                kde.iconThemeIds[_iconThemeCombo.currentIndex]
+                            _iconThemePreviewDialog.previewName = _iconThemeCombo.currentText
+                            _iconThemePreviewDialog.previewIcons =
+                                kde.iconThemePreviewIcons(_iconThemePreviewDialog.previewTheme)
+                            _iconThemePreviewDialog.open()
+                        }
+                    }
                 }
             }
 
@@ -315,10 +368,10 @@ Maui.SettingsPage
                 flat: true
                 label1.text: i18n("Font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font family used throughout the login screen.")
+                label2.text: i18n("Font family and size used throughout the login screen.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: TextField
+                template.content: Button
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -328,8 +381,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -342,13 +397,11 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: 0
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 14
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 12
-                    text: controller ? controller.fontFamily : ""
-                    placeholderText: i18n("Noto Sans")
-                    onEditingFinished: if (controller) controller.fontFamily = text
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: root.fontLabel()
+                    onClicked: root.openFontDialog()
                 }
             }
 
@@ -356,9 +409,9 @@ Maui.SettingsPage
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Font size")
+                label1.text: i18n("Border radius")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font size in points.")
+                label2.text: i18n("Corner radius in pixels for cards, fields, buttons, and popup surfaces.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
@@ -387,69 +440,11 @@ Maui.SettingsPage
                     Layout.fillWidth: responsiveNarrow
                     Layout.maximumWidth: responsiveNarrow
                         ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    from: 1
+                    from: 0
                     to: 256
                     editable: true
-                    value: controller ? controller.fontSize : 10
-                    onValueModified: if (controller) controller.fontSize = value
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                label1.text: i18n("Avatar image")
-                label1.elide: Text.ElideRight
-                label2.text: controller
-                    ? root.displayPath(controller.avatarPath, i18n("Use user account avatars"))
-                    : i18n("Use user account avatars")
-                label2.wrapMode: Text.Wrap
-
-                template.content: RowLayout
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem
-                        && (Maui.Handy.isMobile
-                            || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : Maui.Style.units.gridUnit * 14
-                    Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 20
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 18
-                    spacing: Maui.Style.space.small
-
-                    TextField
-                    {
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: controller ? controller.avatarPath : ""
-                        placeholderText: i18n("Automatic")
-                        onEditingFinished: if (controller) controller.avatarPath = text
-                    }
-
-                    Button
-                    {
-                        text: i18n("Choose")
-                        onClicked: root.pickAvatar()
-                    }
+                    value: controller ? controller.borderRadius : 8
+                    onValueModified: if (controller) controller.borderRadius = value
                 }
             }
 
@@ -472,8 +467,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -486,10 +483,10 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: 0
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 12
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 10
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 10
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     text: controller ? controller.timeFormat : "hh:mm"
                     placeholderText: "hh:mm"
                     onEditingFinished:
@@ -519,8 +516,10 @@ Maui.SettingsPage
 
                     function updateResponsiveParent()
                     {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
@@ -533,12 +532,13 @@ Maui.SettingsPage
                     }
 
                     Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: 0
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
-                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 16
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 14
-                    text: controller ? controller.dateFormat : "dddd, d MMMM yyyy"
-                    placeholderText: "dddd, d MMMM yyyy"
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 14
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 12
+                    text: controller && controller.dateFormat !== "dddd, dd MMMM yyyy"
+                        ? controller.dateFormat : ""
+                    placeholderText: "dddd, dd MMMM yyyy"
                     onEditingFinished:
                     {
                         if (controller)
@@ -731,7 +731,7 @@ Maui.SettingsPage
             {
                 Layout.fillWidth: true
                 text1: i18n("Session and User Options")
-                text2: i18n("Choose the initial Wayland session and user-selection behavior.")
+                text2: i18n("Choose the initial Wayland session and configure user presentation.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -818,6 +818,52 @@ Maui.SettingsPage
 
                     checked: controller ? controller.showAvatars : true
                     onToggled: if (controller) controller.showAvatars = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: controller ? controller.showAvatars : true
+                label1.text: i18n("Avatar image")
+                label1.elide: Text.ElideRight
+                label2.text: controller && controller.avatarPath.length
+                    ? root.displayPath(controller.avatarPath, i18n("Automatic"))
+                    : i18n("Automatic")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem
+                        && (Maui.Handy.isMobile
+                            || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: i18n("Choose")
+                    onClicked: root.pickAvatar()
                 }
             }
 
@@ -959,5 +1005,119 @@ Maui.SettingsPage
                 }
             }
         }
+    }
+
+    Maui.PopupPage
+    {
+        id: _iconThemePreviewDialog
+        title: i18n("Icon theme preview")
+        persistent: true
+
+        property string previewTheme
+        property string previewName
+        property var previewIcons: []
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _iconThemePreviewDialog.previewName
+                text2: i18n("A small sample of icons rendered from the selected theme.")
+            }
+
+            GridLayout
+            {
+                Layout.alignment: Qt.AlignHCenter
+                columns: 4
+                columnSpacing: Maui.Style.space.small
+                rowSpacing: Maui.Style.space.small
+
+                Repeater
+                {
+                    model: _iconThemePreviewDialog.previewIcons
+
+                    Maui.IconItem
+                    {
+                        Layout.alignment: Qt.AlignHCenter
+                        iconSource: modelData.icon
+                        iconSizeHint: modelData.size
+                        isMask: false
+                        smooth: false
+                    }
+                }
+            }
+        }
+    }
+
+    Maui.PopupPage
+    {
+        id: _colorSchemePreviewDialog
+        title: i18n("Color scheme preview")
+        persistent: true
+
+        property string previewScheme
+        property var preview: ({})
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _colorSchemePreviewDialog.previewScheme
+                text2: i18n("A palette sample using the selected scheme.")
+            }
+
+            Maui.ColorsRow
+            {
+                Layout.fillWidth: true
+                colors: _colorSchemePreviewDialog.preview.colors || []
+            }
+        }
+    }
+
+    Maui.PopupPage
+    {
+        id: _fontDialog
+        title: i18n("Fonts")
+        persistent: true
+
+        Maui.FontPicker
+        {
+            id: _fontPicker
+            Layout.fillWidth: true
+            showStyle: false
+        }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: _fontDialog.close()
+            },
+            Action
+            {
+                text: i18n("Accept")
+                onTriggered:
+                {
+                    if (controller)
+                    {
+                        const selectedSize = _fontPicker.mfont.pointSize > 0
+                            ? _fontPicker.mfont.pointSize : _fontPicker.mfont.pixelSize
+                        controller.fontFamily = _fontPicker.mfont.family
+                        if (selectedSize > 0)
+                            controller.fontSize = selectedSize
+                    }
+
+                    _fontDialog.close()
+                }
+            }
+        ]
     }
 }

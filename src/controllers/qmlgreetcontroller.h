@@ -1,7 +1,3 @@
-// Copyright 2026 Nitrux Latinoamericana S.C.
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #pragma once
 
 #include <QObject>
@@ -21,6 +17,8 @@ class QmlGreetController : public QObject
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme NOTIFY iconThemeChanged)
     Q_PROPERTY(QString fontFamily READ fontFamily WRITE setFontFamily NOTIFY fontFamilyChanged)
     Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
+    Q_PROPERTY(int borderRadius READ borderRadius WRITE setBorderRadius NOTIFY borderRadiusChanged)
+    Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
     Q_PROPERTY(QString avatarPath READ avatarPath WRITE setAvatarPath NOTIFY avatarPathChanged)
     Q_PROPERTY(QString timeFormat READ timeFormat WRITE setTimeFormat NOTIFY timeFormatChanged)
     Q_PROPERTY(QString dateFormat READ dateFormat WRITE setDateFormat NOTIFY dateFormatChanged)
@@ -52,6 +50,8 @@ public:
     QString iconTheme() const;
     QString fontFamily() const;
     int fontSize() const;
+    int borderRadius() const;
+    QString avatarDirectory() const;
     QString avatarPath() const;
     QString timeFormat() const;
     QString dateFormat() const;
@@ -76,6 +76,7 @@ public:
     void setIconTheme(const QString &value);
     void setFontFamily(const QString &value);
     void setFontSize(int value);
+    void setBorderRadius(int value);
     void setAvatarPath(const QString &value);
     void setTimeFormat(const QString &value);
     void setDateFormat(const QString &value);
@@ -100,6 +101,7 @@ Q_SIGNALS:
     void iconThemeChanged();
     void fontFamilyChanged();
     void fontSizeChanged();
+    void borderRadiusChanged();
     void avatarPathChanged();
     void timeFormatChanged();
     void dateFormatChanged();
@@ -125,6 +127,7 @@ Q_SIGNALS:
 
 private:
     QVariantMap stagedValues() const;
+    QVariantMap changedValues() const;
     void applyValues(const QVariantMap &values);
     void updateDirty();
     void refreshSaveAvailability();
@@ -141,9 +144,10 @@ private:
     QString m_iconTheme = QStringLiteral("hicolor");
     QString m_fontFamily = QStringLiteral("Noto Sans");
     int m_fontSize = 10;
+    int m_borderRadius = 8;
     QString m_avatarPath;
     QString m_timeFormat = QStringLiteral("hh:mm");
-    QString m_dateFormat = QStringLiteral("dddd, d MMMM yyyy");
+    QString m_dateFormat = QStringLiteral("dddd, dd MMMM yyyy");
     bool m_blurEnabled = true;
     bool m_animationsEnabled = true;
     bool m_overlayEnabled = true;

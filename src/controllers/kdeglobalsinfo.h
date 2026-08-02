@@ -57,6 +57,7 @@ public:
     Q_INVOKABLE QString fontToString(const QFont &font) const;
     Q_INVOKABLE QString fontLabel(const QString &value) const;
     Q_INVOKABLE QVariantMap colorSchemePreview(const QString &scheme) const;
+    Q_INVOKABLE QString colorSchemeFilePath(const QString &scheme) const;
     Q_INVOKABLE QVariantList iconThemePreviewIcons(const QString &theme) const;
     Q_INVOKABLE QVariantList cursorThemePreviewImages(const QString &theme) const;
 
@@ -69,7 +70,6 @@ private:
     QStringList scanColorSchemes() const;
     QVariantList scanIconThemes() const;
     QVariantList scanCursorThemes() const;
-    QString colorSchemeFilePath(const QString &scheme) const;
 
 private:
     QString m_configPath;

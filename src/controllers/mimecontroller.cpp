@@ -1,7 +1,3 @@
-// Copyright 2026 Nitrux Latinoamericana S.C.
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #include "mimecontroller.h"
 
 #include <QByteArray>

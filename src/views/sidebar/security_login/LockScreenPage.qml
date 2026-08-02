@@ -1,7 +1,3 @@
-// Copyright 2026 Nitrux Latinoamericana S.C.
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -36,6 +32,16 @@ Maui.ScrollColumn
             return i18n("No wallpaper selected")
 
         return path.replace(/^file:\/\//, "")
+    }
+
+    function displayAvatarPath(path)
+    {
+        const value = (path || "").trim()
+        if (!value.length || value === "~/.face" || value === "~/.face.icon"
+            || value === "%h/.face" || value === "%h/.face.icon")
+            return i18n("Automatic")
+
+        return root.displayPath(value)
     }
 
     function pickWallpaper()
@@ -164,8 +170,8 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Avatar image")
                 label1.elide: Text.ElideRight
-                label2.text: controller && controller.avatarPath.length
-                    ? root.displayPath(controller.avatarPath) : i18n("Automatic")
+                label2.text: root.displayAvatarPath(
+                    controller ? controller.avatarPath : "")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button

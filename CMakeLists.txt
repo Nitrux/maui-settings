@@ -93,6 +93,7 @@ set(QMLGREET_HELPER_ID org.maui.settings.qmlgreet)
 
 add_executable(${QMLGREET_HELPER_TARGET}
     src/helpers/qmlgreethelper.cpp
+    src/helpers/systemfilepersistence.cpp
 )
 
 target_compile_features(${QMLGREET_HELPER_TARGET} PRIVATE cxx_std_23)
