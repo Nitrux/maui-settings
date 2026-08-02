@@ -4,7 +4,10 @@
 #include <QDBusMessage>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QStringList>
+#include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QUrl>
@@ -19,11 +22,20 @@ QString desklockConfigPath()
     return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
         + QStringLiteral("/desklock/desklock.conf");
 }
+
+QString hypridleConfigPath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+        + QStringLiteral("/hypr/hypridle.conf");
+}
+
+constexpr auto defaultHypridleLockTimeout = 350;
 }
 
 DesklockController::DesklockController(QObject *parent)
     : QObject(parent)
     , m_configPath(desklockConfigPath())
+    , m_hypridleConfigPath(hypridleConfigPath())
 {
     load();
 }
@@ -64,8 +76,11 @@ int DesklockController::batteryUpdateInterval() const { return m_batteryUpdateIn
 bool DesklockController::showMediaPlayer() const { return m_showMediaPlayer; }
 int DesklockController::systemMonitorUpdateInterval() const { return m_systemMonitorUpdateInterval; }
 bool DesklockController::hideCursor() const { return m_hideCursor; }
+int DesklockController::dimTimeout() const { return m_dimTimeout; }
+bool DesklockController::idleLockEnabled() const { return m_idleLockEnabled; }
 int DesklockController::idleLockTimeout() const { return m_idleLockTimeout; }
-int DesklockController::gracePeriod() const { return m_gracePeriod; }
+int DesklockController::dpmsTimeout() const { return m_dpmsTimeout; }
+int DesklockController::suspendTimeout() const { return m_suspendTimeout; }
 
 QString DesklockController::normalizeLocalPath(const QString &value)
 {
@@ -160,11 +175,25 @@ void DesklockController::setFadeAnimationsEnabled(bool value)
         Q_EMIT Signal(); \
     }
 
+SET_BOUNDED_SETTING(setDimTimeout, m_dimTimeout, dimTimeoutChanged, 0, 86400)
 SET_BOUNDED_SETTING(setFadeInDuration, m_fadeInDuration, fadeInDurationChanged, 0, 5000)
 SET_BOUNDED_SETTING(setFadeOutDuration, m_fadeOutDuration, fadeOutDurationChanged, 0, 5000)
 SET_BOUNDED_SETTING(setBackgroundBlurRadius, m_backgroundBlurRadius, backgroundBlurRadiusChanged, 0, 128)
-SET_BOUNDED_SETTING(setIdleLockTimeout, m_idleLockTimeout, idleLockTimeoutChanged, 0, 86400)
-SET_BOUNDED_SETTING(setGracePeriod, m_gracePeriod, gracePeriodChanged, 0, 3600)
+void DesklockController::setIdleLockTimeout(int value)
+{
+    value = qBound(0, value, 86400);
+    if (m_idleLockTimeout == value)
+        return;
+    m_idleLockTimeout = value;
+    if (value == 0 && m_idleLockEnabled) {
+        m_idleLockEnabled = false;
+        Q_EMIT idleLockEnabledChanged();
+    }
+    Q_EMIT idleLockTimeoutChanged();
+}
+
+SET_BOUNDED_SETTING(setDpmsTimeout, m_dpmsTimeout, dpmsTimeoutChanged, 0, 86400)
+SET_BOUNDED_SETTING(setSuspendTimeout, m_suspendTimeout, suspendTimeoutChanged, 0, 86400)
 SET_BOUNDED_SETTING(setBatteryUpdateInterval, m_batteryUpdateInterval, batteryUpdateIntervalChanged, 1000, 3600000)
 SET_BOUNDED_SETTING(setSystemMonitorUpdateInterval, m_systemMonitorUpdateInterval, systemMonitorUpdateIntervalChanged, 1000, 3600000)
 
@@ -184,6 +213,7 @@ SET_BOOLEAN_SETTING(setShowBattery, m_showBattery, showBatteryChanged)
 SET_BOOLEAN_SETTING(setShowMediaPlayer, m_showMediaPlayer, showMediaPlayerChanged)
 SET_BOOLEAN_SETTING(setLowercaseDate, m_lowercaseDate, lowercaseDateChanged)
 SET_BOOLEAN_SETTING(setHideCursor, m_hideCursor, hideCursorChanged)
+SET_BOOLEAN_SETTING(setIdleLockEnabled, m_idleLockEnabled, idleLockEnabledChanged)
 
 #undef SET_BOOLEAN_SETTING
 
@@ -221,8 +251,6 @@ bool DesklockController::save()
         settings.setValue(QStringLiteral("Media/Enabled"), m_showMediaPlayer);
         settings.setValue(QStringLiteral("SystemMonitor/UpdateInterval"), m_systemMonitorUpdateInterval);
         settings.setValue(QStringLiteral("Behavior/HideCursor"), m_hideCursor);
-        settings.setValue(QStringLiteral("Behavior/IdleLockTimeout"), m_idleLockTimeout);
-        settings.setValue(QStringLiteral("Behavior/GracePeriod"), m_gracePeriod);
         settings.sync();
         return settings.status();
     };
@@ -237,6 +265,9 @@ bool DesklockController::save()
                    << "QSettings status" << static_cast<int>(status);
         return false;
     }
+
+    if (!saveHypridleConfiguration())
+        return false;
 
     notifyDesklock(QStringLiteral("*"));
     Q_EMIT configurationChanged(QStringLiteral("*"));
@@ -277,12 +308,7 @@ void DesklockController::load()
     m_systemMonitorUpdateInterval = qBound(1000, settings.value(
         QStringLiteral("SystemMonitor/UpdateInterval"), 3000).toInt(), 3600000);
     m_hideCursor = settings.value(QStringLiteral("Behavior/HideCursor"), true).toBool();
-    m_idleLockTimeout = qBound(0, settings.value(
-        QStringLiteral("Behavior/IdleLockTimeout"),
-        300).toInt(), 86400);
-    m_gracePeriod = qBound(0, settings.value(
-        QStringLiteral("Behavior/GracePeriod"),
-        0).toInt(), 3600);
+    loadHypridleConfiguration();
 
     Q_EMIT wallpaperPathChanged();
     Q_EMIT avatarPathChanged();
@@ -300,6 +326,202 @@ void DesklockController::load()
     Q_EMIT showMediaPlayerChanged();
     Q_EMIT systemMonitorUpdateIntervalChanged();
     Q_EMIT hideCursorChanged();
+}
+
+void DesklockController::loadHypridleConfiguration()
+{
+    QFile file(m_hypridleConfigPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        m_dimTimeout = 300;
+        m_idleLockEnabled = false;
+        m_idleLockTimeout = defaultHypridleLockTimeout;
+        m_dpmsTimeout = 500;
+        m_suspendTimeout = 650;
+    }
+    else
+    {
+        const QStringList lines = QString::fromUtf8(file.readAll()).split(QStringLiteral("\n"));
+        const auto uncommentedLine = [](const QString &line) {
+            QString result = line;
+            int indentation = 0;
+            while (indentation < result.size() && result.at(indentation).isSpace())
+                ++indentation;
+            if (result.mid(indentation).startsWith(QStringLiteral("#")))
+            {
+                result.remove(indentation, 1);
+                if (indentation < result.size() && result.at(indentation) == QLatin1Char(' '))
+                    result.remove(indentation, 1);
+            }
+            return result;
+        };
+        const auto readTimeout = [&](const QString &command, int fallback) {
+            for (int i = 0; i < lines.size(); ++i)
+            {
+                const QString trimmed = uncommentedLine(lines[i]).trimmed();
+                if (!trimmed.contains(QStringLiteral("on-timeout")) || !lines[i].contains(command))
+                    continue;
+                for (int j = i - 1; j >= 0; --j)
+                {
+                    const QString timeoutLine = uncommentedLine(lines[j]).trimmed();
+                    if (timeoutLine.startsWith(QStringLiteral("timeout")))
+                        return timeoutLine.section(QStringLiteral("="), 1).trimmed().toInt();
+                    if (timeoutLine == QStringLiteral("listener {"))
+                        break;
+                }
+            }
+            return fallback;
+        };
+
+        m_dimTimeout = qBound(0, readTimeout(QStringLiteral("brightnessctl -s set 10000"), 300), 86400);
+        m_idleLockTimeout = qBound(0, readTimeout(QStringLiteral("pidof desklock || desklock"), 350), 86400);
+        m_dpmsTimeout = qBound(0, readTimeout(QStringLiteral("hyprctl dispatch dpms off"), 500), 86400);
+        m_suspendTimeout = qBound(0, readTimeout(QStringLiteral("zzz"), 650), 86400);
+        m_idleLockEnabled = false;
+        for (const QString &line : lines)
+        {
+            const QString trimmed = uncommentedLine(line).trimmed();
+            if (!line.trimmed().startsWith(QStringLiteral("#"))
+                && trimmed.startsWith(QStringLiteral("lock_cmd = pidof desklock || desklock")))
+            {
+                m_idleLockEnabled = true;
+                break;
+            }
+        }
+    }
+
+    Q_EMIT dimTimeoutChanged();
+    Q_EMIT idleLockEnabledChanged();
     Q_EMIT idleLockTimeoutChanged();
-    Q_EMIT gracePeriodChanged();
+    Q_EMIT dpmsTimeoutChanged();
+    Q_EMIT suspendTimeoutChanged();
+}
+
+bool DesklockController::saveHypridleConfiguration() const
+{
+    QFile file(m_hypridleConfigPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qWarning() << "Could not read hypridle configuration" << m_hypridleConfigPath;
+        return false;
+    }
+
+    QStringList lines = QString::fromUtf8(file.readAll()).split(QStringLiteral("\n"));
+    const auto uncommentedLine = [](const QString &line) {
+        QString result = line;
+        int indentation = 0;
+        while (indentation < result.size() && result.at(indentation).isSpace())
+            ++indentation;
+        if (result.mid(indentation).startsWith(QStringLiteral("#")))
+        {
+            result.remove(indentation, 1);
+            if (indentation < result.size() && result.at(indentation) == QLatin1Char(' '))
+                result.remove(indentation, 1);
+        }
+        return result;
+    };
+
+    const auto updateListener = [&](const QString &command, int timeout) {
+        for (int i = 0; i < lines.size(); ++i)
+        {
+            const QString normalized = uncommentedLine(lines[i]).trimmed();
+            if (!normalized.contains(QStringLiteral("on-timeout")) || !normalized.contains(command))
+                continue;
+
+            for (int j = i - 1; j >= 0; --j)
+            {
+                const QString timeoutLine = uncommentedLine(lines[j]).trimmed();
+                if (timeoutLine.startsWith(QStringLiteral("timeout")))
+                {
+                    lines[j] = QStringLiteral("  timeout = %1").arg(timeout);
+                    return true;
+                }
+                if (timeoutLine == QStringLiteral("listener {"))
+                    break;
+            }
+        }
+        return false;
+    };
+
+    const auto setBlockEnabled = [&](const QString &command, const QString &blockName, bool enabled) {
+        int commandLine = -1;
+        for (int i = 0; i < lines.size(); ++i)
+        {
+            const QString normalized = uncommentedLine(lines[i]).trimmed();
+            if (!normalized.contains(command))
+                continue;
+            if (blockName == QStringLiteral("listener {")
+                && !normalized.contains(QStringLiteral("on-timeout")))
+                continue;
+            commandLine = i;
+            break;
+        }
+        if (commandLine < 0)
+            return false;
+
+        int start = -1;
+        for (int i = commandLine; i >= 0; --i)
+        {
+            if (uncommentedLine(lines[i]).trimmed() == blockName)
+            {
+                start = i;
+                break;
+            }
+        }
+        if (start < 0)
+            return false;
+
+        int depth = 0;
+        int end = -1;
+        for (int i = start; i < lines.size(); ++i)
+        {
+            const QString normalized = uncommentedLine(lines[i]).trimmed();
+            if (normalized.endsWith(QLatin1Char('{')))
+                ++depth;
+            else if (normalized == QStringLiteral("}"))
+            {
+                --depth;
+                if (depth == 0)
+                {
+                    end = i;
+                    break;
+                }
+            }
+        }
+        if (end < 0)
+            return false;
+
+        for (int i = start; i <= end; ++i)
+        {
+            if (enabled)
+                lines[i] = uncommentedLine(lines[i]);
+            else if (!lines[i].trimmed().isEmpty())
+                lines[i] = QStringLiteral("# ") + uncommentedLine(lines[i]);
+        }
+        return true;
+    };
+
+    if (!updateListener(QStringLiteral("brightnessctl -s set 10000"), m_dimTimeout)
+        || !updateListener(QStringLiteral("pidof desklock || desklock"), m_idleLockTimeout)
+        || !updateListener(QStringLiteral("hyprctl dispatch dpms off"), m_dpmsTimeout)
+        || !updateListener(QStringLiteral("zzz"), m_suspendTimeout)
+        || !setBlockEnabled(QStringLiteral("lock_cmd = pidof desklock || desklock"), QStringLiteral("general {"), m_idleLockEnabled)
+        || !setBlockEnabled(QStringLiteral("brightnessctl -s set 10000"), QStringLiteral("listener {"), m_idleLockEnabled)
+        || !setBlockEnabled(QStringLiteral("pidof desklock || desklock"), QStringLiteral("listener {"), m_idleLockEnabled)
+        || !setBlockEnabled(QStringLiteral("hyprctl dispatch dpms off"), QStringLiteral("listener {"), m_idleLockEnabled)
+        || !setBlockEnabled(QStringLiteral("zzz"), QStringLiteral("listener {"), m_idleLockEnabled))
+    {
+        qWarning() << "Could not find all default hypridle blocks in" << m_hypridleConfigPath;
+        return false;
+    }
+
+    QSaveFile destination(m_hypridleConfigPath);
+    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text)
+        || destination.write(lines.join(QStringLiteral("\n")).toUtf8()) < 0
+        || !destination.commit())
+    {
+        qWarning() << "Could not write hypridle configuration" << m_hypridleConfigPath;
+        return false;
+    }
+    return true;
 }

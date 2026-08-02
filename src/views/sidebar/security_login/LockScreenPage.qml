@@ -855,43 +855,42 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Idle lock timeout")
+                label1.text: i18n("Enable idle lock")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Seconds of inactivity before locking. Set to 0 to disable automatic locking.")
+                label2.text: i18n("Automatically lock the session after the configured period.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    checked: controller ? controller.idleLockEnabled : true
+                    onToggled:
+                    {
+                        if (!controller)
+                            return
+                        if (checked && controller.idleLockTimeout === 0)
+                            controller.idleLockTimeout = 350
+                        controller.idleLockEnabled = checked
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Idle lock timeout")
+                enabled: controller ? controller.idleLockEnabled : true
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Seconds of inactivity before locking.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: SpinBox
                 {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
                     from: 0
                     to: 86400
                     stepSize: 30
-                    value: controller ? controller.idleLockTimeout : 300
+                    value: controller ? controller.idleLockTimeout : 350
+                    enabled: controller ? controller.idleLockEnabled : true
                     editable: true
                     onValueModified:
                     {
@@ -905,49 +904,56 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Password grace period")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Seconds after locking before a password is required. Set to 0 to require it immediately.")
+                enabled: controller ? controller.idleLockEnabled : true
+                label1.text: i18n("Dim screen timeout")
+                label2.text: i18n("Seconds of inactivity before dimming the screen.")
                 label2.wrapMode: Text.Wrap
-
                 template.content: SpinBox
                 {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
                     from: 0
-                    to: 3600
-                    stepSize: 5
-                    value: controller ? controller.gracePeriod : 0
+                    to: 86400
+                    stepSize: 30
+                    value: controller ? controller.dimTimeout : 300
                     editable: true
-                    onValueModified:
-                    {
-                        if (controller)
-                            controller.gracePeriod = value
-                    }
+                    onValueModified: if (controller) controller.dimTimeout = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: controller ? controller.idleLockEnabled : true
+                label1.text: i18n("Display off timeout")
+                label2.text: i18n("Seconds of inactivity before turning off the display.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    from: 0
+                    to: 86400
+                    stepSize: 30
+                    value: controller ? controller.dpmsTimeout : 500
+                    editable: true
+                    onValueModified: if (controller) controller.dpmsTimeout = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: controller ? controller.idleLockEnabled : true
+                label1.text: i18n("Suspend timeout")
+                label2.text: i18n("Seconds of inactivity before suspending the system.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    from: 0
+                    to: 86400
+                    stepSize: 30
+                    value: controller ? controller.suspendTimeout : 650
+                    editable: true
+                    onValueModified: if (controller) controller.suspendTimeout = value
                 }
             }
         }

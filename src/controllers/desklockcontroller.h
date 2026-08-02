@@ -25,8 +25,11 @@ class DesklockController : public QObject
     Q_PROPERTY(bool showMediaPlayer READ showMediaPlayer WRITE setShowMediaPlayer NOTIFY showMediaPlayerChanged)
     Q_PROPERTY(int systemMonitorUpdateInterval READ systemMonitorUpdateInterval WRITE setSystemMonitorUpdateInterval NOTIFY systemMonitorUpdateIntervalChanged)
     Q_PROPERTY(bool hideCursor READ hideCursor WRITE setHideCursor NOTIFY hideCursorChanged)
+    Q_PROPERTY(int dimTimeout READ dimTimeout WRITE setDimTimeout NOTIFY dimTimeoutChanged)
+    Q_PROPERTY(bool idleLockEnabled READ idleLockEnabled WRITE setIdleLockEnabled NOTIFY idleLockEnabledChanged)
     Q_PROPERTY(int idleLockTimeout READ idleLockTimeout WRITE setIdleLockTimeout NOTIFY idleLockTimeoutChanged)
-    Q_PROPERTY(int gracePeriod READ gracePeriod WRITE setGracePeriod NOTIFY gracePeriodChanged)
+    Q_PROPERTY(int dpmsTimeout READ dpmsTimeout WRITE setDpmsTimeout NOTIFY dpmsTimeoutChanged)
+    Q_PROPERTY(int suspendTimeout READ suspendTimeout WRITE setSuspendTimeout NOTIFY suspendTimeoutChanged)
 
 public:
     explicit DesklockController(QObject *parent = nullptr);
@@ -50,8 +53,11 @@ public:
     bool showMediaPlayer() const;
     int systemMonitorUpdateInterval() const;
     bool hideCursor() const;
+    int dimTimeout() const;
+    bool idleLockEnabled() const;
     int idleLockTimeout() const;
-    int gracePeriod() const;
+    int dpmsTimeout() const;
+    int suspendTimeout() const;
 
     void setWallpaperPath(const QString &value);
     void setAvatarPath(const QString &value);
@@ -69,8 +75,11 @@ public:
     void setShowMediaPlayer(bool value);
     void setSystemMonitorUpdateInterval(int value);
     void setHideCursor(bool value);
+    void setDimTimeout(int value);
+    void setIdleLockEnabled(bool value);
     void setIdleLockTimeout(int value);
-    void setGracePeriod(int value);
+    void setDpmsTimeout(int value);
+    void setSuspendTimeout(int value);
 
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
@@ -92,16 +101,22 @@ Q_SIGNALS:
     void showMediaPlayerChanged();
     void systemMonitorUpdateIntervalChanged();
     void hideCursorChanged();
+    void dimTimeoutChanged();
+    void idleLockEnabledChanged();
     void idleLockTimeoutChanged();
-    void gracePeriodChanged();
+    void dpmsTimeoutChanged();
+    void suspendTimeoutChanged();
     void configurationChanged(const QString &key);
 
 private:
     void load();
     void notifyDesklock(const QString &key);
+    bool saveHypridleConfiguration() const;
+    void loadHypridleConfiguration();
     static QString normalizeLocalPath(const QString &value);
 
     QString m_configPath;
+    QString m_hypridleConfigPath;
     QString m_wallpaperPath;
     QString m_avatarPath;
     int m_backgroundBlurRadius = 64;
@@ -118,6 +133,9 @@ private:
     bool m_showMediaPlayer = true;
     int m_systemMonitorUpdateInterval = 3000;
     bool m_hideCursor = true;
-    int m_idleLockTimeout = 300;
-    int m_gracePeriod = 0;
+    int m_dimTimeout = 300;
+    bool m_idleLockEnabled = true;
+    int m_idleLockTimeout = 350;
+    int m_dpmsTimeout = 500;
+    int m_suspendTimeout = 650;
 };
