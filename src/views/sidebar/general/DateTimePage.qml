@@ -63,6 +63,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: dateDialog
         title: i18n("Select Date")
         persistent: true
@@ -209,6 +210,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: timeDialog
         title: i18n("Select Time")
         persistent: true
@@ -304,7 +306,7 @@ Maui.ScrollColumn
     Maui.SectionHeader
     {
         Layout.fillWidth: true
-        text1: i18n("Date & Time")
+        text1: i18n("Date and Time")
         text2: i18n("Configure system timezone, date, and time settings.")
     }
 
@@ -439,7 +441,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Date & Time")
+                text1: i18n("Date and Time")
                 text2: i18n("Set the system date and time manually when offline.")
             }
 

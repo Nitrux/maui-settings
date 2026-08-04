@@ -62,14 +62,13 @@ QString DesklockController::avatarDirectory() const
 }
 
 QString DesklockController::avatarPath() const { return m_avatarPath; }
-int DesklockController::backgroundBlurRadius() const { return m_backgroundBlurRadius; }
-double DesklockController::backgroundOverlayOpacity() const { return m_backgroundOverlayOpacity; }
+QString DesklockController::iconMode() const { return m_iconMode; }
+bool DesklockController::blurEnabled() const { return m_blurEnabled; }
+bool DesklockController::overlayEnabled() const { return m_overlayEnabled; }
+double DesklockController::overlayOpacity() const { return m_overlayOpacity; }
 QString DesklockController::timeFormat() const { return m_timeFormat; }
 QString DesklockController::dateFormat() const { return m_dateFormat; }
 bool DesklockController::lowercaseDate() const { return m_lowercaseDate; }
-bool DesklockController::fadeAnimationsEnabled() const { return m_fadeAnimationsEnabled; }
-int DesklockController::fadeInDuration() const { return m_fadeInDuration; }
-int DesklockController::fadeOutDuration() const { return m_fadeOutDuration; }
 bool DesklockController::showSystemMonitor() const { return m_showSystemMonitor; }
 bool DesklockController::showBattery() const { return m_showBattery; }
 int DesklockController::batteryUpdateInterval() const { return m_batteryUpdateInterval; }
@@ -124,14 +123,24 @@ void DesklockController::setAvatarPath(const QString &value)
     Q_EMIT avatarPathChanged();
 }
 
-void DesklockController::setBackgroundOverlayOpacity(double value)
+void DesklockController::setIconMode(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower() == QStringLiteral("nerd")
+        ? QStringLiteral("nerd") : QStringLiteral("system");
+    if (m_iconMode == normalized)
+        return;
+    m_iconMode = normalized;
+    Q_EMIT iconModeChanged();
+}
+
+void DesklockController::setOverlayOpacity(double value)
 {
     value = qBound(0.0, value, 1.0);
-    if (qFuzzyCompare(m_backgroundOverlayOpacity, value))
+    if (qFuzzyCompare(m_overlayOpacity, value))
         return;
 
-    m_backgroundOverlayOpacity = value;
-    Q_EMIT backgroundOverlayOpacityChanged();
+    m_overlayOpacity = value;
+    Q_EMIT overlayOpacityChanged();
 }
 
 void DesklockController::setTimeFormat(const QString &value)
@@ -156,15 +165,6 @@ void DesklockController::setDateFormat(const QString &value)
     Q_EMIT dateFormatChanged();
 }
 
-void DesklockController::setFadeAnimationsEnabled(bool value)
-{
-    if (m_fadeAnimationsEnabled == value)
-        return;
-
-    m_fadeAnimationsEnabled = value;
-    Q_EMIT fadeAnimationsEnabledChanged();
-}
-
 #define SET_BOUNDED_SETTING(Method, Member, Signal, Minimum, Maximum) \
     void DesklockController::Method(int value) \
     { \
@@ -176,9 +176,6 @@ void DesklockController::setFadeAnimationsEnabled(bool value)
     }
 
 SET_BOUNDED_SETTING(setDimTimeout, m_dimTimeout, dimTimeoutChanged, 0, 86400)
-SET_BOUNDED_SETTING(setFadeInDuration, m_fadeInDuration, fadeInDurationChanged, 0, 5000)
-SET_BOUNDED_SETTING(setFadeOutDuration, m_fadeOutDuration, fadeOutDurationChanged, 0, 5000)
-SET_BOUNDED_SETTING(setBackgroundBlurRadius, m_backgroundBlurRadius, backgroundBlurRadiusChanged, 0, 128)
 void DesklockController::setIdleLockTimeout(int value)
 {
     value = qBound(0, value, 86400);
@@ -214,6 +211,8 @@ SET_BOOLEAN_SETTING(setShowMediaPlayer, m_showMediaPlayer, showMediaPlayerChange
 SET_BOOLEAN_SETTING(setLowercaseDate, m_lowercaseDate, lowercaseDateChanged)
 SET_BOOLEAN_SETTING(setHideCursor, m_hideCursor, hideCursorChanged)
 SET_BOOLEAN_SETTING(setIdleLockEnabled, m_idleLockEnabled, idleLockEnabledChanged)
+SET_BOOLEAN_SETTING(setBlurEnabled, m_blurEnabled, blurEnabledChanged)
+SET_BOOLEAN_SETTING(setOverlayEnabled, m_overlayEnabled, overlayEnabledChanged)
 
 #undef SET_BOOLEAN_SETTING
 
@@ -237,14 +236,13 @@ bool DesklockController::save()
         settings.setAtomicSyncRequired(atomicSync);
         settings.setValue(QStringLiteral("Appearance/BackgroundImage"), m_wallpaperPath);
         settings.setValue(QStringLiteral("Appearance/AvatarImage"), m_avatarPath);
-        settings.setValue(QStringLiteral("Appearance/BackgroundBlurRadius"), m_backgroundBlurRadius);
-        settings.setValue(QStringLiteral("Appearance/BackgroundOverlayOpacity"), m_backgroundOverlayOpacity);
+        settings.setValue(QStringLiteral("Appearance/IconMode"), m_iconMode);
+        settings.setValue(QStringLiteral("Appearance/BlurEnabled"), m_blurEnabled);
+        settings.setValue(QStringLiteral("Appearance/OverlayEnabled"), m_overlayEnabled);
+        settings.setValue(QStringLiteral("Appearance/OverlayOpacity"), m_overlayOpacity);
         settings.setValue(QStringLiteral("Clock/TimeFormat"), m_timeFormat);
         settings.setValue(QStringLiteral("Clock/DateFormat"), m_dateFormat);
         settings.setValue(QStringLiteral("Clock/LowercaseDate"), m_lowercaseDate);
-        settings.setValue(QStringLiteral("Behavior/FadeAnimationsEnabled"), m_fadeAnimationsEnabled);
-        settings.setValue(QStringLiteral("Behavior/FadeInDuration"), m_fadeInDuration);
-        settings.setValue(QStringLiteral("Behavior/FadeOutDuration"), m_fadeOutDuration);
         settings.setValue(QStringLiteral("SystemMonitor/Enabled"), m_showSystemMonitor);
         settings.setValue(QStringLiteral("Battery/Enabled"), m_showBattery);
         settings.setValue(QStringLiteral("Battery/UpdateInterval"), m_batteryUpdateInterval);
@@ -282,24 +280,17 @@ void DesklockController::load()
         QStringLiteral("Appearance/BackgroundImage"),
         QString::fromLatin1(defaultWallpaper)).toString());
     m_avatarPath = settings.value(QStringLiteral("Appearance/AvatarImage")).toString().trimmed();
-    m_backgroundBlurRadius = qBound(0, settings.value(
-        QStringLiteral("Appearance/BackgroundBlurRadius"), 64).toInt(), 128);
-    m_backgroundOverlayOpacity = qBound(0.0, settings.value(
-        QStringLiteral("Appearance/BackgroundOverlayOpacity"), 0.76).toDouble(), 1.0);
+    m_iconMode = settings.value(QStringLiteral("Appearance/IconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
+        ? QStringLiteral("nerd") : QStringLiteral("system");
+    m_blurEnabled = settings.value(QStringLiteral("Appearance/BlurEnabled"), true).toBool();
+    m_overlayEnabled = settings.value(QStringLiteral("Appearance/OverlayEnabled"), true).toBool();
+    m_overlayOpacity = qBound(0.0, settings.value(
+        QStringLiteral("Appearance/OverlayOpacity"), 0.76).toDouble(), 1.0);
     m_timeFormat = settings.value(QStringLiteral("Clock/TimeFormat"), QStringLiteral("hh:mm")).toString();
     m_dateFormat = settings.value(
         QStringLiteral("Clock/DateFormat"),
         QStringLiteral("dddd, dd MMMM yyyy")).toString();
     m_lowercaseDate = settings.value(QStringLiteral("Clock/LowercaseDate"), false).toBool();
-    m_fadeAnimationsEnabled = settings.value(
-        QStringLiteral("Behavior/FadeAnimationsEnabled"),
-        true).toBool();
-    m_fadeInDuration = qBound(0, settings.value(
-        QStringLiteral("Behavior/FadeInDuration"),
-        350).toInt(), 5000);
-    m_fadeOutDuration = qBound(0, settings.value(
-        QStringLiteral("Behavior/FadeOutDuration"),
-        250).toInt(), 5000);
     m_showSystemMonitor = settings.value(QStringLiteral("SystemMonitor/Enabled"), true).toBool();
     m_showBattery = settings.value(QStringLiteral("Battery/Enabled"), true).toBool();
     m_batteryUpdateInterval = qBound(1000, settings.value(
@@ -312,14 +303,13 @@ void DesklockController::load()
 
     Q_EMIT wallpaperPathChanged();
     Q_EMIT avatarPathChanged();
-    Q_EMIT backgroundBlurRadiusChanged();
-    Q_EMIT backgroundOverlayOpacityChanged();
+    Q_EMIT iconModeChanged();
+    Q_EMIT blurEnabledChanged();
+    Q_EMIT overlayEnabledChanged();
+    Q_EMIT overlayOpacityChanged();
     Q_EMIT timeFormatChanged();
     Q_EMIT dateFormatChanged();
     Q_EMIT lowercaseDateChanged();
-    Q_EMIT fadeAnimationsEnabledChanged();
-    Q_EMIT fadeInDurationChanged();
-    Q_EMIT fadeOutDurationChanged();
     Q_EMIT showSystemMonitorChanged();
     Q_EMIT showBatteryChanged();
     Q_EMIT batteryUpdateIntervalChanged();

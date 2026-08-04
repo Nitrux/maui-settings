@@ -36,6 +36,8 @@ QVariantMap readSettings(QSettings &settings)
             QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors"))},
         {QStringLiteral("iconTheme"), settings.value(
             QStringLiteral("Appearance/IconTheme"), QStringLiteral("hicolor"))},
+        {QStringLiteral("iconMode"), settings.value(
+            QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
         {QStringLiteral("fontFamily"), settings.value(
             QStringLiteral("Appearance/Font"), QStringLiteral("Noto Sans"))},
         {QStringLiteral("fontSize"), settings.value(
@@ -50,8 +52,6 @@ QVariantMap readSettings(QSettings &settings)
             QStringLiteral("Clock/DateFormat"), QStringLiteral("dddd, dd MMMM yyyy"))},
         {QStringLiteral("blurEnabled"), settings.value(
             QStringLiteral("Appearance/BlurEnabled"), true)},
-        {QStringLiteral("animationsEnabled"), settings.value(
-            QStringLiteral("Behavior/AnimationsEnabled"), true)},
         {QStringLiteral("overlayEnabled"), settings.value(
             QStringLiteral("Appearance/OverlayEnabled"), true)},
         {QStringLiteral("overlayOpacity"), settings.value(
@@ -95,6 +95,7 @@ QString QmlGreetController::colorSchemeDirectory() const
 
 QString QmlGreetController::colorSchemePath() const { return m_colorSchemePath; }
 QString QmlGreetController::iconTheme() const { return m_iconTheme; }
+QString QmlGreetController::iconMode() const { return m_iconMode; }
 QString QmlGreetController::fontFamily() const { return m_fontFamily; }
 int QmlGreetController::fontSize() const { return m_fontSize; }
 int QmlGreetController::borderRadius() const { return m_borderRadius; }
@@ -110,7 +111,6 @@ QString QmlGreetController::avatarPath() const { return m_avatarPath; }
 QString QmlGreetController::timeFormat() const { return m_timeFormat; }
 QString QmlGreetController::dateFormat() const { return m_dateFormat; }
 bool QmlGreetController::blurEnabled() const { return m_blurEnabled; }
-bool QmlGreetController::animationsEnabled() const { return m_animationsEnabled; }
 bool QmlGreetController::overlayEnabled() const { return m_overlayEnabled; }
 double QmlGreetController::overlayOpacity() const { return m_overlayOpacity; }
 QStringList QmlGreetController::availableSessions() const { return m_availableSessions; }
@@ -146,7 +146,17 @@ QString QmlGreetController::normalizeLocalPath(const QString &value)
 
 SET_STRING_SETTING(setWallpaperPath, m_wallpaperPath, wallpaperPathChanged, normalizeLocalPath(value))
 SET_STRING_SETTING(setColorSchemePath, m_colorSchemePath, colorSchemePathChanged, normalizeLocalPath(value))
-SET_STRING_SETTING(setIconTheme, m_iconTheme, iconThemeChanged, value.trimmed())
+    SET_STRING_SETTING(setIconTheme, m_iconTheme, iconThemeChanged, value.trimmed())
+    void QmlGreetController::setIconMode(const QString &value)
+    {
+        const QString normalized = value.trimmed().toLower() == QStringLiteral("nerd")
+            ? QStringLiteral("nerd") : QStringLiteral("system");
+        if (m_iconMode == normalized)
+            return;
+        m_iconMode = normalized;
+        Q_EMIT iconModeChanged();
+        updateDirty();
+    }
 SET_STRING_SETTING(setFontFamily, m_fontFamily, fontFamilyChanged, value.trimmed())
 SET_STRING_SETTING(setAvatarPath, m_avatarPath, avatarPathChanged, normalizeLocalPath(value))
 SET_STRING_SETTING(setTimeFormat, m_timeFormat, timeFormatChanged,
@@ -168,7 +178,6 @@ SET_STRING_SETTING(setDefaultSession, m_defaultSession, defaultSessionChanged, v
     }
 
 SET_BOOLEAN_SETTING(setBlurEnabled, m_blurEnabled, blurEnabledChanged)
-SET_BOOLEAN_SETTING(setAnimationsEnabled, m_animationsEnabled, animationsEnabledChanged)
 SET_BOOLEAN_SETTING(setOverlayEnabled, m_overlayEnabled, overlayEnabledChanged)
 SET_BOOLEAN_SETTING(setShowAvatars, m_showAvatars, showAvatarsChanged)
 SET_BOOLEAN_SETTING(setRememberLastUser, m_rememberLastUser, rememberLastUserChanged)
@@ -217,6 +226,7 @@ QVariantMap QmlGreetController::stagedValues() const
         {QStringLiteral("wallpaperPath"), m_wallpaperPath},
         {QStringLiteral("colorSchemePath"), m_colorSchemePath},
         {QStringLiteral("iconTheme"), m_iconTheme},
+        {QStringLiteral("iconMode"), m_iconMode},
         {QStringLiteral("fontFamily"), m_fontFamily},
         {QStringLiteral("fontSize"), m_fontSize},
         {QStringLiteral("borderRadius"), m_borderRadius},
@@ -224,7 +234,6 @@ QVariantMap QmlGreetController::stagedValues() const
         {QStringLiteral("timeFormat"), m_timeFormat},
         {QStringLiteral("dateFormat"), m_dateFormat},
         {QStringLiteral("blurEnabled"), m_blurEnabled},
-        {QStringLiteral("animationsEnabled"), m_animationsEnabled},
         {QStringLiteral("overlayEnabled"), m_overlayEnabled},
         {QStringLiteral("overlayOpacity"), m_overlayOpacity},
         {QStringLiteral("defaultSession"), m_defaultSession},
@@ -256,6 +265,8 @@ void QmlGreetController::applyValues(const QVariantMap &values)
         QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors")).toString());
     m_iconTheme = values.value(
         QStringLiteral("iconTheme"), QStringLiteral("hicolor")).toString().trimmed();
+    m_iconMode = values.value(QStringLiteral("iconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
+        ? QStringLiteral("nerd") : QStringLiteral("system");
     m_fontFamily = values.value(
         QStringLiteral("fontFamily"), QStringLiteral("Noto Sans")).toString().trimmed();
     m_fontSize = qBound(1, values.value(QStringLiteral("fontSize"), 10).toInt(), 256);
@@ -266,7 +277,6 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_dateFormat = values.value(
         QStringLiteral("dateFormat"), QStringLiteral("dddd, dd MMMM yyyy")).toString();
     m_blurEnabled = values.value(QStringLiteral("blurEnabled"), true).toBool();
-    m_animationsEnabled = values.value(QStringLiteral("animationsEnabled"), true).toBool();
     m_overlayEnabled = values.value(QStringLiteral("overlayEnabled"), true).toBool();
     m_overlayOpacity = qBound(
         0.0, values.value(QStringLiteral("overlayOpacity"), 0.76).toDouble(), 1.0);
@@ -278,6 +288,7 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     Q_EMIT wallpaperPathChanged();
     Q_EMIT colorSchemePathChanged();
     Q_EMIT iconThemeChanged();
+    Q_EMIT iconModeChanged();
     Q_EMIT fontFamilyChanged();
     Q_EMIT fontSizeChanged();
     Q_EMIT borderRadiusChanged();
@@ -285,7 +296,6 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     Q_EMIT timeFormatChanged();
     Q_EMIT dateFormatChanged();
     Q_EMIT blurEnabledChanged();
-    Q_EMIT animationsEnabledChanged();
     Q_EMIT overlayEnabledChanged();
     Q_EMIT overlayOpacityChanged();
     Q_EMIT defaultSessionChanged();

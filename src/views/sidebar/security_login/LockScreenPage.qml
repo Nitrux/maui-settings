@@ -10,7 +10,9 @@ Maui.ScrollColumn
     id: root
 
     readonly property var controller: (typeof desklockController !== "undefined"
-                                       && desklockController) ? desklockController : null
+                                        && desklockController) ? desklockController : null
+    property var indicatorIconModeLabels: [i18n("System icons"), i18n("Nerd Font symbols")]
+    property var indicatorIconModeValues: ["system", "nerd"]
 
     anchors.fill: parent
     spacing: Maui.Style.space.big
@@ -32,6 +34,15 @@ Maui.ScrollColumn
             return i18n("No wallpaper selected")
 
         return path.replace(/^file:\/\//, "")
+    }
+
+    function indexForValue(model, value)
+    {
+        const needle = (value || "").trim()
+        for (let i = 0; i < model.length; ++i)
+            if (String(model[i]).trim() === needle)
+                return i
+        return -1
     }
 
     function displayAvatarPath(path)
@@ -128,6 +139,44 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                label1.text: i18n("Indicator icon style")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Use system icon-theme artwork or Nerd Font symbols.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: root.indicatorIconModeLabels
+                    currentIndex: controller ? root.indexForValue(root.indicatorIconModeValues, controller.iconMode) : 0
+                    onActivated: if (controller) controller.iconMode = root.indicatorIconModeValues[currentIndex]
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
                 label1.text: i18n("Wallpaper path")
                 label1.elide: Text.ElideRight
                 label2.text: controller ? root.displayPath(controller.wallpaperPath) : i18n("No wallpaper selected")
@@ -168,53 +217,12 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Avatar image")
-                label1.elide: Text.ElideRight
-                label2.text: root.displayAvatarPath(
-                    controller ? controller.avatarPath : "")
-                label2.wrapMode: Text.Wrap
-
-                template.content: Button
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    text: i18n("Choose")
-                    onClicked: root.pickAvatar()
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
                 label1.text: i18n("Background blur")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Blur radius in pixels. Set to 0 to disable blur.")
+                label2.text: i18n("Blur the selected wallpaper behind the lock screen.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: SpinBox
+                template.content: Switch
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -234,16 +242,8 @@ Maui.ScrollColumn
                         wideParent = originalParent
                         updateResponsiveParent()
                     }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
-                    from: 0
-                    to: 128
-                    stepSize: 4
-                    value: controller ? controller.backgroundBlurRadius : 64
-                    editable: true
-                    onValueModified: if (controller) controller.backgroundBlurRadius = value
+                    checked: controller ? controller.blurEnabled : true
+                    onToggled: if (controller) controller.blurEnabled = checked
                 }
             }
 
@@ -251,6 +251,41 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                label1.text: i18n("Background overlay")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Draw a theme-colored overlay above the wallpaper.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: controller ? controller.overlayEnabled : true
+                    onToggled: if (controller) controller.overlayEnabled = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: controller ? controller.overlayEnabled : true
                 label1.text: i18n("Overlay opacity")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Background overlay opacity as a percentage.")
@@ -282,9 +317,9 @@ Maui.ScrollColumn
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 6
                     from: 0
                     to: 100
-                    value: controller ? Math.round(controller.backgroundOverlayOpacity * 100) : 76
+                    value: controller ? Math.round(controller.overlayOpacity * 100) : 76
                     editable: true
-                    onValueModified: if (controller) controller.backgroundOverlayOpacity = value / 100.0
+                    onValueModified: if (controller) controller.overlayOpacity = value / 100.0
                 }
             }
 
@@ -416,58 +451,44 @@ Maui.ScrollColumn
                 }
             }
 
-            Maui.SectionItem
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _sessionLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _sessionLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                flat: true
-                label1.text: i18n("Fade animations")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Animate the lock screen when it appears and unlocks.")
+                text1: i18n("Session and User Options")
+                text2: i18n("Configure the user identity shown on the lock screen.")
                 label2.wrapMode: Text.Wrap
-
-                template.content: Switch
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    checked: controller ? controller.fadeAnimationsEnabled : true
-                    onToggled:
-                    {
-                        if (controller)
-                            controller.fadeAnimationsEnabled = checked
-                    }
-                }
             }
 
             Maui.SectionItem
             {
                 Layout.fillWidth: true
                 flat: true
-                enabled: controller ? controller.fadeAnimationsEnabled : true
-                label1.text: i18n("Fade-in duration")
+                label1.text: i18n("Avatar image")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Animation duration in milliseconds.")
+                label2.text: root.displayAvatarPath(
+                    controller ? controller.avatarPath : "")
                 label2.wrapMode: Text.Wrap
 
-                template.content: SpinBox
+                template.content: Button
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -490,72 +511,11 @@ Maui.ScrollColumn
                         wideParent = originalParent
                         updateResponsiveParent()
                     }
-
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
-                    from: 0
-                    to: 5000
-                    stepSize: 50
-                    value: controller ? controller.fadeInDuration : 350
-                    editable: true
-                    onValueModified:
-                    {
-                        if (controller)
-                            controller.fadeInDuration = value
-                    }
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                enabled: controller ? controller.fadeAnimationsEnabled : true
-                label1.text: i18n("Fade-out duration")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Unlock animation duration in milliseconds.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: SpinBox
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
-                    from: 0
-                    to: 5000
-                    stepSize: 50
-                    value: controller ? controller.fadeOutDuration : 250
-                    editable: true
-                    onValueModified:
-                    {
-                        if (controller)
-                            controller.fadeOutDuration = value
-                    }
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: i18n("Choose")
+                    onClicked: root.pickAvatar()
                 }
             }
         }

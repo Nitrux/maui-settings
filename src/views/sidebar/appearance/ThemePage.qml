@@ -1181,6 +1181,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _cursorThemePreviewDialog
         title: i18n("Cursor theme preview")
         persistent: true
@@ -1227,6 +1228,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _iconThemePreviewDialog
         title: i18n("Icon theme preview")
         persistent: true
@@ -1273,6 +1275,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _colorSchemePreviewDialog
         title: i18n("Color scheme preview")
         persistent: true
@@ -1484,6 +1487,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _fontDialog
         title: i18n("Fonts")
         persistent: true

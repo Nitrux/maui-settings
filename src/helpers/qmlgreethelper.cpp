@@ -31,6 +31,8 @@ QVariantMap readSettings()
             QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors"))},
         {QStringLiteral("iconTheme"), settings.value(
             QStringLiteral("Appearance/IconTheme"), QStringLiteral("hicolor"))},
+        {QStringLiteral("iconMode"), settings.value(
+            QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
         {QStringLiteral("fontFamily"), settings.value(
             QStringLiteral("Appearance/Font"), QStringLiteral("Noto Sans"))},
         {QStringLiteral("fontSize"), settings.value(
@@ -45,8 +47,6 @@ QVariantMap readSettings()
             QStringLiteral("Clock/DateFormat"), QStringLiteral("dddd, dd MMMM yyyy"))},
         {QStringLiteral("blurEnabled"), settings.value(
             QStringLiteral("Appearance/BlurEnabled"), true)},
-        {QStringLiteral("animationsEnabled"), settings.value(
-            QStringLiteral("Behavior/AnimationsEnabled"), true)},
         {QStringLiteral("overlayEnabled"), settings.value(
             QStringLiteral("Appearance/OverlayEnabled"), true)},
         {QStringLiteral("overlayOpacity"), settings.value(
@@ -296,6 +296,7 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         {QStringLiteral("Appearance"), QStringLiteral("BackgroundImage"), QStringLiteral("wallpaperPath"), wallpaperPath},
         {QStringLiteral("Appearance"), QStringLiteral("ColorScheme"), QStringLiteral("colorSchemePath"), colorSchemePath},
         {QStringLiteral("Appearance"), QStringLiteral("IconTheme"), QStringLiteral("iconTheme"), boundedString(arguments, QStringLiteral("iconTheme"), 256)},
+        {QStringLiteral("Appearance"), QStringLiteral("IconMode"), QStringLiteral("iconMode"), arguments.value(QStringLiteral("iconMode")).toString().trimmed().toLower() == QStringLiteral("nerd") ? QStringLiteral("nerd") : QStringLiteral("system")},
         {QStringLiteral("Appearance"), QStringLiteral("Font"), QStringLiteral("fontFamily"), boundedString(arguments, QStringLiteral("fontFamily"), 256)},
         {QStringLiteral("Appearance"), QStringLiteral("FontSize"), QStringLiteral("fontSize"), QString::number(qBound(1, arguments.value(QStringLiteral("fontSize"), 10).toInt(), 256))},
         {QStringLiteral("Style"), QStringLiteral("BorderRadius"), QStringLiteral("borderRadius"), QString::number(qBound(0, arguments.value(QStringLiteral("borderRadius"), 8).toInt(), 256))},
@@ -305,7 +306,6 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         {QStringLiteral("Appearance"), QStringLiteral("OverlayOpacity"), QStringLiteral("overlayOpacity"), QString::number(qBound(0.0, arguments.value(QStringLiteral("overlayOpacity"), 0.76).toDouble(), 1.0))},
         {QStringLiteral("Clock"), QStringLiteral("TimeFormat"), QStringLiteral("timeFormat"), boundedString(arguments, QStringLiteral("timeFormat"), 256)},
         {QStringLiteral("Clock"), QStringLiteral("DateFormat"), QStringLiteral("dateFormat"), boundedString(arguments, QStringLiteral("dateFormat"), 256)},
-        {QStringLiteral("Behavior"), QStringLiteral("AnimationsEnabled"), QStringLiteral("animationsEnabled"), boolValue(QStringLiteral("animationsEnabled"), true)},
         {QStringLiteral("Behavior"), QStringLiteral("ShowAvatars"), QStringLiteral("showAvatars"), boolValue(QStringLiteral("showAvatars"), true)},
         {QStringLiteral("Behavior"), QStringLiteral("RememberLastUser"), QStringLiteral("rememberLastUser"), boolValue(QStringLiteral("rememberLastUser"), true)},
         {QStringLiteral("Indicators"), QStringLiteral("ShowBattery"), QStringLiteral("showBattery"), boolValue(QStringLiteral("showBattery"), true)},

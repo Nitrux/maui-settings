@@ -15,6 +15,7 @@ class QmlGreetController : public QObject
     Q_PROPERTY(QString colorSchemeDirectory READ colorSchemeDirectory NOTIFY colorSchemePathChanged)
     Q_PROPERTY(QString colorSchemePath READ colorSchemePath WRITE setColorSchemePath NOTIFY colorSchemePathChanged)
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme NOTIFY iconThemeChanged)
+    Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY iconModeChanged)
     Q_PROPERTY(QString fontFamily READ fontFamily WRITE setFontFamily NOTIFY fontFamilyChanged)
     Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
     Q_PROPERTY(int borderRadius READ borderRadius WRITE setBorderRadius NOTIFY borderRadiusChanged)
@@ -23,7 +24,6 @@ class QmlGreetController : public QObject
     Q_PROPERTY(QString timeFormat READ timeFormat WRITE setTimeFormat NOTIFY timeFormatChanged)
     Q_PROPERTY(QString dateFormat READ dateFormat WRITE setDateFormat NOTIFY dateFormatChanged)
     Q_PROPERTY(bool blurEnabled READ blurEnabled WRITE setBlurEnabled NOTIFY blurEnabledChanged)
-    Q_PROPERTY(bool animationsEnabled READ animationsEnabled WRITE setAnimationsEnabled NOTIFY animationsEnabledChanged)
     Q_PROPERTY(bool overlayEnabled READ overlayEnabled WRITE setOverlayEnabled NOTIFY overlayEnabledChanged)
     Q_PROPERTY(double overlayOpacity READ overlayOpacity WRITE setOverlayOpacity NOTIFY overlayOpacityChanged)
     Q_PROPERTY(QStringList availableSessions READ availableSessions NOTIFY availableSessionsChanged)
@@ -47,6 +47,7 @@ public:
     QString colorSchemeDirectory() const;
     QString colorSchemePath() const;
     QString iconTheme() const;
+    QString iconMode() const;
     QString fontFamily() const;
     int fontSize() const;
     int borderRadius() const;
@@ -55,7 +56,6 @@ public:
     QString timeFormat() const;
     QString dateFormat() const;
     bool blurEnabled() const;
-    bool animationsEnabled() const;
     bool overlayEnabled() const;
     double overlayOpacity() const;
     QStringList availableSessions() const;
@@ -72,6 +72,7 @@ public:
     void setWallpaperPath(const QString &value);
     void setColorSchemePath(const QString &value);
     void setIconTheme(const QString &value);
+    void setIconMode(const QString &value);
     void setFontFamily(const QString &value);
     void setFontSize(int value);
     void setBorderRadius(int value);
@@ -79,7 +80,6 @@ public:
     void setTimeFormat(const QString &value);
     void setDateFormat(const QString &value);
     void setBlurEnabled(bool value);
-    void setAnimationsEnabled(bool value);
     void setOverlayEnabled(bool value);
     void setOverlayOpacity(double value);
     void setDefaultSession(const QString &value);
@@ -96,6 +96,7 @@ Q_SIGNALS:
     void wallpaperPathChanged();
     void colorSchemePathChanged();
     void iconThemeChanged();
+    void iconModeChanged();
     void fontFamilyChanged();
     void fontSizeChanged();
     void borderRadiusChanged();
@@ -103,7 +104,6 @@ Q_SIGNALS:
     void timeFormatChanged();
     void dateFormatChanged();
     void blurEnabledChanged();
-    void animationsEnabledChanged();
     void overlayEnabledChanged();
     void overlayOpacityChanged();
     void availableSessionsChanged();
@@ -138,6 +138,7 @@ private:
     QString m_wallpaperPath;
     QString m_colorSchemePath;
     QString m_iconTheme = QStringLiteral("hicolor");
+    QString m_iconMode = QStringLiteral("system");
     QString m_fontFamily = QStringLiteral("Noto Sans");
     int m_fontSize = 10;
     int m_borderRadius = 8;
@@ -145,7 +146,6 @@ private:
     QString m_timeFormat = QStringLiteral("hh:mm");
     QString m_dateFormat = QStringLiteral("dddd, dd MMMM yyyy");
     bool m_blurEnabled = true;
-    bool m_animationsEnabled = true;
     bool m_overlayEnabled = true;
     double m_overlayOpacity = 0.76;
     QStringList m_availableSessions;

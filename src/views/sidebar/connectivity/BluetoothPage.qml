@@ -71,6 +71,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _pairingDialog
         property string requestId: ""
 
@@ -182,6 +183,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _deviceEditor
         title: i18n("Edit Bluetooth device")
         persistent: true

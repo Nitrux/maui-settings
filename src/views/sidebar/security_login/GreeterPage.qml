@@ -15,6 +15,8 @@ Maui.SettingsPage
                                 && kdeGlobalsInfo) ? kdeGlobalsInfo : null
     readonly property bool saveAvailable: controller ? controller.saveAvailable : false
     readonly property bool editable: saveAvailable && !controller.loading && !controller.saving
+    property var indicatorIconModeLabels: [i18n("System icons"), i18n("Nerd Font symbols")]
+    property var indicatorIconModeValues: ["system", "nerd"]
 
     anchors.fill: parent
     title: i18n("Greeter")
@@ -166,6 +168,44 @@ Maui.SettingsPage
                 text1: i18n("Appearance")
                 text2: i18n("Choose the background, clock formats, theme, and visual effects.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Indicator icon style")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Use system icon-theme artwork or Nerd Font symbols.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: root.indicatorIconModeLabels
+                    currentIndex: controller ? root.indexForString(root.indicatorIconModeValues, controller.iconMode) : 0
+                    onActivated: if (controller) controller.iconMode = root.indicatorIconModeValues[currentIndex]
+                }
             }
 
             Maui.SectionItem
@@ -588,43 +628,6 @@ Maui.SettingsPage
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Animations")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Enable transitions and visual animations on the login screen.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: Switch
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem
-                        && (Maui.Handy.isMobile
-                            || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (wideParent && responsiveSectionItem)
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-
-                    checked: controller ? controller.animationsEnabled : true
-                    onToggled: if (controller) controller.animationsEnabled = checked
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
                 label1.text: i18n("Background overlay")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Draw a theme-colored overlay above the wallpaper.")
@@ -972,6 +975,7 @@ Maui.SettingsPage
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _iconThemePreviewDialog
         title: i18n("Icon theme preview")
         persistent: true
@@ -1018,6 +1022,7 @@ Maui.SettingsPage
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _colorSchemePreviewDialog
         title: i18n("Color scheme preview")
         persistent: true
@@ -1047,6 +1052,7 @@ Maui.SettingsPage
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _fontDialog
         title: i18n("Fonts")
         persistent: true

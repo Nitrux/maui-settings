@@ -36,6 +36,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _passwordDialog
         title: i18n("Connect to %1", root.selectedSsid)
         persistent: true
@@ -111,6 +112,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _networkEditor
         title: i18n("Edit %1", root.selectedSsid)
         persistent: true

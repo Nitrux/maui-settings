@@ -11,14 +11,13 @@ class DesklockController : public QObject
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
     Q_PROPERTY(QString avatarPath READ avatarPath WRITE setAvatarPath NOTIFY avatarPathChanged)
-    Q_PROPERTY(int backgroundBlurRadius READ backgroundBlurRadius WRITE setBackgroundBlurRadius NOTIFY backgroundBlurRadiusChanged)
-    Q_PROPERTY(double backgroundOverlayOpacity READ backgroundOverlayOpacity WRITE setBackgroundOverlayOpacity NOTIFY backgroundOverlayOpacityChanged)
+    Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY iconModeChanged)
+    Q_PROPERTY(bool blurEnabled READ blurEnabled WRITE setBlurEnabled NOTIFY blurEnabledChanged)
+    Q_PROPERTY(bool overlayEnabled READ overlayEnabled WRITE setOverlayEnabled NOTIFY overlayEnabledChanged)
+    Q_PROPERTY(double overlayOpacity READ overlayOpacity WRITE setOverlayOpacity NOTIFY overlayOpacityChanged)
     Q_PROPERTY(QString timeFormat READ timeFormat WRITE setTimeFormat NOTIFY timeFormatChanged)
     Q_PROPERTY(QString dateFormat READ dateFormat WRITE setDateFormat NOTIFY dateFormatChanged)
     Q_PROPERTY(bool lowercaseDate READ lowercaseDate WRITE setLowercaseDate NOTIFY lowercaseDateChanged)
-    Q_PROPERTY(bool fadeAnimationsEnabled READ fadeAnimationsEnabled WRITE setFadeAnimationsEnabled NOTIFY fadeAnimationsEnabledChanged)
-    Q_PROPERTY(int fadeInDuration READ fadeInDuration WRITE setFadeInDuration NOTIFY fadeInDurationChanged)
-    Q_PROPERTY(int fadeOutDuration READ fadeOutDuration WRITE setFadeOutDuration NOTIFY fadeOutDurationChanged)
     Q_PROPERTY(bool showSystemMonitor READ showSystemMonitor WRITE setShowSystemMonitor NOTIFY showSystemMonitorChanged)
     Q_PROPERTY(bool showBattery READ showBattery WRITE setShowBattery NOTIFY showBatteryChanged)
     Q_PROPERTY(int batteryUpdateInterval READ batteryUpdateInterval WRITE setBatteryUpdateInterval NOTIFY batteryUpdateIntervalChanged)
@@ -39,14 +38,13 @@ public:
     QString wallpaperPath() const;
     QString avatarDirectory() const;
     QString avatarPath() const;
-    int backgroundBlurRadius() const;
-    double backgroundOverlayOpacity() const;
+    QString iconMode() const;
+    bool blurEnabled() const;
+    bool overlayEnabled() const;
+    double overlayOpacity() const;
     QString timeFormat() const;
     QString dateFormat() const;
     bool lowercaseDate() const;
-    bool fadeAnimationsEnabled() const;
-    int fadeInDuration() const;
-    int fadeOutDuration() const;
     bool showSystemMonitor() const;
     bool showBattery() const;
     int batteryUpdateInterval() const;
@@ -61,14 +59,13 @@ public:
 
     void setWallpaperPath(const QString &value);
     void setAvatarPath(const QString &value);
-    void setBackgroundBlurRadius(int value);
-    void setBackgroundOverlayOpacity(double value);
+    void setIconMode(const QString &value);
+    void setBlurEnabled(bool value);
+    void setOverlayEnabled(bool value);
+    void setOverlayOpacity(double value);
     void setTimeFormat(const QString &value);
     void setDateFormat(const QString &value);
     void setLowercaseDate(bool value);
-    void setFadeAnimationsEnabled(bool value);
-    void setFadeInDuration(int value);
-    void setFadeOutDuration(int value);
     void setShowSystemMonitor(bool value);
     void setShowBattery(bool value);
     void setBatteryUpdateInterval(int value);
@@ -87,14 +84,13 @@ public:
 Q_SIGNALS:
     void wallpaperPathChanged();
     void avatarPathChanged();
-    void backgroundBlurRadiusChanged();
-    void backgroundOverlayOpacityChanged();
+    void iconModeChanged();
+    void blurEnabledChanged();
+    void overlayEnabledChanged();
+    void overlayOpacityChanged();
     void timeFormatChanged();
     void dateFormatChanged();
     void lowercaseDateChanged();
-    void fadeAnimationsEnabledChanged();
-    void fadeInDurationChanged();
-    void fadeOutDurationChanged();
     void showSystemMonitorChanged();
     void showBatteryChanged();
     void batteryUpdateIntervalChanged();
@@ -119,14 +115,13 @@ private:
     QString m_hypridleConfigPath;
     QString m_wallpaperPath;
     QString m_avatarPath;
-    int m_backgroundBlurRadius = 64;
-    double m_backgroundOverlayOpacity = 0.76;
+    QString m_iconMode = QStringLiteral("system");
+    bool m_blurEnabled = true;
+    bool m_overlayEnabled = true;
+    double m_overlayOpacity = 0.76;
     QString m_timeFormat = QStringLiteral("hh:mm");
     QString m_dateFormat = QStringLiteral("dddd, dd MMMM yyyy");
     bool m_lowercaseDate = false;
-    bool m_fadeAnimationsEnabled = true;
-    int m_fadeInDuration = 350;
-    int m_fadeOutDuration = 250;
     bool m_showSystemMonitor = true;
     bool m_showBattery = true;
     int m_batteryUpdateInterval = 30000;

@@ -70,6 +70,7 @@ Maui.ScrollColumn
 
     Maui.PopupPage
     {
+        Maui.Controls.flat: true
         id: _removeDialog
         title: i18n("Remove Association")
         persistent: true
