@@ -217,116 +217,6 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Background blur")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Blur the selected wallpaper behind the lock screen.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: Switch
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    checked: controller ? controller.blurEnabled : true
-                    onToggled: if (controller) controller.blurEnabled = checked
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                label1.text: i18n("Background overlay")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Draw a theme-colored overlay above the wallpaper.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: Switch
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    checked: controller ? controller.overlayEnabled : true
-                    onToggled: if (controller) controller.overlayEnabled = checked
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                enabled: controller ? controller.overlayEnabled : true
-                label1.text: i18n("Overlay opacity")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Background overlay opacity as a percentage.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: SpinBox
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
-                    from: 0
-                    to: 100
-                    value: controller ? Math.round(controller.overlayOpacity * 100) : 76
-                    editable: true
-                    onValueModified: if (controller) controller.overlayOpacity = value / 100.0
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
                 label1.text: i18n("Time format")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Specify the display format for the time.")
@@ -451,6 +341,115 @@ Maui.ScrollColumn
                 }
             }
 
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Background blur")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Blur the selected wallpaper behind the lock screen.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: controller ? controller.blurEnabled : true
+                    onToggled: if (controller) controller.blurEnabled = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Background overlay")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Draw a theme-colored overlay above the wallpaper.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: controller ? controller.overlayEnabled : true
+                    onToggled: if (controller) controller.overlayEnabled = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: controller ? controller.overlayEnabled : true
+                label1.text: i18n("Overlay opacity")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Background overlay opacity as a percentage.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 6
+                    from: 0
+                    to: 100
+                    value: controller ? Math.round(controller.overlayOpacity * 100) : 76
+                    editable: true
+                    onValueModified: if (controller) controller.overlayOpacity = value / 100.0
+                }
+            }
         }
     }
 
