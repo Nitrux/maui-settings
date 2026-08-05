@@ -6,6 +6,7 @@
 #include <QJsonParseError>
 #include <QJsonValue>
 #include <QProcess>
+#include <QSettings>
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QtMath>
@@ -13,13 +14,18 @@
 AudioController::AudioController(QObject *parent)
     : QObject(parent)
 {
+    m_hiddenDevices = QSettings().value(QStringLiteral("audio/hiddenDevices")).toStringList();
     refresh();
+    m_refreshTimer.setInterval(1000);
+    connect(&m_refreshTimer, &QTimer::timeout, this, &AudioController::refresh);
+    m_refreshTimer.start();
 }
 
 QVariantList AudioController::sinks() const { return m_sinks; }
 QVariantList AudioController::sources() const { return m_sources; }
 QVariantList AudioController::playbackStreams() const { return m_playbackStreams; }
 QVariantList AudioController::captureStreams() const { return m_captureStreams; }
+QStringList AudioController::hiddenDevices() const { return m_hiddenDevices; }
 
 QString AudioController::run(const QStringList &arguments)
 {
@@ -49,50 +55,6 @@ bool AudioController::runCommandWithExecutable(const QString &name, const QStrin
 bool AudioController::runCommand(const QStringList &arguments)
 {
     return runCommandWithExecutable(QStringLiteral("wpctl"), arguments);
-}
-
-QString AudioController::runPactl(const QStringList &arguments)
-{
-    const QString executable = QStandardPaths::findExecutable(QStringLiteral("pactl"));
-    if (executable.isEmpty())
-        return {};
-
-    QProcess process;
-    process.start(executable, arguments);
-    if (!process.waitForFinished(2500) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
-        return {};
-
-    return QString::fromUtf8(process.readAllStandardOutput());
-}
-
-bool AudioController::deviceAvailable(const QString &name, const QString &deviceType)
-{
-    const QString output = runPactl({QStringLiteral("list"), deviceType});
-    if (output.isEmpty())
-        return true;
-
-    const QString deviceHeader = QStringLiteral("Name: %1").arg(name);
-    const qsizetype sourceStart = output.indexOf(deviceHeader);
-    if (sourceStart < 0)
-        return true;
-
-    qsizetype sourceEnd = output.indexOf(QStringLiteral("\n%1 #").arg(deviceType == QStringLiteral("sinks") ? QStringLiteral("Sink") : QStringLiteral("Source")), sourceStart + deviceHeader.size());
-    if (sourceEnd < 0)
-        sourceEnd = output.size();
-    const QString sourceBlock = output.mid(sourceStart, sourceEnd - sourceStart);
-    const qsizetype portsStart = sourceBlock.indexOf(QRegularExpression(QStringLiteral("\n\\s*Ports:")));
-    if (portsStart < 0)
-        return true;
-
-    const qsizetype portsEnd = sourceBlock.indexOf(QRegularExpression(QStringLiteral("\n\\s*Formats:")), portsStart);
-    const QString ports = sourceBlock.mid(portsStart, portsEnd < 0 ? sourceBlock.size() - portsStart : portsEnd - portsStart);
-    const bool hasAvailablePort = ports.contains(QRegularExpression(QStringLiteral("(?:,\\s*available\\)|available\\s*:\\s*yes)")));
-    const bool hasUnavailablePort = ports.contains(QRegularExpression(QStringLiteral("(?:not\\s+available|unavailable|available\\s*:\\s*no)")));
-    if (hasAvailablePort)
-        return true;
-    if (hasUnavailablePort)
-        return false;
-    return true;
 }
 
 QString AudioController::nodeName(const QString &inspectOutput)
@@ -169,15 +131,12 @@ void AudioController::refresh()
                 continue;
             QVariantMap node = nodeSnapshot(value.toObject(), defaultSink, defaultSource);
             const QString mediaClass = node.value(QStringLiteral("mediaClass")).toString();
+            node[QStringLiteral("hidden")] = m_hiddenDevices.contains(node.value(QStringLiteral("name")).toString());
 
-            if (mediaClass.startsWith(QStringLiteral("Audio/Sink"))) {
-                node[QStringLiteral("available")] = deviceAvailable(node.value(QStringLiteral("name")).toString(), QStringLiteral("sinks"));
+            if (mediaClass.startsWith(QStringLiteral("Audio/Sink")))
                 sinks << node;
-            }
-            else if (mediaClass.startsWith(QStringLiteral("Audio/Source"))) {
-                if (deviceAvailable(node.value(QStringLiteral("name")).toString(), QStringLiteral("sources")))
-                    sources << node;
-            }
+            else if (mediaClass.startsWith(QStringLiteral("Audio/Source")))
+                sources << node;
             else if (mediaClass.contains(QStringLiteral("Stream/Output/Audio")))
                 playbackStreams << node;
             else if (mediaClass.contains(QStringLiteral("Stream/Input/Audio")))
@@ -218,4 +177,21 @@ void AudioController::setDefault(quint32 index)
 {
     if (runCommand({QStringLiteral("set-default"), QString::number(index)}))
         refresh();
+}
+
+void AudioController::setDeviceHidden(const QString &name, bool hidden)
+{
+    if (name.isEmpty())
+        return;
+
+    if (hidden && !m_hiddenDevices.contains(name))
+        m_hiddenDevices.append(name);
+    else if (!hidden)
+        m_hiddenDevices.removeAll(name);
+    else
+        return;
+
+    QSettings().setValue(QStringLiteral("audio/hiddenDevices"), m_hiddenDevices);
+    Q_EMIT hiddenDevicesChanged();
+    refresh();
 }

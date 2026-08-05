@@ -13,6 +13,8 @@ Maui.ScrollColumn
     readonly property var controller: audioController
     readonly property color volumeBarColor: Maui.Theme.highlightColor
     readonly property color mutedVolumeBarColor: Maui.Theme.disabledTextColor
+    property bool showHiddenOutputs: false
+    property bool showHiddenInputs: false
 
     function reloadSettings()
     {
@@ -56,18 +58,56 @@ Maui.ScrollColumn
                 text2: i18n("Select the default playback device and adjust its volume.")
                 label2.wrapMode: Text.Wrap
             }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Show hidden devices")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Display devices hidden with the Hide action.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.alignment: Qt.AlignRight
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    Layout.preferredWidth: implicitWidth
+                    checked: root.showHiddenOutputs
+                    onToggled: root.showHiddenOutputs = checked
+                }
+            }
             Repeater
             {
-                model: controller ? controller.sinks : []
+                model: controller ? controller.sinks.filter(function(device) { return root.showHiddenOutputs || !device.hidden }) : []
                 delegate: Maui.SectionItem
                 {
                     property var audioObject: modelData
                     Layout.fillWidth: true
-                    enabled: audioObject.available !== false
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: audioObject.available === false ? i18n("Unavailable output") : (audioObject.default ? i18n("Default output · %1", audioObject.volume) + "%" : i18n("Available output · %1", audioObject.volume) + "%")
+                    label2.text: (audioObject.default ? i18n("Default output · %1", audioObject.volume) + "%" : i18n("Available output · %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
                     template.content: RowLayout
                     {
@@ -119,11 +159,22 @@ Maui.ScrollColumn
                             checkable: false
                             onClicked: if (controller) controller.setMuted(audioObject.index, !audioObject.muted)
                         }
-                        Button
+                        ToolButton
                         {
-                            text: i18n("Default")
+                            icon.name: "edit-pin"
+                            display: ToolButton.IconOnly
                             enabled: !audioObject.default
+                            ToolTip.text: i18n("Set as default device")
+                            ToolTip.visible: hovered
                             onClicked: if (controller) controller.setDefault(audioObject.index)
+                        }
+                        ToolButton
+                        {
+                            icon.name: audioObject.hidden ? "view-visible" : "view-hidden"
+                            display: ToolButton.IconOnly
+                            ToolTip.text: audioObject.hidden ? i18n("Show device") : i18n("Hide device")
+                            ToolTip.visible: hovered
+                            onClicked: if (controller) controller.setDeviceHidden(audioObject.name, !audioObject.hidden)
                         }
                     }
                 }
@@ -131,10 +182,10 @@ Maui.ScrollColumn
             Maui.SectionItem
             {
                 Layout.fillWidth: true
-                visible: !controller || controller.sinks.length === 0
+                visible: !controller || controller.sinks.filter(function(device) { return root.showHiddenOutputs || !device.hidden }).length === 0
                 flat: true
-                label1.text: i18n("No output devices found")
-                label2.text: i18n("PipeWire has not exposed a playback device.")
+                label1.text: controller && controller.sinks.length > 0 ? i18n("All output devices are hidden") : i18n("No output devices found")
+                label2.text: controller && controller.sinks.length > 0 ? i18n("Enable Show hidden devices to display them.") : i18n("PipeWire has not exposed a playback device.")
                 label2.wrapMode: Text.Wrap
             }
         }
@@ -163,19 +214,57 @@ Rectangle
                 text2: i18n("Select the default recording device and adjust its volume.")
                 label2.wrapMode: Text.Wrap
             }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Show hidden devices")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Display devices hidden with the Hide action.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.alignment: Qt.AlignRight
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    Layout.preferredWidth: implicitWidth
+                    checked: root.showHiddenInputs
+                    onToggled: root.showHiddenInputs = checked
+                }
+            }
 
             Repeater
             {
-                model: controller ? controller.sources : []
+                model: controller ? controller.sources.filter(function(device) { return root.showHiddenInputs || !device.hidden }) : []
                 delegate: Maui.SectionItem
                 {
                     property var audioObject: modelData
                     Layout.fillWidth: true
-                    enabled: audioObject.available !== false
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: audioObject.available === false ? i18n("Unavailable input") : (audioObject.default ? i18n("Default input · %1", audioObject.volume) + "%" : i18n("Available input · %1", audioObject.volume) + "%")
+                    label2.text: (audioObject.default ? i18n("Default input · %1", audioObject.volume) + "%" : i18n("Available input · %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
 
                     template.content: RowLayout
@@ -233,11 +322,22 @@ Rectangle
                             }
                         }
 
-                        Button
+                        ToolButton
                         {
-                            text: i18n("Default")
+                            icon.name: "edit-pin"
+                            display: ToolButton.IconOnly
                             enabled: !audioObject.default
+                            ToolTip.text: i18n("Set as default device")
+                            ToolTip.visible: hovered
                             onClicked: if (controller) controller.setDefault(audioObject.index)
+                        }
+                        ToolButton
+                        {
+                            icon.name: audioObject.hidden ? "view-visible" : "view-hidden"
+                            display: ToolButton.IconOnly
+                            ToolTip.text: audioObject.hidden ? i18n("Show device") : i18n("Hide device")
+                            ToolTip.visible: hovered
+                            onClicked: if (controller) controller.setDeviceHidden(audioObject.name, !audioObject.hidden)
                         }
                     }
                 }
@@ -246,10 +346,10 @@ Rectangle
             Maui.SectionItem
             {
                 Layout.fillWidth: true
-                visible: !controller || controller.sources.length === 0
+                visible: !controller || controller.sources.filter(function(device) { return root.showHiddenInputs || !device.hidden }).length === 0
                 flat: true
-                label1.text: i18n("No input devices found")
-                label2.text: i18n("PipeWire has not exposed a recording device.")
+                label1.text: controller && controller.sources.length > 0 ? i18n("All input devices are hidden") : i18n("No input devices found")
+                label2.text: controller && controller.sources.length > 0 ? i18n("Enable Show hidden devices to display them.") : i18n("PipeWire has not exposed a recording device.")
                 label2.wrapMode: Text.Wrap
             }
         }
@@ -337,9 +437,17 @@ Rectangle
                             checkable: false
                             onClicked: if (controller) controller.setMuted(audioObject.index, !audioObject.muted)
                         }
-                        Button
+                        ToolButton
                         {
-                            text: i18n("Default")
+                            icon.name: "edit-pin"
+                            display: ToolButton.IconOnly
+                            enabled: false
+                            opacity: 0
+                        }
+                        ToolButton
+                        {
+                            icon.name: "view-hidden"
+                            display: ToolButton.IconOnly
                             enabled: false
                             opacity: 0
                         }
@@ -407,9 +515,17 @@ Rectangle
                             checkable: false
                             onClicked: if (controller) controller.setSourceMuted(audioObject.index, !audioObject.muted)
                         }
-                        Button
+                        ToolButton
                         {
-                            text: i18n("Default")
+                            icon.name: "edit-pin"
+                            display: ToolButton.IconOnly
+                            enabled: false
+                            opacity: 0
+                        }
+                        ToolButton
+                        {
+                            icon.name: "view-hidden"
+                            display: ToolButton.IconOnly
                             enabled: false
                             opacity: 0
                         }
