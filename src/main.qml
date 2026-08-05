@@ -73,9 +73,6 @@ Maui.ApplicationWindow
 
             if (!saved)
                 return
-
-            if (root.currentSection === "desktop-marina")
-                root.notify("view-refresh", i18n("Marina"), i18n("Restarting the desktop dock..."), [], false)
         }
     }
 

@@ -1,26 +1,8 @@
 #include "marinainfo.h"
 
 #include <QDir>
-#include <QProcess>
 #include <QSettings>
-#include <QStandardPaths>
 #include <QtGlobal>
-
-namespace
-{
-bool restartDetached(const QString &processName, const QString &programName)
-{
-    const QString shell = QStandardPaths::findExecutable(QStringLiteral("sh"));
-    const QString pkill = QStandardPaths::findExecutable(QStringLiteral("pkill"));
-    const QString program = QStandardPaths::findExecutable(programName);
-    if (shell.isEmpty() || pkill.isEmpty() || program.isEmpty())
-        return false;
-
-    // Keep the delay in the detached helper so closing the settings app cannot cancel the relaunch.
-    const QString script = QStringLiteral("\"$1\" -x -- \"$2\" >/dev/null 2>&1 || true; sleep 0.2; exec \"$3\" >/dev/null 2>&1");
-    return QProcess::startDetached(shell, {QStringLiteral("-c"), script, QStringLiteral("workspace-settings-restart"), pkill, processName, program});
-}
-} // namespace
 
 MarinaInfo::MarinaInfo(QObject *parent)
     : QObject(parent)
@@ -156,5 +138,5 @@ bool MarinaInfo::save()
     if (settings.status() != QSettings::NoError)
         return false;
 
-    return restartDetached(QStringLiteral("marina"), QStringLiteral("marina"));
+    return true;
 }
