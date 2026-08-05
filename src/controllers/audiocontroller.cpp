@@ -8,7 +8,6 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QStandardPaths>
-#include <QTimer>
 #include <QtMath>
 
 AudioController::AudioController(QObject *parent)
@@ -50,6 +49,50 @@ bool AudioController::runCommandWithExecutable(const QString &name, const QStrin
 bool AudioController::runCommand(const QStringList &arguments)
 {
     return runCommandWithExecutable(QStringLiteral("wpctl"), arguments);
+}
+
+QString AudioController::runPactl(const QStringList &arguments)
+{
+    const QString executable = QStandardPaths::findExecutable(QStringLiteral("pactl"));
+    if (executable.isEmpty())
+        return {};
+
+    QProcess process;
+    process.start(executable, arguments);
+    if (!process.waitForFinished(2500) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+        return {};
+
+    return QString::fromUtf8(process.readAllStandardOutput());
+}
+
+bool AudioController::deviceAvailable(const QString &name, const QString &deviceType)
+{
+    const QString output = runPactl({QStringLiteral("list"), deviceType});
+    if (output.isEmpty())
+        return true;
+
+    const QString deviceHeader = QStringLiteral("Name: %1").arg(name);
+    const qsizetype sourceStart = output.indexOf(deviceHeader);
+    if (sourceStart < 0)
+        return true;
+
+    qsizetype sourceEnd = output.indexOf(QStringLiteral("\n%1 #").arg(deviceType == QStringLiteral("sinks") ? QStringLiteral("Sink") : QStringLiteral("Source")), sourceStart + deviceHeader.size());
+    if (sourceEnd < 0)
+        sourceEnd = output.size();
+    const QString sourceBlock = output.mid(sourceStart, sourceEnd - sourceStart);
+    const qsizetype portsStart = sourceBlock.indexOf(QRegularExpression(QStringLiteral("\n\\s*Ports:")));
+    if (portsStart < 0)
+        return true;
+
+    const qsizetype portsEnd = sourceBlock.indexOf(QRegularExpression(QStringLiteral("\n\\s*Formats:")), portsStart);
+    const QString ports = sourceBlock.mid(portsStart, portsEnd < 0 ? sourceBlock.size() - portsStart : portsEnd - portsStart);
+    const bool hasAvailablePort = ports.contains(QRegularExpression(QStringLiteral("(?:,\\s*available\\)|available\\s*:\\s*yes)")));
+    const bool hasUnavailablePort = ports.contains(QRegularExpression(QStringLiteral("(?:not\\s+available|unavailable|available\\s*:\\s*no)")));
+    if (hasAvailablePort)
+        return true;
+    if (hasUnavailablePort)
+        return false;
+    return true;
 }
 
 QString AudioController::nodeName(const QString &inspectOutput)
@@ -124,13 +167,16 @@ void AudioController::refresh()
         for (const QJsonValue &value : document.array()) {
             if (!value.isObject() || value.toObject().value(QStringLiteral("type")).toString() != QStringLiteral("PipeWire:Interface:Node"))
                 continue;
-            const QVariantMap node = nodeSnapshot(value.toObject(), defaultSink, defaultSource);
+            QVariantMap node = nodeSnapshot(value.toObject(), defaultSink, defaultSource);
             const QString mediaClass = node.value(QStringLiteral("mediaClass")).toString();
 
-            if (mediaClass.startsWith(QStringLiteral("Audio/Sink")))
+            if (mediaClass.startsWith(QStringLiteral("Audio/Sink"))) {
+                node[QStringLiteral("available")] = deviceAvailable(node.value(QStringLiteral("name")).toString(), QStringLiteral("sinks"));
                 sinks << node;
+            }
             else if (mediaClass.startsWith(QStringLiteral("Audio/Source"))) {
-                sources << node;
+                if (deviceAvailable(node.value(QStringLiteral("name")).toString(), QStringLiteral("sources")))
+                    sources << node;
             }
             else if (mediaClass.contains(QStringLiteral("Stream/Output/Audio")))
                 playbackStreams << node;

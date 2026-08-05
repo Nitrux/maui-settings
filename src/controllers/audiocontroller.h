@@ -39,11 +39,10 @@ private:
     static bool runCommand(const QStringList &arguments);
     static bool runCommandWithExecutable(const QString &name, const QStringList &arguments);
     static QString runPactl(const QStringList &arguments);
-    static QString runPactlSourceMute(const QString &target);
-    static QString pactlSourceIndex(const QString &name);
     static QVariantMap nodeSnapshot(const QJsonObject &object, const QString &defaultSink, const QString &defaultSource);
     static void applyVolume(QVariantMap &node);
     static QString nodeName(const QString &inspectOutput);
+    static bool deviceAvailable(const QString &name, const QString &deviceType);
 
     QVariantList m_sinks;
     QVariantList m_sources;

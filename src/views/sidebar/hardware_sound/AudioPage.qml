@@ -63,10 +63,11 @@ Maui.ScrollColumn
                 {
                     property var audioObject: modelData
                     Layout.fillWidth: true
+                    enabled: audioObject.available !== false
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: audioObject.default ? i18n("Default output · %1", audioObject.volume) + "%" : i18n("Available output · %1", audioObject.volume) + "%"
+                    label2.text: audioObject.available === false ? i18n("Unavailable output") : (audioObject.default ? i18n("Default output · %1", audioObject.volume) + "%" : i18n("Available output · %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
                     template.content: RowLayout
                     {
@@ -170,19 +171,12 @@ Rectangle
                 {
                     property var audioObject: modelData
                     Layout.fillWidth: true
+                    enabled: audioObject.available !== false
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: audioObject.default ? i18n("Default input · %1", audioObject.volume) + "%" : i18n("Available input · %1", audioObject.volume) + "%"
+                    label2.text: audioObject.available === false ? i18n("Unavailable input") : (audioObject.default ? i18n("Default input · %1", audioObject.volume) + "%" : i18n("Available input · %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
-
-                    Component.onCompleted: {
-                        console.log("[InputDevices QML Debug] Delegate loaded for index:", audioObject.index, "muted:", audioObject.muted, "volume:", audioObject.volume)
-                    }
-
-                    onAudioObjectChanged: {
-                        console.log("[InputDevices QML Debug] Model state updated for index:", audioObject.index, "muted:", audioObject.muted, "volume:", audioObject.volume)
-                    }
 
                     template.content: RowLayout
                     {
@@ -219,10 +213,7 @@ Rectangle
                         {
                             Layout.fillWidth: true
                             Layout.preferredWidth: Maui.Style.units.gridUnit * 18
-                            Maui.Theme.highlightColor: {
-                                console.log("[InputDevices QML Debug] Highlight color evaluated for index:", audioObject.index, "muted state:", audioObject.muted)
-                                return audioObject.muted ? root.mutedVolumeBarColor : root.volumeBarColor
-                            }
+                            Maui.Theme.highlightColor: audioObject.muted ? root.mutedVolumeBarColor : root.volumeBarColor
                             from: 0
                             to: 150
                             stepSize: 1
@@ -238,7 +229,6 @@ Rectangle
                             display: ToolButton.IconOnly
                             checkable: false
                             onClicked: {
-                                console.log("[InputDevices QML Debug] Mute button clicked. Index:", audioObject.index, "Current muted:", audioObject.muted, "Target muted:", !audioObject.muted)
                                 if (controller) controller.setSourceMuted(audioObject.index, !audioObject.muted)
                             }
                         }
