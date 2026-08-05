@@ -69,6 +69,8 @@ endif()
 set(settings_SRCS
     src/main.cpp
     src/controllers/aboutinfo.cpp
+    src/controllers/audiocontroller.cpp
+    src/controllers/audiocontroller.h
     src/controllers/datetimemanager.cpp
     src/controllers/backgroundinfo.cpp
     src/controllers/bluetoothcontroller.cpp
@@ -156,6 +158,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/connectivity/NetworkPage.qml
     src/views/sidebar/hardware_sound/HardwareSoundGroup.qml
     src/views/sidebar/hardware_sound/AudioItem.qml
+    src/views/sidebar/hardware_sound/AudioPage.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml

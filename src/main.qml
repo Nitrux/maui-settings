@@ -41,6 +41,8 @@ Maui.ApplicationWindow
             return _networkPageLoader.item
         case "connectivity-bluetooth":
             return _bluetoothPageLoader.item
+        case "hardware-sound-audio":
+            return _audioPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
         case "security-login-greeter":
@@ -401,6 +403,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _audioPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "hardware-sound-audio" || item
+                        visible: root.currentSection === "hardware-sound-audio"
+                        source: "views/sidebar/hardware_sound/AudioPage.qml"
+                    }
+
+                    Loader
+                    {
                         id: _greeterPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-greeter"
@@ -421,7 +432,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "general-about" && root.currentSection !== "general-date-time" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "general-about" && root.currentSection !== "general-date-time" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

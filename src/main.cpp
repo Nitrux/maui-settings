@@ -17,6 +17,7 @@
 #include <MauiMan4/thememanager.h>
 
 #include "controllers/aboutinfo.h"
+#include "controllers/audiocontroller.h"
 #include "controllers/datetimemanager.h"
 #include "controllers/backgroundinfo.h"
 #include "controllers/bluetoothcontroller.h"
@@ -44,6 +45,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
+    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
+
     const QString version = QStringLiteral("0.0.1 %1/%2")
         .arg(QStringLiteral(GIT_BRANCH), QStringLiteral(GIT_COMMIT_HASH));
 
@@ -62,13 +65,14 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     about.setDesktopFileName(QStringLiteral("org.maui.settings"));
     KAboutData::setApplicationData(about);
 
-    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
-
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
 
     DateTimeManager dateTimeManager;
     engine.rootContext()->setContextProperty(QStringLiteral("dateTimeManager"), &dateTimeManager);
+
+    AudioController audioController;
+    engine.rootContext()->setContextProperty(QStringLiteral("audioController"), &audioController);
 
     AboutInfo aboutInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("aboutInfo"), &aboutInfo);
