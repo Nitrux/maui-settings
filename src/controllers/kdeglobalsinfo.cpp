@@ -1,10 +1,14 @@
 #include "kdeglobalsinfo.h"
 
 #include <QApplication>
+#include <QCryptographicHash>
+#include <QDBusConnection>
+#include <QDBusMessage>
 
 #include <algorithm>
 #include <QColor>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QIcon>
@@ -17,233 +21,14 @@
 #include <QStandardPaths>
 #include <QStyleHints>
 
-#include <QFile>
-#include <QMap>
-#include <QRegularExpression>
-#include <QSaveFile>
+#include <KConfig>
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 #include <X11/Xcursor/Xcursor.h>
 
 namespace
 {
-struct IniSection
-{
-    QString name;
-    QStringList lines;
-};
-
-using IniUpdates = QMap<QString, QMap<QString, QString>>;
-
-QString normalizedIniName(const QString &name)
-{
-    QString normalized = QString::fromUtf8(QByteArray::fromPercentEncoding(name.trimmed().toUtf8()));
-    if (normalized == QLatin1String("%General"))
-        normalized = QStringLiteral("General");
-
-    if (normalized.startsWith(QStringLiteral("Colors:A")))
-        normalized.remove(7, 1);
-    else if (normalized.startsWith(QStringLiteral("ColorEffects:A")))
-        normalized.remove(13, 1);
-
-    return normalized;
-}
-
-bool splitIniEntry(const QString &line, QString *key, QString *value)
-{
-    const QString trimmed = line.trimmed();
-    if (trimmed.isEmpty() || trimmed.startsWith(QLatin1Char('#')) || trimmed.startsWith(QLatin1Char(';')))
-        return false;
-
-    const qsizetype equalsIndex = line.indexOf(QLatin1Char('='));
-    if (equalsIndex <= 0)
-        return false;
-
-    *key = line.left(equalsIndex).trimmed();
-    *value = line.mid(equalsIndex + 1).trimmed();
-    return true;
-}
-
-QString normalizedIniValue(const QString &value)
-{
-    QString candidate = value.trimmed();
-    const bool quoted = candidate.size() >= 2 && candidate.startsWith(QLatin1Char('"')) && candidate.endsWith(QLatin1Char('"'));
-    if (quoted)
-        candidate = candidate.mid(1, candidate.size() - 2);
-
-    static const QRegularExpression serializedListPattern(
-        QStringLiteral("^[^,=]+(?:,\\s*-?\\d+(?:\\.\\d+)?)+$"));
-    if (!serializedListPattern.match(candidate).hasMatch())
-        return value;
-
-    candidate.replace(QRegularExpression(QStringLiteral(",\\s+")), QStringLiteral(","));
-    return candidate;
-}
-
-qsizetype entryIndex(const IniSection &section, const QString &key)
-{
-    for (qsizetype index = 0; index < section.lines.size(); ++index)
-    {
-        QString existingKey;
-        QString existingValue;
-        if (splitIniEntry(section.lines.at(index), &existingKey, &existingValue)
-            && normalizedIniName(existingKey) == key)
-        {
-            return index;
-        }
-    }
-
-    return -1;
-}
-
-QString readIniValue(const QString &path, const QString &group, const QString &key, const QString &fallback = {})
-{
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        return fallback;
-
-    QString currentGroup;
-    QString result = fallback;
-    const QStringList lines = QString::fromUtf8(file.readAll()).split(QLatin1Char('\n'));
-    for (const QString &line : lines)
-    {
-        const QString trimmed = line.trimmed();
-        if (trimmed.startsWith(QLatin1Char('[')) && trimmed.endsWith(QLatin1Char(']')))
-        {
-            currentGroup = normalizedIniName(trimmed.mid(1, trimmed.size() - 2));
-            continue;
-        }
-
-        QString entryKey;
-        QString entryValue;
-        if (currentGroup == group && splitIniEntry(line, &entryKey, &entryValue)
-            && normalizedIniName(entryKey) == key)
-        {
-            result = normalizedIniValue(entryValue);
-        }
-    }
-
-    return result;
-}
-
-bool writeIniValues(const QString &path, const IniUpdates &updates)
-{
-    QFile input(path);
-    QByteArray contents;
-    if (input.exists())
-    {
-        if (!input.open(QIODevice::ReadOnly))
-            return false;
-        contents = input.readAll();
-    }
-
-    QList<IniSection> sections(1);
-    QMap<QString, qsizetype> sectionIndexes;
-    qsizetype currentSection = 0;
-    bool mergingDuplicate = false;
-
-    const QStringList sourceLines = QString::fromUtf8(contents).split(QLatin1Char('\n'));
-    for (const QString &line : sourceLines)
-    {
-        const QString trimmed = line.trimmed();
-        if (trimmed.startsWith(QLatin1Char('[')) && trimmed.endsWith(QLatin1Char(']')))
-        {
-            const QString sectionName = normalizedIniName(trimmed.mid(1, trimmed.size() - 2));
-            const auto existingSection = sectionIndexes.constFind(sectionName);
-            if (existingSection != sectionIndexes.cend())
-            {
-                currentSection = existingSection.value();
-                mergingDuplicate = true;
-            }
-            else
-            {
-                currentSection = sections.size();
-                sectionIndexes.insert(sectionName, currentSection);
-                sections.append(IniSection {sectionName, {}});
-                mergingDuplicate = false;
-            }
-            continue;
-        }
-
-        IniSection &section = sections[currentSection];
-        QString entryKey;
-        QString entryValue;
-        if (splitIniEntry(line, &entryKey, &entryValue))
-        {
-            entryKey = normalizedIniName(entryKey);
-            entryValue = normalizedIniValue(entryValue);
-            if (entryKey == QLatin1String("update_info"))
-                entryValue.replace(QRegularExpression(QStringLiteral(",\\s+")), QStringLiteral(","));
-            const QString normalizedLine = entryKey + QLatin1Char('=') + entryValue;
-            const qsizetype existingEntry = entryIndex(section, entryKey);
-            if (mergingDuplicate && existingEntry >= 0)
-                section.lines[existingEntry] = normalizedLine;
-            else
-                section.lines.append(normalizedLine);
-        }
-        else if (!mergingDuplicate)
-        {
-            section.lines.append(line);
-        }
-    }
-
-    if (contents.isEmpty())
-        sections[0].lines.clear();
-
-    for (auto groupIterator = updates.cbegin(); groupIterator != updates.cend(); ++groupIterator)
-    {
-        qsizetype sectionIndex = sectionIndexes.value(groupIterator.key(), -1);
-        if (sectionIndex < 0)
-        {
-            sectionIndex = sections.size();
-            sectionIndexes.insert(groupIterator.key(), sectionIndex);
-            sections.append(IniSection {groupIterator.key(), {}});
-        }
-
-        IniSection &section = sections[sectionIndex];
-        for (auto entryIterator = groupIterator.value().cbegin(); entryIterator != groupIterator.value().cend(); ++entryIterator)
-        {
-            const QString line = entryIterator.key() + QLatin1Char('=') + entryIterator.value();
-            const qsizetype index = entryIndex(section, entryIterator.key());
-            if (index >= 0)
-                section.lines[index] = line;
-            else
-                section.lines.append(line);
-        }
-    }
-
-    QStringList outputLines = sections.constFirst().lines;
-    for (qsizetype index = 1; index < sections.size(); ++index)
-    {
-        if (!outputLines.isEmpty() && !outputLines.constLast().isEmpty())
-            outputLines.append(QString());
-        outputLines.append(QLatin1Char('[') + sections.at(index).name + QLatin1Char(']'));
-        outputLines.append(sections.at(index).lines);
-    }
-
-    QSaveFile output(path);
-    if (!output.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
-    if (output.write(outputLines.join(QLatin1Char('\n')).toUtf8()) < 0)
-        return false;
-    return output.commit();
-}
-
-bool iniBoolean(const QString &value, bool fallback)
-{
-    const QString normalized = value.trimmed().toLower();
-    if (normalized == QLatin1String("true") || normalized == QLatin1String("1")
-        || normalized == QLatin1String("yes") || normalized == QLatin1String("on"))
-    {
-        return true;
-    }
-    if (normalized == QLatin1String("false") || normalized == QLatin1String("0")
-        || normalized == QLatin1String("no") || normalized == QLatin1String("off"))
-    {
-        return false;
-    }
-    return fallback;
-}
-
 QString systemDefaultFont()
 {
     return QApplication::font().toString();
@@ -257,6 +42,84 @@ QString systemSmallFont()
 QString systemMonospaceFont()
 {
     return QFontDatabase::systemFont(QFontDatabase::FixedFont).toString();
+}
+
+QFont configFont(const QString &value)
+{
+    QFont font;
+    return font.fromString(value.trimmed()) ? font : QApplication::font();
+}
+
+void notifyKcmChange(int changeType)
+{
+    QDBusMessage message = QDBusMessage::createSignal(QStringLiteral("/KGlobalSettings"),
+                                                      QStringLiteral("org.kde.KGlobalSettings"),
+                                                      QStringLiteral("notifyChange"));
+    message.setArguments({changeType, 0});
+    QDBusConnection::sessionBus().send(message);
+}
+
+bool applyColorScheme(KConfig *target, const QString &path)
+{
+    if (path.isEmpty())
+        return false;
+
+    const KSharedConfigPtr source = KSharedConfig::openConfig(path, KConfig::SimpleConfig);
+    const QStringList colorGroups {
+        QStringLiteral("Colors:View"),
+        QStringLiteral("Colors:Window"),
+        QStringLiteral("Colors:Button"),
+        QStringLiteral("Colors:Selection"),
+        QStringLiteral("Colors:Tooltip"),
+        QStringLiteral("Colors:Complementary"),
+        QStringLiteral("Colors:Header"),
+        QStringLiteral("ColorEffects:Inactive"),
+        QStringLiteral("ColorEffects:Disabled")
+    };
+
+    for (const QString &groupName : colorGroups)
+    {
+        KConfigGroup targetGroup(target, groupName);
+        targetGroup.deleteGroup();
+
+        KConfigGroup sourceGroup(source, groupName);
+        if (sourceGroup.exists())
+            sourceGroup.copyTo(&targetGroup);
+    }
+
+    const QStringList windowManagerColorKeys {
+        QStringLiteral("activeBackground"),
+        QStringLiteral("activeForeground"),
+        QStringLiteral("inactiveBackground"),
+        QStringLiteral("inactiveForeground"),
+        QStringLiteral("activeBlend"),
+        QStringLiteral("inactiveBlend")
+    };
+    KConfigGroup sourceWindowManager(source, QStringLiteral("WM"));
+    KConfigGroup targetWindowManager(target, QStringLiteral("WM"));
+    for (const QString &key : windowManagerColorKeys)
+    {
+        if (sourceWindowManager.hasKey(key))
+            targetWindowManager.writeEntry(key, sourceWindowManager.readEntry(key, QString()));
+    }
+
+    KConfigGroup sourceKde(source, QStringLiteral("KDE"));
+    KConfigGroup targetKde(target, QStringLiteral("KDE"));
+    for (const QString &key : {QStringLiteral("frameContrast"), QStringLiteral("contrast")})
+    {
+        if (sourceKde.hasKey(key))
+            targetKde.writeEntry(key, sourceKde.readEntry(key, QString()));
+    }
+
+    QFile colorSchemeFile(path);
+    if (colorSchemeFile.open(QIODevice::ReadOnly))
+    {
+        QCryptographicHash hash(QCryptographicHash::Sha1);
+        hash.addData(&colorSchemeFile);
+        KConfigGroup(target, QStringLiteral("General")).writeEntry(QStringLiteral("ColorSchemeHash"), QString::fromLatin1(hash.result().toHex()));
+    }
+
+    return true;
 }
 
 void addUnique(QStringList &list, const QString &value)
@@ -570,25 +433,53 @@ void KdeGlobalsInfo::reload()
 
 bool KdeGlobalsInfo::save()
 {
-    IniUpdates settingsUpdates;
-    QMap<QString, QString> &generalGroup = settingsUpdates[QStringLiteral("General")];
-    generalGroup.insert(QStringLiteral("ColorScheme"), m_colorScheme);
-    generalGroup.insert(QStringLiteral("font"), m_defaultFont);
-    generalGroup.insert(QStringLiteral("menuFont"), m_defaultFont);
-    generalGroup.insert(QStringLiteral("toolBarFont"), m_defaultFont);
-    generalGroup.insert(QStringLiteral("smallestReadableFont"), m_smallFont);
-    generalGroup.insert(QStringLiteral("fixed"), m_monospaceFont);
+    const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
+    KConfigGroup generalGroup(settings, QStringLiteral("General"));
+    const bool paletteChanged = generalGroup.readEntry(QStringLiteral("ColorScheme"), QString()) != m_colorScheme;
+    if (paletteChanged)
+    {
+        generalGroup.writeEntry(QStringLiteral("ColorScheme"), m_colorScheme);
+        applyColorScheme(settings.data(), colorSchemeFilePath(m_colorScheme));
+    }
 
-    QMap<QString, QString> &kdeGroup = settingsUpdates[QStringLiteral("KDE")];
-    kdeGroup.insert(QStringLiteral("ColorScheme"), m_colorScheme);
-    kdeGroup.insert(QStringLiteral("SingleClick"), m_singleClick ? QStringLiteral("true") : QStringLiteral("false"));
+    const auto writeFontIfChanged = [&generalGroup](const QString &key, const QString &value) {
+        const QFont desired = configFont(value);
+        const QFont current = generalGroup.readEntry(key, QFont());
+        if (generalGroup.hasKey(key) && current == desired)
+            return false;
 
-    settingsUpdates[QStringLiteral("Icons")].insert(QStringLiteral("Theme"), m_iconTheme);
-    const bool settingsSaved = writeIniValues(m_configPath, settingsUpdates);
+        generalGroup.writeEntry(key, desired);
+        return true;
+    };
+    writeFontIfChanged(QStringLiteral("font"), m_defaultFont);
+    writeFontIfChanged(QStringLiteral("smallestReadableFont"), m_smallFont);
+    writeFontIfChanged(QStringLiteral("fixed"), m_monospaceFont);
 
-    IniUpdates inputUpdates;
-    inputUpdates[QStringLiteral("Mouse")].insert(QStringLiteral("cursorTheme"), m_cursorTheme);
-    const bool inputSettingsSaved = writeIniValues(m_inputConfigPath, inputUpdates);
+    KConfigGroup kdeGroup(settings, QStringLiteral("KDE"));
+    if (kdeGroup.readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation()) != m_singleClick)
+        kdeGroup.writeEntry(QStringLiteral("SingleClick"), m_singleClick);
+
+    KConfigGroup iconsGroup(settings, QStringLiteral("Icons"));
+    if (iconsGroup.readEntry(QStringLiteral("Theme"), QString()) != m_iconTheme)
+        iconsGroup.writeEntry(QStringLiteral("Theme"), m_iconTheme);
+    settings->sync();
+
+    const KSharedConfigPtr inputSettings = KSharedConfig::openConfig(m_inputConfigPath, KConfig::SimpleConfig);
+    KConfigGroup mouseGroup(inputSettings, QStringLiteral("Mouse"));
+    const bool cursorChanged = mouseGroup.readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME")) != m_cursorTheme;
+    if (cursorChanged)
+        mouseGroup.writeEntry(QStringLiteral("cursorTheme"), m_cursorTheme);
+    inputSettings->sync();
+
+    const bool settingsSaved = !settings->isDirty();
+    const bool inputSettingsSaved = !inputSettings->isDirty();
+    if (settingsSaved && inputSettingsSaved)
+    {
+        if (paletteChanged)
+            notifyKcmChange(0); // PaletteChanged
+        if (cursorChanged)
+            notifyKcmChange(5); // CursorChanged
+    }
 
     return settingsSaved && inputSettingsSaved;
 }
@@ -599,9 +490,7 @@ QFont KdeGlobalsInfo::fontFromString(const QString &value) const
     if (description.isEmpty())
         return QApplication::font();
 
-    QFont font;
-    font.fromString(description);
-    return font;
+    return configFont(description);
 }
 
 QString KdeGlobalsInfo::fontToString(const QFont &font) const
@@ -865,23 +754,20 @@ void KdeGlobalsInfo::load()
     m_smallFont.clear();
     m_monospaceFont.clear();
 
-    m_colorScheme = readIniValue(m_configPath, QStringLiteral("General"), QStringLiteral("ColorScheme"));
-    m_defaultFont = readIniValue(m_configPath, QStringLiteral("General"), QStringLiteral("font"), systemDefaultFont());
-    m_smallFont = readIniValue(m_configPath, QStringLiteral("General"), QStringLiteral("smallestReadableFont"), systemSmallFont());
-    m_monospaceFont = readIniValue(m_configPath, QStringLiteral("General"), QStringLiteral("fixed"), systemMonospaceFont());
+    const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
+    const KConfigGroup generalGroup(settings, QStringLiteral("General"));
+    m_colorScheme = generalGroup.readEntry(QStringLiteral("ColorScheme"), QString());
+    m_defaultFont = generalGroup.readEntry(QStringLiteral("font"), systemDefaultFont());
+    m_smallFont = generalGroup.readEntry(QStringLiteral("smallestReadableFont"), systemSmallFont());
+    m_monospaceFont = generalGroup.readEntry(QStringLiteral("fixed"), systemMonospaceFont());
 
     if (m_colorScheme.isEmpty())
-        m_colorScheme = readIniValue(m_configPath, QStringLiteral("KDE"), QStringLiteral("ColorScheme"));
-    m_singleClick = iniBoolean(
-        readIniValue(m_configPath, QStringLiteral("KDE"), QStringLiteral("SingleClick")),
-        QApplication::styleHints()->singleClickActivation());
+        m_colorScheme = settings->group(QStringLiteral("KDE")).readEntry(QStringLiteral("ColorScheme"), QString());
+    m_singleClick = settings->group(QStringLiteral("KDE")).readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation());
 
-    m_iconTheme = readIniValue(m_configPath, QStringLiteral("Icons"), QStringLiteral("Theme"));
-    m_cursorTheme = readIniValue(
-        m_inputConfigPath,
-        QStringLiteral("Mouse"),
-        QStringLiteral("cursorTheme"),
-        qEnvironmentVariable("XCURSOR_THEME"));
+    m_iconTheme = settings->group(QStringLiteral("Icons")).readEntry(QStringLiteral("Theme"), QString());
+    const KSharedConfigPtr inputSettings = KSharedConfig::openConfig(m_inputConfigPath, KConfig::SimpleConfig);
+    m_cursorTheme = inputSettings->group(QStringLiteral("Mouse")).readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME"));
 
     if (m_defaultFont.isEmpty())
         m_defaultFont = systemDefaultFont();

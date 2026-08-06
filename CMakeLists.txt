@@ -44,7 +44,7 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-find_package(KF6 REQUIRED COMPONENTS Auth BluezQt CoreAddons I18n NetworkManagerQt)
+find_package(KF6 REQUIRED COMPONENTS Auth BluezQt Config CoreAddons I18n NetworkManagerQt)
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
 find_package(MauiMan4 REQUIRED)
 
@@ -182,6 +182,8 @@ target_link_libraries(${APP_NAME}
     X11::Xcursor
     KF6::AuthCore
     KF6::BluezQt
+    KF6::ConfigCore
+    KF6::ConfigGui
     KF6::CoreAddons
     KF6::I18n
     KF6::NetworkManagerQt
