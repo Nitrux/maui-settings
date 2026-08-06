@@ -57,7 +57,6 @@ private:
     static QString homeConfigPath();
     static QString normalizePath(const QString &value);
     static QString unquoteValue(const QString &value);
-    static QString quoteValue(const QString &value);
     static bool parseBool(const QString &value);
     void setChanged();
 

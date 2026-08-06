@@ -260,7 +260,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 11
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
                     model: fitModeLabels
                     currentIndex: info ? indexForValue(fitModeValues, info.wallpaperFitMode) : 0
                     onActivated:
@@ -509,6 +509,7 @@ Maui.ScrollColumn
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: -1000
+                    enabled: info ? info.splashEnabled : false
                     to: 1000
                     value: info ? info.splashOffset : 20
                     onValueModified:
@@ -557,6 +558,7 @@ Maui.ScrollColumn
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
                     from: 0
                     to: 100
+                    enabled: info ? info.splashEnabled : false
                     value: info ? Math.round(info.splashOpacity * 100) : 80
                     onValueModified:
                     {

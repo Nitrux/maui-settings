@@ -399,7 +399,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 14
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 12
                     model: windowControlsThemeModel()
                     currentIndex: windowControlsThemeIndex()
                     enabled: theme !== null

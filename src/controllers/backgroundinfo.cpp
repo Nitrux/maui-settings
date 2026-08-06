@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QProcess>
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QUrl>
@@ -25,6 +26,16 @@ QString assignmentValue(const QString &line, const QString &key)
 QString formatBool(bool value)
 {
     return value ? QStringLiteral("true") : QStringLiteral("false");
+}
+
+void restartHyprpaper()
+{
+    const QString executable = QStandardPaths::findExecutable(QStringLiteral("hyprpaper"));
+    if (executable.isEmpty())
+        return;
+
+    QProcess::execute(QStringLiteral("pkill"), {QStringLiteral("-TERM"), QStringLiteral("-x"), QStringLiteral("hyprpaper")});
+    QProcess::startDetached(executable, {});
 }
 } // namespace
 
@@ -66,14 +77,6 @@ QString BackgroundInfo::unquoteValue(const QString &value)
     }
 
     return result;
-}
-
-QString BackgroundInfo::quoteValue(const QString &value)
-{
-    QString result = value;
-    result.replace(QStringLiteral("\\"), QStringLiteral("\\\\"));
-    result.replace(QStringLiteral("\""), QStringLiteral("\\\""));
-    return QStringLiteral("\"") + result + QStringLiteral("\"");
 }
 
 bool BackgroundInfo::parseBool(const QString &value)
@@ -356,20 +359,25 @@ bool BackgroundInfo::save()
 
     QTextStream out(&file);
     out << "wallpaper {\n";
-    out << "    monitor = " << quoteValue(m_wallpaperMonitor) << "\n";
-    out << "    path = " << quoteValue(m_wallpaperPath) << "\n";
-    out << "    fit_mode = " << quoteValue(m_wallpaperFitMode) << "\n";
+    out << "    monitor = " << m_wallpaperMonitor << "\n";
+    out << "    path = " << m_wallpaperPath << "\n";
+    out << "    fit_mode = " << m_wallpaperFitMode << "\n";
     out << "    timeout = " << m_wallpaperTimeout << "\n";
-    out << "    order = " << quoteValue(m_wallpaperOrder) << "\n";
+    out << "    order = " << m_wallpaperOrder << "\n";
     out << "    recursive = " << (m_wallpaperRecursive ? 1 : 0) << "\n";
     out << "}\n\n";
     out << "splash = " << formatBool(m_splashEnabled) << "\n";
-    out << "splash_offset = " << m_splashOffset << "\n";
-    out << "splash_opacity = " << QString::number(m_splashOpacity, 'g', 6) << "\n";
+    if (m_splashEnabled)
+    {
+        out << "splash_offset = " << m_splashOffset << "\n";
+        out << "splash_opacity = " << QString::number(m_splashOpacity, 'g', 6) << "\n";
+    }
     out << "ipc = " << formatBool(m_ipcEnabled) << "\n";
 
     if (!file.commit())
         return false;
+
+    restartHyprpaper();
 
     return true;
 }
