@@ -14,6 +14,7 @@
 #include <KLocalizedString>
 
 #include <MauiKit4/Core/mauiapp.h>
+#include <MauiKit4/FileBrowsing/moduleinfo.h>
 #include <MauiMan4/thememanager.h>
 
 #include "controllers/aboutinfo.h"
@@ -45,8 +46,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
-    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
-
     const QString version = QStringLiteral("0.0.1 %1/%2")
         .arg(QStringLiteral(GIT_BRANCH), QStringLiteral(GIT_COMMIT_HASH));
 
@@ -63,7 +62,11 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     about.setProductName(QByteArrayLiteral("nitrux/maui-settings"));
     about.setProgramLogo(app.windowIcon());
     about.setDesktopFileName(QStringLiteral("org.maui.settings"));
+
+    const auto fileBrowsingData = MauiKitFileBrowsing::aboutData();
+    about.addComponent(fileBrowsingData.name(), MauiKitFileBrowsing::buildVersion(), fileBrowsingData.version(), fileBrowsingData.webAddress());
     KAboutData::setApplicationData(about);
+    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
