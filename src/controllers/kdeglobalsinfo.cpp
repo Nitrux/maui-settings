@@ -312,6 +312,16 @@ QString KdeGlobalsInfo::defaultFont() const
     return m_defaultFont;
 }
 
+QString KdeGlobalsInfo::menuFont() const
+{
+    return m_menuFont;
+}
+
+QString KdeGlobalsInfo::toolBarFont() const
+{
+    return m_toolBarFont;
+}
+
 QString KdeGlobalsInfo::smallFont() const
 {
     return m_smallFont;
@@ -397,6 +407,26 @@ void KdeGlobalsInfo::setDefaultFont(const QString &value)
     setChanged();
 }
 
+void KdeGlobalsInfo::setMenuFont(const QString &value)
+{
+    const QString normalized = value.trimmed();
+    if (m_menuFont == normalized)
+        return;
+
+    m_menuFont = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setToolBarFont(const QString &value)
+{
+    const QString normalized = value.trimmed();
+    if (m_toolBarFont == normalized)
+        return;
+
+    m_toolBarFont = normalized;
+    setChanged();
+}
+
 void KdeGlobalsInfo::setSmallFont(const QString &value)
 {
     const QString normalized = value.trimmed();
@@ -452,6 +482,8 @@ bool KdeGlobalsInfo::save()
         return true;
     };
     writeFontIfChanged(QStringLiteral("font"), m_defaultFont);
+    writeFontIfChanged(QStringLiteral("menuFont"), m_menuFont);
+    writeFontIfChanged(QStringLiteral("toolBarFont"), m_toolBarFont);
     writeFontIfChanged(QStringLiteral("smallestReadableFont"), m_smallFont);
     writeFontIfChanged(QStringLiteral("fixed"), m_monospaceFont);
 
@@ -751,6 +783,8 @@ void KdeGlobalsInfo::load()
     m_iconTheme.clear();
     m_cursorTheme.clear();
     m_defaultFont.clear();
+    m_menuFont.clear();
+    m_toolBarFont.clear();
     m_smallFont.clear();
     m_monospaceFont.clear();
 
@@ -758,6 +792,8 @@ void KdeGlobalsInfo::load()
     const KConfigGroup generalGroup(settings, QStringLiteral("General"));
     m_colorScheme = generalGroup.readEntry(QStringLiteral("ColorScheme"), QString());
     m_defaultFont = generalGroup.readEntry(QStringLiteral("font"), systemDefaultFont());
+    m_menuFont = generalGroup.readEntry(QStringLiteral("menuFont"), m_defaultFont);
+    m_toolBarFont = generalGroup.readEntry(QStringLiteral("toolBarFont"), m_defaultFont);
     m_smallFont = generalGroup.readEntry(QStringLiteral("smallestReadableFont"), systemSmallFont());
     m_monospaceFont = generalGroup.readEntry(QStringLiteral("fixed"), systemMonospaceFont());
 
@@ -771,6 +807,10 @@ void KdeGlobalsInfo::load()
 
     if (m_defaultFont.isEmpty())
         m_defaultFont = systemDefaultFont();
+    if (m_menuFont.isEmpty())
+        m_menuFont = m_defaultFont;
+    if (m_toolBarFont.isEmpty())
+        m_toolBarFont = m_defaultFont;
     if (m_smallFont.isEmpty())
         m_smallFont = systemSmallFont();
     if (m_monospaceFont.isEmpty())

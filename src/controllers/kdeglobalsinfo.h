@@ -16,6 +16,8 @@ class KdeGlobalsInfo : public QObject
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme NOTIFY settingsChanged)
     Q_PROPERTY(QString cursorTheme READ cursorTheme WRITE setCursorTheme NOTIFY settingsChanged)
     Q_PROPERTY(QString defaultFont READ defaultFont WRITE setDefaultFont NOTIFY settingsChanged)
+    Q_PROPERTY(QString menuFont READ menuFont WRITE setMenuFont NOTIFY settingsChanged)
+    Q_PROPERTY(QString toolBarFont READ toolBarFont WRITE setToolBarFont NOTIFY settingsChanged)
     Q_PROPERTY(QString smallFont READ smallFont WRITE setSmallFont NOTIFY settingsChanged)
     Q_PROPERTY(QString monospaceFont READ monospaceFont WRITE setMonospaceFont NOTIFY settingsChanged)
     Q_PROPERTY(bool singleClick READ singleClick WRITE setSingleClick NOTIFY settingsChanged)
@@ -33,6 +35,8 @@ public:
     QString iconTheme() const;
     QString cursorTheme() const;
     QString defaultFont() const;
+    QString menuFont() const;
+    QString toolBarFont() const;
     QString smallFont() const;
     QString monospaceFont() const;
     bool singleClick() const;
@@ -46,6 +50,8 @@ public:
     void setIconTheme(const QString &value);
     void setCursorTheme(const QString &value);
     void setDefaultFont(const QString &value);
+    void setMenuFont(const QString &value);
+    void setToolBarFont(const QString &value);
     void setSmallFont(const QString &value);
     void setMonospaceFont(const QString &value);
     void setSingleClick(bool value);
@@ -78,6 +84,8 @@ private:
     QString m_iconTheme;
     QString m_cursorTheme;
     QString m_defaultFont;
+    QString m_menuFont;
+    QString m_toolBarFont;
     QString m_smallFont;
     QString m_monospaceFont;
     bool m_singleClick = true;

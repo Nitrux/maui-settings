@@ -25,6 +25,8 @@ Maui.ScrollColumn
     property string stagedCursorTheme: ""
     property string stagedColorScheme: ""
     property string stagedDefaultFont: ""
+    property string stagedMenuFont: ""
+    property string stagedToolBarFont: ""
     property string stagedSmallFont: ""
     property string stagedMonospaceFont: ""
 
@@ -54,6 +56,8 @@ Maui.ScrollColumn
             stagedCursorTheme = kde.cursorTheme
             stagedColorScheme = kde.colorScheme
             stagedDefaultFont = kde.defaultFont
+            stagedMenuFont = kde.menuFont
+            stagedToolBarFont = kde.toolBarFont
             stagedSmallFont = kde.smallFont
             stagedMonospaceFont = kde.monospaceFont
         }
@@ -82,6 +86,8 @@ Maui.ScrollColumn
             kde.cursorTheme = stagedCursorTheme
             kde.colorScheme = stagedColorScheme
             kde.defaultFont = stagedDefaultFont
+            kde.menuFont = stagedMenuFont
+            kde.toolBarFont = stagedToolBarFont
             kde.smallFont = stagedSmallFont
             kde.monospaceFont = stagedMonospaceFont
             kde.save()
@@ -188,7 +194,7 @@ Maui.ScrollColumn
 
     function kdeString(propertyName, fallback)
     {
-        return propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
+        return propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "menuFont" ? stagedMenuFont : propertyName === "toolBarFont" ? stagedToolBarFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
     }
 
     function setStagedFont(settingName, font)
@@ -198,6 +204,12 @@ Maui.ScrollColumn
         {
         case "defaultFont":
             stagedDefaultFont = value
+            break
+        case "menuFont":
+            stagedMenuFont = value
+            break
+        case "toolBarFont":
+            stagedToolBarFont = value
             break
         case "smallFont":
             stagedSmallFont = value
@@ -214,7 +226,9 @@ Maui.ScrollColumn
             return
 
         _fontDialog.settingName = settingName
-        _fontPicker.mfont = kde.fontFromString(value || "")
+        _fontDialog.pendingFont = kde.fontFromString(value || "")
+        _fontPickerLoader.active = false
+        _fontPickerLoader.active = true
         _fontDialog.open()
     }
 
@@ -816,7 +830,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Desktop Integration")
-                text2: i18n("These values come from ~/.config/kdeglobals and affect KDE/Qt apps.")
+                text2: i18n("These values affect KDE/Qt apps.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -952,6 +966,97 @@ Maui.ScrollColumn
                     }
                 }
             }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Cursor theme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Preferred desktop pointer theme.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: RowLayout
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _cursorThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
+                        model: kde ? kde.cursorThemes : []
+                        currentIndex: kde ? indexForString(kde.cursorThemeIds, stagedCursorTheme) : -1
+                        enabled: kde !== null
+                        onActivated: root.stagedCursorTheme = kde.cursorThemeIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null && _cursorThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _cursorThemePreviewDialog.previewTheme = kde.cursorThemeIds[_cursorThemeCombo.currentIndex]
+                            _cursorThemePreviewDialog.previewName = _cursorThemeCombo.currentText
+                            _cursorThemePreviewDialog.previewImages = kde.cursorThemePreviewImages(_cursorThemePreviewDialog.previewTheme)
+                            _cursorThemePreviewDialog.open()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _fontLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _fontLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Fonts")
+                text2: i18n("Configure the fonts.")
+                label2.wrapMode: Text.Wrap
+            }
+
             Maui.SectionItem
             {
                 Layout.fillWidth: true
@@ -996,6 +1101,97 @@ Maui.ScrollColumn
                     }
                 }
             }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Menu font")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Font used in application menus.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: kde ? kde.fontLabel(kdeString("menuFont", "")) : ""
+                    enabled: kde !== null
+                    onClicked:
+                    {
+                        if (kde)
+                            openFontDialog("menuFont", kdeString("menuFont", ""))
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Toolbar font")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Font used in application toolbars.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: kde ? kde.fontLabel(kdeString("toolBarFont", "")) : ""
+                    enabled: kde !== null
+                    onClicked:
+                    {
+                        if (kde)
+                            openFontDialog("toolBarFont", kdeString("toolBarFont", ""))
+                    }
+                }
+            }
+
 
             Maui.SectionItem
             {
@@ -1083,96 +1279,6 @@ Maui.ScrollColumn
                     {
                         if (kde)
                             openFontDialog("monospaceFont", kdeString("monospaceFont", ""))
-                    }
-                }
-            }
-        }
-    }
-
-    Rectangle
-    {
-        Layout.fillWidth: true
-        color: Maui.Theme.alternateBackgroundColor
-        radius: Maui.Style.radiusV
-        border.color: Maui.Theme.backgroundColor
-        border.width: 1
-        implicitHeight: _cursorThemeLayout.implicitHeight + Maui.Style.contentMargins * 2
-
-        ColumnLayout
-        {
-            id: _cursorThemeLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Cursor Theme")
-                text2: i18n("Choose the pointer theme stored in ~/.config/kcminputrc.")
-                label2.wrapMode: Text.Wrap
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                label1.text: i18n("Cursor theme")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Preferred desktop pointer theme.")
-                label2.wrapMode: Text.Wrap
-
-                template.content: RowLayout
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    spacing: Maui.Style.space.small
-
-                    ComboBox
-                    {
-                        id: _cursorThemeCombo
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
-                        model: kde ? kde.cursorThemes : []
-                        currentIndex: kde ? indexForString(kde.cursorThemeIds, stagedCursorTheme) : -1
-                        enabled: kde !== null
-                        onActivated: root.stagedCursorTheme = kde.cursorThemeIds[currentIndex]
-                    }
-
-                    ToolButton
-                    {
-                        enabled: kde !== null && _cursorThemeCombo.currentIndex >= 0
-                        icon.name: "view-preview"
-                        onClicked:
-                        {
-                            _cursorThemePreviewDialog.previewTheme = kde.cursorThemeIds[_cursorThemeCombo.currentIndex]
-                            _cursorThemePreviewDialog.previewName = _cursorThemeCombo.currentText
-                            _cursorThemePreviewDialog.previewImages = kde.cursorThemePreviewImages(_cursorThemePreviewDialog.previewTheme)
-                            _cursorThemePreviewDialog.open()
-                        }
                     }
                 }
             }
@@ -1493,13 +1599,27 @@ Maui.ScrollColumn
         persistent: true
 
         property string settingName
+        property font pendingFont
 
-        Maui.FontPicker
+        Loader
         {
-            id: _fontPicker
+            id: _fontPickerLoader
             Layout.fillWidth: true
-            showStyle: false
-            model.onlyMonospaced: _fontDialog.settingName === "monospaceFont"
+            active: true
+            sourceComponent: _fontPickerComponent
+        }
+
+        Component
+        {
+            id: _fontPickerComponent
+
+            Maui.FontPicker
+            {
+                Layout.fillWidth: true
+                mfont: _fontDialog.pendingFont
+                showStyle: false
+                model.onlyMonospaced: _fontDialog.settingName === "monospaceFont"
+            }
         }
 
         actions: [
@@ -1511,10 +1631,10 @@ Maui.ScrollColumn
             Action
             {
                 text: i18n("Accept")
-                onTriggered:
-                {
-                    if (kde && _fontDialog.settingName.length > 0)
-                        root.setStagedFont(_fontDialog.settingName, _fontPicker.mfont)
+                    onTriggered:
+                    {
+                        if (kde && _fontDialog.settingName.length > 0)
+                            root.setStagedFont(_fontDialog.settingName, _fontPickerLoader.item.mfont)
 
                     _fontDialog.close()
                 }
