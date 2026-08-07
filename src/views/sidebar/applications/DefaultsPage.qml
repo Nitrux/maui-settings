@@ -68,13 +68,11 @@ Maui.ScrollColumn
         currentPath: FB.FM.homePath()
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _removeDialog
         title: i18n("Remove Association")
         persistent: true
-        maxWidth: Maui.Style.units.gridUnit * 24
 
         Label
         {

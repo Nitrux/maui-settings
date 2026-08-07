@@ -973,9 +973,8 @@ Maui.SettingsPage
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _iconThemePreviewDialog
         title: i18n("Icon theme preview")
         persistent: true
@@ -1020,9 +1019,8 @@ Maui.SettingsPage
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _colorSchemePreviewDialog
         title: i18n("Color scheme preview")
         persistent: true
@@ -1050,9 +1048,8 @@ Maui.SettingsPage
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _fontDialog
         title: i18n("Fonts")
         persistent: true

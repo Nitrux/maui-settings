@@ -61,15 +61,11 @@ Maui.ScrollColumn
     property int tempHour: root.selectedHour
     property int tempMinute: root.selectedMinute
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: dateDialog
         title: i18n("Select Date")
         persistent: true
-        maxWidth: 380
-        implicitWidth: 360
-        implicitHeight: dateCalendar.implicitHeight + Maui.Style.space.big * 2
 
         onOpened:
         {
@@ -208,15 +204,11 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: timeDialog
         title: i18n("Select Time")
         persistent: true
-        maxWidth: 320
-        implicitWidth: 280
-        implicitHeight: timePicker.implicitHeight + Maui.Style.space.big * 2
 
         onOpened:
         {

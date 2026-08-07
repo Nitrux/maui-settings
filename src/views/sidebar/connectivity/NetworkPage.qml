@@ -34,13 +34,11 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _passwordDialog
         title: i18n("Connect to %1", root.selectedSsid)
         persistent: true
-        maxWidth: Maui.Style.units.gridUnit * 24
 
         ColumnLayout
         {
@@ -110,13 +108,11 @@ Maui.ScrollColumn
         onClosed: _passwordField.clear()
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _networkEditor
         title: i18n("Edit %1", root.selectedSsid)
         persistent: true
-        maxWidth: Maui.Style.units.gridUnit * 24
 
         ColumnLayout
         {

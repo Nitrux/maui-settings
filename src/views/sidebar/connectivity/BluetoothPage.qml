@@ -69,9 +69,8 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _pairingDialog
         property string requestId: ""
 
@@ -79,7 +78,6 @@ Maui.ScrollColumn
                ? i18n("Bluetooth service request")
                : i18n("Bluetooth pairing request")
         persistent: true
-        maxWidth: Maui.Style.units.gridUnit * 28
 
         ColumnLayout
         {
@@ -181,13 +179,11 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.PopupPage
+    Maui.SettingsDialog
     {
-        Maui.Controls.flat: true
         id: _deviceEditor
         title: i18n("Edit Bluetooth device")
         persistent: true
-        maxWidth: Maui.Style.units.gridUnit * 24
 
         ColumnLayout
         {
