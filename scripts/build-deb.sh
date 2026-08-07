@@ -55,7 +55,7 @@ checkinstall -D -y \
 	--pakdir=. \
 	--maintainer=uri_herrera@nxos.org \
 	--provides=maui-settings \
-	--requires="libkf6authcore6,libqt6svg6,libxcursor1,mauikit \(\>= 4.0.4\),mauikit-filebrowsing \(\>= 4.0.4\)" \
+	--requires="libkf6authcore6,libkf6configcore6,libqt6svg6,libxcursor1,mauikit \(\>= 4.0.4\),mauikit-filebrowsing \(\>= 4.0.4\)" \
 	--nodoc \
 	--strip=no \
 	--stripso=yes \
