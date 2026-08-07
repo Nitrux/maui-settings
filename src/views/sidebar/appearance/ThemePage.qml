@@ -830,7 +830,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Desktop Integration")
-                text2: i18n("These values affect KDE/Qt apps.")
+                text2: i18n("These values affect KDE and MauiKit apps.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -907,7 +907,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Color scheme")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Current KDE color scheme.")
+                label2.text: i18n("Current KDE-spec color scheme.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: RowLayout
@@ -1063,7 +1063,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Default font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Primary UI font used by Qt and KDE.")
+                label2.text: i18n("Primary UI font used by MauiKit and KDE.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
@@ -1108,7 +1108,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Menu font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font used in application menus.")
+                label2.text: i18n("Font used in KDE application menus.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
@@ -1153,7 +1153,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Toolbar font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font used in application toolbars.")
+                label2.text: i18n("Font used in KDE application toolbars.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
@@ -1199,7 +1199,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Small font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font used for secondary text.")
+                label2.text: i18n("Font used by KDE for secondary text.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
@@ -1244,7 +1244,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Monospaced font")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Font used for code and fixed-width text.")
+                label2.text: i18n("Font used by KDE for code and fixed-width text.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
