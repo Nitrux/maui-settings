@@ -459,7 +459,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 15
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
                     text: info ? info.controlCenterDiskUsagePath : "/"
                     onEditingFinished: if (info) info.controlCenterDiskUsagePath = text
                 }
@@ -499,7 +499,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 15
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
                     text: info ? info.controlCenterPowerCommand : "wlogout"
                     onEditingFinished: if (info) info.controlCenterPowerCommand = text
                 }
@@ -539,7 +539,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 15
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
                     text: info ? info.controlCenterSettingsCommand : "systemsettings"
                     onEditingFinished: if (info) info.controlCenterSettingsCommand = text
                 }
@@ -667,7 +667,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 10
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 11
                     text: info ? String(info.weatherLatitude) : ""
                     validator: DoubleValidator { bottom: -90; top: 90; notation: DoubleValidator.StandardNotation }
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -709,7 +709,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 10
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 11
                     text: info ? String(info.weatherLongitude) : ""
                     validator: DoubleValidator { bottom: -180; top: 180; notation: DoubleValidator.StandardNotation }
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -792,6 +792,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 11
                     from: 5
                     to: 180
                     value: info ? info.weatherRefreshMinutes : 20
