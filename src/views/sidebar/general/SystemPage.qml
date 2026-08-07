@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -10,13 +11,36 @@ Maui.ScrollColumn
     anchors.fill: parent
     spacing: Maui.Style.space.big
 
-    readonly property var manager: (typeof dateTimeManager !== "undefined") ? dateTimeManager : null
+    readonly property var manager: (typeof systemManager !== "undefined") ? systemManager : null
     property date selectedDate: new Date()
     property int selectedHour: new Date().getHours()
     property int selectedMinute: new Date().getMinutes()
     property string savedDateTime: ""
     property string selectedHostName: ""
     property string savedHostName: ""
+    property string editingUsername: ""
+    property string editingAvatarPath: ""
+    property string pendingDeleteUsername: ""
+    property string avatarPath: ""
+
+    function pickAvatar()
+    {
+        avatarDialog.currentPath = FB.FM.homePath()
+        avatarDialog.callback = (paths) => { if (paths && paths.length) avatarPath = paths[0] }
+        avatarDialog.open()
+    }
+
+    function openEditUserDialog(user) { editingUsername = user.username; editingAvatarPath = ""; editPasswordField.clear(); editUserDialog.open() }
+    function pickEditAvatar() { avatarDialog.currentPath = FB.FM.homePath(); avatarDialog.callback = (paths) => { if (paths && paths.length) editingAvatarPath = paths[0] }; avatarDialog.open() }
+    function requestDeleteUser(username) { pendingDeleteUsername = username; deleteUserDialog.open() }
+    function openAddUserDialog()
+    {
+        usernameField.clear()
+        fullNameField.clear()
+        passwordField.clear()
+        avatarPath = ""
+        addUserDialog.open()
+    }
     readonly property string selectedDateTime: Qt.formatDate(selectedDate, "yyyy-MM-dd")
         + "T" + ("0" + selectedHour).slice(-2)
         + ":" + ("0" + selectedMinute).slice(-2) + ":00"
@@ -66,7 +90,149 @@ Maui.ScrollColumn
                 if (!automaticTimezoneSwitch.checked && root.selectedDateTime !== root.savedDateTime)
                     root.manager.setDateTime(root.selectedDateTime)
             }
+            else if (message === "User updated.") { root.manager.reloadUsers(); editUserDialog.close() }
+            else if (message === "User deleted.") { root.manager.reloadUsers(); deleteUserDialog.close() }
+            else if (message === "User added.")
+            {
+                root.manager.reloadUsers()
+                addUserDialog.close()
+            }
         }
+    }
+
+    FB.FileDialog
+    {
+        id: avatarDialog
+        singleSelection: true
+        searchBar: true
+        mode: FB.FileDialog.Modes.Open
+        currentPath: FB.FM.homePath()
+    }
+
+    Maui.SettingsDialog
+    {
+        id: addUserDialog
+        title: i18n("Add User")
+        persistent: true
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: addUserDialog.close()
+            },
+            Action
+            {
+                text: i18n("Add")
+                enabled: usernameField.text.length > 0 && (!administratorSwitch.checked || passwordField.text.length > 0) && root.manager && !root.manager.busy
+                onTriggered: root.manager.addUser(usernameField.text, fullNameField.text, passwordField.text, administratorSwitch.checked, passwordQualitySwitch.checked, avatarPath)
+            }
+        ]
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.small
+            Label { Layout.fillWidth: true; text: i18n("Create a local user account. Administrator accounts require a password."); wrapMode: Text.WordWrap; opacity: 0.8 }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Avatar")
+                label2.text: avatarPath.length > 0 ? avatarPath : i18n("Use the default account icon.")
+                Button
+                {
+                    text: i18n("Choose")
+                    onClicked: root.pickAvatar()
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Username")
+                label2.text: i18n("Use lowercase letters, numbers, underscores, or hyphens.")
+                TextField
+                {
+                    id: usernameField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("username")
+                    inputMethodHints: Qt.ImhLowercaseOnly
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Full name")
+                label2.text: i18n("Optional name shown for this account.")
+                TextField
+                {
+                    id: fullNameField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Full name (optional)")
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Administrator")
+                label2.text: i18n("Allow this account to perform administrative tasks.")
+                Switch
+                {
+                    id: administratorSwitch
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Password")
+                label2.text: administratorSwitch.checked ? i18n("Required for administrator accounts.") : i18n("Optional for normal accounts.")
+                TextField
+                {
+                    id: passwordField
+                    Layout.fillWidth: true
+                    placeholderText: administratorSwitch.checked ? i18n("Password (required)") : i18n("Password (optional)")
+                    echoMode: TextInput.Password
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Use secure password")
+                label2.text: i18n("Require strong passwords for user accounts.")
+                Switch
+                {
+                    id: passwordQualitySwitch
+                    checked: passwordField.text.length > 0
+                    enabled: passwordField.text.length > 0
+                }
+            }
+        }
+    }
+
+    Maui.SettingsDialog
+    {
+        id: editUserDialog
+        title: i18n("Configure User")
+        persistent: true
+        actions: [Action { text: i18n("Cancel"); onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); enabled: root.manager && !root.manager.busy && (editPasswordField.text.length > 0 || editingAvatarPath.length > 0); onTriggered: root.manager.updateUser(editingUsername, editPasswordField.text, editingAvatarPath) }]
+        ColumnLayout { Layout.fillWidth: true; spacing: Maui.Style.space.small
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Avatar"); label2.text: editingAvatarPath.length > 0 ? editingAvatarPath : i18n("Keep the current avatar."); Button { text: i18n("Choose"); onClicked: root.pickEditAvatar() } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("New password"); label2.text: i18n("Leave empty to keep the current password."); TextField { id: editPasswordField; Layout.fillWidth: true; placeholderText: i18n("New password (optional)"); echoMode: TextInput.Password } }
+        }
+    }
+
+    Maui.SettingsDialog
+    {
+        id: deleteUserDialog
+        title: i18n("Delete User")
+        persistent: true
+        actions: [Action { text: i18n("Cancel"); onTriggered: deleteUserDialog.close() }, Action { text: i18n("Delete"); onTriggered: root.manager.deleteUser(pendingDeleteUsername) }]
+        Label { Layout.fillWidth: true; text: i18n("Delete the user account %1 and its home directory?", root.pendingDeleteUsername); wrapMode: Text.WordWrap }
     }
 
     Component.onCompleted: root.reloadSettings()
@@ -313,7 +479,7 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("System")
-        text2: i18n("Configure the system locale, timezone, date, and time.")
+        text2: i18n("Configure the system hostname, locale, timezone, clock, and user accounts.")
     }
 
     Rectangle
@@ -621,6 +787,60 @@ Maui.ScrollColumn
                     selectByMouse: true
                     onTextEdited: root.selectedHostName = text
                 }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _usersLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _usersLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Users")
+                text2: i18n("Manage the user accounts available on this computer.")
+            }
+
+            Repeater
+            {
+                model: root.manager ? root.manager.users : []
+
+                delegate: Maui.SectionItem
+                {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    flat: true
+                    label1.text: modelData.name.length > 0 ? modelData.name : modelData.username
+                    label1.elide: Text.ElideRight
+                    label2.text: modelData.username + " · " + modelData.home
+                    label2.elide: Text.ElideRight
+                    label2.wrapMode: Text.NoWrap
+                    template.imageSource: modelData.facePath || ""
+                    template.content: RowLayout { spacing: Maui.Style.space.tiny; ToolButton { icon.name: "document-edit"; display: AbstractButton.IconOnly; ToolTip.text: i18n("Configure user"); onClicked: root.openEditUserDialog(modelData) } ToolButton { visible: modelData.canDelete; icon.name: "edit-delete"; display: AbstractButton.IconOnly; ToolTip.text: i18n("Delete user"); onClicked: root.requestDeleteUser(modelData.username) } }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                visible: !root.manager || root.manager.users.length === 0
+                flat: true
+                label1.text: i18n("No user accounts found")
+                label2.text: i18n("No regular local accounts are available.")
+                template.iconSource: "user-identity"
             }
         }
     }

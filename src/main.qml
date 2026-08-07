@@ -22,7 +22,7 @@ Maui.ApplicationWindow
         switch (root.currentSection)
         {
         case "general-system":
-            return _dateTimePageLoader.item
+            return _systemPageLoader.item
         case "appearance-background":
             return _backgroundPageLoader.item
         case "appearance-theme":
@@ -280,6 +280,25 @@ Maui.ApplicationWindow
                             ToolTip.text: i18n("Save settings")
                             onClicked: root.saveCurrentSettings()
                         }
+
+                        ToolSeparator
+                        {
+                            visible: root.currentSection === "general-system"
+                            topPadding: 10
+                            bottomPadding: 10
+                        }
+
+                        ToolButton
+                        {
+                            visible: root.currentSection === "general-system"
+                            icon.name: "list-add"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Add user")
+                            onClicked: if (_systemPageLoader.item) _systemPageLoader.item.openAddUserDialog()
+                        }
                     }
                 }
             ]
@@ -328,7 +347,7 @@ Maui.ApplicationWindow
 
                     Loader
                     {
-                        id: _dateTimePageLoader
+                        id: _systemPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "general-system"
                         visible: active

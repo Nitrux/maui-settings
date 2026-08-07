@@ -71,7 +71,7 @@ set(settings_SRCS
     src/controllers/aboutinfo.cpp
     src/controllers/audiocontroller.cpp
     src/controllers/audiocontroller.h
-    src/controllers/datetimemanager.cpp
+    src/controllers/systemmanager.cpp
     src/controllers/backgroundinfo.cpp
     src/controllers/bluetoothcontroller.cpp
     src/controllers/desklockcontroller.cpp
@@ -113,6 +113,11 @@ add_executable(${DATETIME_HELPER_TARGET}
 )
 target_compile_features(${DATETIME_HELPER_TARGET} PRIVATE cxx_std_23)
 target_link_libraries(${DATETIME_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PWQUALITY REQUIRED IMPORTED_TARGET pwquality)
+target_link_libraries(${DATETIME_HELPER_TARGET} PRIVATE PkgConfig::PWQUALITY)
+target_compile_definitions(${DATETIME_HELPER_TARGET} PRIVATE MAUI_SETTINGS_HAS_PWQUALITY)
 install(TARGETS ${DATETIME_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
 kauth_install_helper_files(${DATETIME_HELPER_TARGET} ${DATETIME_HELPER_ID} root)
 kauth_install_actions(${DATETIME_HELPER_ID} src/helpers/org.maui.settings.datetime.actions)

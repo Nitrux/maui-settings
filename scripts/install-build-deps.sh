@@ -41,6 +41,7 @@ $APT_COMMAND install -y --no-install-recommends \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
     libkf6networkmanagerqt-dev \
+    libpwquality-dev \
     libxcursor-dev \
     lintian \
     qt6-base-dev \

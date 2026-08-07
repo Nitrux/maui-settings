@@ -3,5 +3,5 @@ Name=System settings
 
 [org.maui.settings.datetime.set]
 Name=Change System settings
-Description=Authentication is required to modify the system hostname, locale, timezone, and clock
+Description=Authentication is required to modify system hostname, locale, timezone, clock, and user accounts
 Policy=auth_admin

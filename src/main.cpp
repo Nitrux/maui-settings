@@ -19,7 +19,7 @@
 
 #include "controllers/aboutinfo.h"
 #include "controllers/audiocontroller.h"
-#include "controllers/datetimemanager.h"
+#include "controllers/systemmanager.h"
 #include "controllers/backgroundinfo.h"
 #include "controllers/bluetoothcontroller.h"
 #include "controllers/desklockcontroller.h"
@@ -71,8 +71,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
 
-    DateTimeManager dateTimeManager;
-    engine.rootContext()->setContextProperty(QStringLiteral("dateTimeManager"), &dateTimeManager);
+    SystemManager systemManager;
+    engine.rootContext()->setContextProperty(QStringLiteral("systemManager"), &systemManager);
 
     AudioController audioController;
     engine.rootContext()->setContextProperty(QStringLiteral("audioController"), &audioController);
