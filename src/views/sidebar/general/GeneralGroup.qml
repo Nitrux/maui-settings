@@ -23,7 +23,7 @@ Item
     Component
     {
         id: dateTimeComponent
-        DateTimeItem {}
+        SystemItem {}
     }
 
     Component.onCompleted:

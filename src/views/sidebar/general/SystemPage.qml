@@ -15,11 +15,14 @@ Maui.ScrollColumn
     property int selectedHour: new Date().getHours()
     property int selectedMinute: new Date().getMinutes()
     property string savedDateTime: ""
+    property string selectedHostName: ""
+    property string savedHostName: ""
     readonly property string selectedDateTime: Qt.formatDate(selectedDate, "yyyy-MM-dd")
         + "T" + ("0" + selectedHour).slice(-2)
         + ":" + ("0" + selectedMinute).slice(-2) + ":00"
     readonly property bool saveAvailable: root.manager && !root.manager.busy
-        && !automaticTimezoneSwitch.checked && root.selectedDateTime !== root.savedDateTime
+        && (root.selectedHostName !== root.savedHostName
+            || (!automaticTimezoneSwitch.checked && root.selectedDateTime !== root.savedDateTime))
 
     property string timezoneFilter: ""
     property var filteredTimezones: manager
@@ -33,6 +36,8 @@ Maui.ScrollColumn
         root.selectedHour = now.getHours()
         root.selectedMinute = now.getMinutes()
         root.savedDateTime = root.selectedDateTime
+        root.selectedHostName = root.manager ? root.manager.hostName : ""
+        root.savedHostName = root.selectedHostName
     }
 
     function saveSettings()
@@ -40,7 +45,10 @@ Maui.ScrollColumn
         if (!root.saveAvailable)
             return false
 
-        root.manager.setDateTime(root.selectedDateTime)
+        if (root.selectedHostName !== root.savedHostName)
+            root.manager.setHostName(root.selectedHostName)
+        if (!automaticTimezoneSwitch.checked && root.selectedDateTime !== root.savedDateTime)
+            root.manager.setDateTime(root.selectedDateTime)
         return true
     }
 
@@ -52,6 +60,12 @@ Maui.ScrollColumn
         {
             if (message === "System clock updated.")
                 root.savedDateTime = root.selectedDateTime
+            else if (message === "Hostname updated.")
+            {
+                root.savedHostName = root.selectedHostName
+                if (!automaticTimezoneSwitch.checked && root.selectedDateTime !== root.savedDateTime)
+                    root.manager.setDateTime(root.selectedDateTime)
+            }
         }
     }
 
@@ -267,7 +281,7 @@ Maui.ScrollColumn
             Label
             {
                 text: ":"
-                font.pixelSize: Maui.Style.fontSizes.big
+                font.pointSize: Maui.Style.fontSizes.big
                 font.bold: true
             }
 
@@ -298,8 +312,8 @@ Maui.ScrollColumn
     Maui.SectionHeader
     {
         Layout.fillWidth: true
-        text1: i18n("Date and Time")
-        text2: i18n("Configure system timezone, date, and time settings.")
+        text1: i18n("System")
+        text2: i18n("Configure the system locale, timezone, date, and time.")
     }
 
     Rectangle
@@ -323,6 +337,46 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 text1: i18n("Timezone")
                 text2: i18n("Choose the timezone used by the system clock.")
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Locale")
+                label2.text: i18n("Select the system language and regional format.")
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem
+                        && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    model: root.manager ? root.manager.locales : []
+                    currentIndex: Math.max(0, root.manager ? root.manager.locales.indexOf(root.manager.locale) : -1)
+                    onActivated: (index) => { if (root.manager) root.manager.setLocale(model[index]) }
+                }
             }
 
             Maui.SectionItem
@@ -433,7 +487,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Date and Time")
+                text1: i18n("Date and time")
                 text2: i18n("Set the system date and time manually when offline.")
             }
 
@@ -524,6 +578,48 @@ Maui.ScrollColumn
                         root.tempMinute = root.selectedMinute
                         timeDialog.open()
                     }
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _hostnameLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _hostnameLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Hostname")
+                text2: i18n("Choose the name used to identify this computer on the network.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: root.manager && !root.manager.busy
+                label1.text: i18n("Computer name")
+                label2.text: i18n("Use letters, numbers, dots, and hyphens.")
+                template.content: TextField
+                {
+                    Layout.maximumWidth: Maui.Style.units.gridUnit * 18
+                    text: root.selectedHostName
+                    selectByMouse: true
+                    onTextEdited: root.selectedHostName = text
                 }
             }
         }

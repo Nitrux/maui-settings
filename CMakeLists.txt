@@ -130,8 +130,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/main.qml
     src/views/Sidebar.qml
     src/views/sidebar/general/GeneralGroup.qml
-    src/views/sidebar/general/DateTimeItem.qml
-    src/views/sidebar/general/DateTimePage.qml
+    src/views/sidebar/general/SystemItem.qml
+    src/views/sidebar/general/SystemPage.qml
     src/views/sidebar/general/AboutItem.qml
     src/views/sidebar/general/AboutPage.qml
     src/views/sidebar/general/AccessibilityItem.qml

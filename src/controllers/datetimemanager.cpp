@@ -10,6 +10,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QProcess>
+#include <QRegularExpression>
+#include <QSysInfo>
 #include <QUrl>
 
 #include <KAuth/Action>
@@ -19,6 +22,8 @@ namespace
 {
 constexpr auto timezoneFile = "/etc/timezone";
 constexpr auto timezoneDirectory = "/usr/share/zoneinfo";
+constexpr auto localeFile = "/etc/default/locale";
+constexpr auto hostnameFile = "/etc/hostname";
 constexpr auto helperId = "org.maui.settings.datetime";
 constexpr auto actionId = "org.maui.settings.datetime.set";
 }
@@ -41,6 +46,27 @@ DateTimeManager::DateTimeManager(QObject *parent)
             m_timezone = path.mid(index + marker.size());
     }
 
+    QFile localeSettings(QString::fromLatin1(localeFile));
+    if (localeSettings.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString contents = QString::fromUtf8(localeSettings.readAll());
+        const auto match = QRegularExpression(QStringLiteral("^\\s*LANG\\s*=\\s*[\"\\x27]?([^\"\\x27\\n]+)")).match(contents);
+        if (match.hasMatch()) m_locale = match.captured(1).trimmed();
+    }
+    QFile hostnameSettings(QString::fromLatin1(hostnameFile));
+    if (hostnameSettings.open(QIODevice::ReadOnly | QIODevice::Text)) m_hostName = QString::fromUtf8(hostnameSettings.readAll()).trimmed();
+    if (m_hostName.isEmpty()) m_hostName = QSysInfo::machineHostName();
+
+    QProcess localeProcess;
+    localeProcess.start(QStringLiteral("locale"), {QStringLiteral("-a")});
+    if (localeProcess.waitForFinished(5000) && localeProcess.exitCode() == 0) {
+        const auto available = QString::fromUtf8(localeProcess.readAllStandardOutput()).split(QRegularExpression(QStringLiteral("[\\r\\n]+")), Qt::SkipEmptyParts);
+        for (const auto &value : available) if (!value.trimmed().isEmpty() && !m_locales.contains(value.trimmed())) m_locales.append(value.trimmed());
+    }
+    if (m_locale.isEmpty()) m_locale = qEnvironmentVariable("LANG");
+    if (m_locale.isEmpty()) m_locale = QStringLiteral("C.UTF-8");
+    if (!m_locales.contains(m_locale)) m_locales.append(m_locale);
+    m_locales.sort(Qt::CaseInsensitive);
+
     QDirIterator iterator(QString::fromLatin1(timezoneDirectory), QDir::Files,
                           QDirIterator::Subdirectories);
     while (iterator.hasNext())
@@ -59,6 +85,9 @@ DateTimeManager::DateTimeManager(QObject *parent)
 
 QString DateTimeManager::timezone() const { return m_timezone; }
 QStringList DateTimeManager::timezones() const { return m_timezones; }
+QString DateTimeManager::locale() const { return m_locale; }
+QStringList DateTimeManager::locales() const { return m_locales; }
+QString DateTimeManager::hostName() const { return m_hostName; }
 bool DateTimeManager::automaticLocation() const { return m_automaticLocation; }
 bool DateTimeManager::busy() const { return m_busy; }
 QString DateTimeManager::errorMessage() const { return m_errorMessage; }
@@ -85,6 +114,19 @@ void DateTimeManager::setTimezone(const QString &timezone)
             QStringLiteral("Timezone updated."));
     m_timezone = timezone;
     Q_EMIT timezoneChanged();
+}
+
+void DateTimeManager::setLocale(const QString &locale) {
+    if (!m_locales.contains(locale)) { setErrorMessage(QStringLiteral("The selected locale is not available.")); return; }
+    execute({{QStringLiteral("operation"), QStringLiteral("locale")}, {QStringLiteral("locale"), locale}}, QStringLiteral("Locale updated."));
+    m_locale = locale; Q_EMIT localeChanged();
+}
+
+void DateTimeManager::setHostName(const QString &hostName) {
+    const QString value = hostName.trimmed();
+    if (!QRegularExpression(QStringLiteral("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\\z")).match(value).hasMatch()) { setErrorMessage(QStringLiteral("Enter a valid hostname.")); return; }
+    execute({{QStringLiteral("operation"), QStringLiteral("hostname")}, {QStringLiteral("hostname"), value}}, QStringLiteral("Hostname updated."));
+    m_hostName = value; Q_EMIT hostNameChanged();
 }
 
 void DateTimeManager::setDateTime(const QString &isoDateTime)

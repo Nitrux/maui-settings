@@ -215,16 +215,6 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Hostname")
-                label1.elide: Text.ElideRight
-                label2.text: info ? info.hostName : i18n("Unknown")
-                label2.wrapMode: Text.Wrap
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
                 label1.text: i18n("CPU model")
                 label1.elide: Text.ElideRight
                 label2.text: info ? info.cpuModel : i18n("Unknown")
