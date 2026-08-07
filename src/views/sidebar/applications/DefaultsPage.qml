@@ -23,8 +23,8 @@ Maui.ScrollColumn
         root.editing = true
         _mimeTypeField.text = mimeType
         _applicationField.text = application
-        _mimeTypeField.enabled = false
         _applicationField.forceActiveFocus()
+        _associationDialog.open()
     }
 
     function clearEditor()
@@ -32,7 +32,12 @@ Maui.ScrollColumn
         root.editing = false
         _mimeTypeField.clear()
         _applicationField.clear()
-        _mimeTypeField.enabled = true
+    }
+
+    function addAssociation()
+    {
+        root.clearEditor()
+        _associationDialog.open()
     }
 
     function applyAssociation()
@@ -41,7 +46,7 @@ Maui.ScrollColumn
             return
 
         if (root.controller.setAssociation(_mimeTypeField.text, _applicationField.text))
-            root.clearEditor()
+            _associationDialog.close()
     }
 
     function pickApplication()
@@ -103,30 +108,20 @@ Maui.ScrollColumn
         onClosed: root.pendingRemoval = ""
     }
 
-    Maui.SectionHeader
+    Maui.SettingsDialog
     {
-        Layout.fillWidth: true
-        text1: i18n("MIME Defaults")
-        text2: i18n("Manage the applications used to open MIME types and links.")
-    }
-
-    Maui.SectionGroup
-    {
+        id: _associationDialog
         title: root.editing ? i18n("Modify Association") : i18n("Add Association")
-        description: i18n("Use a desktop file ID or choose an executable.")
+        persistent: true
 
-        background: Rectangle
-        {
-            color: Maui.Theme.alternateBackgroundColor
-            radius: Maui.Style.radiusV
-            border.color: Maui.Theme.backgroundColor
-            border.width: 1
-        }
-
-        Maui.FlexSectionItem
+        ColumnLayout
         {
             Layout.fillWidth: true
-            flat: true
+            spacing: Maui.Style.space.small
+
+            Maui.FlexSectionItem
+        {
+            Layout.fillWidth: true
             label1.text: i18n("MIME Type")
             label2.text: i18n("For example: text/plain or x-scheme-handler/https.")
 
@@ -134,10 +129,8 @@ Maui.ScrollColumn
             {
                 id: _mimeTypeField
                 Layout.fillWidth: true
-                Layout.minimumWidth: Maui.Style.units.gridUnit * 10
-                Layout.preferredWidth: Maui.Style.units.gridUnit * 12
-                Layout.maximumWidth: Maui.Style.units.gridUnit * 18
                 placeholderText: i18n("text/plain")
+                enabled: !root.editing
                 onAccepted: _applicationField.forceActiveFocus()
             }
         }
@@ -145,22 +138,17 @@ Maui.ScrollColumn
         Maui.FlexSectionItem
         {
             Layout.fillWidth: true
-            flat: true
             label1.text: i18n("Desktop File or Executable")
             label2.text: i18n("Enter a desktop file ID or select an executable.")
 
             RowLayout
             {
                 Layout.fillWidth: true
-                Layout.minimumWidth: Maui.Style.units.gridUnit * 12
-                Layout.preferredWidth: Maui.Style.units.gridUnit * 12
-                Layout.maximumWidth: Maui.Style.units.gridUnit * 18
 
                 TextField
                 {
                     id: _applicationField
                     Layout.fillWidth: true
-                    Layout.minimumWidth: 0
                     placeholderText: i18n("org.example.Application.desktop")
                     onAccepted: root.applyAssociation()
                 }
@@ -172,55 +160,53 @@ Maui.ScrollColumn
                 }
             }
         }
-
-        Maui.FlexSectionItem
-        {
-            Layout.fillWidth: true
-            flat: true
-            label1.text: root.editing ? i18n("Apply Changes") : i18n("Add Association")
-            label2.text: root.editing
-                         ? i18n("Replace the application assigned to this MIME type.")
-                         : i18n("Save to mimeapps.list.")
-
-            RowLayout
-            {
-                Layout.fillWidth: true
-                spacing: Maui.Style.space.small
-
-                Item
-                {
-                    Layout.fillWidth: true
-                }
-
-                Button
-                {
-                    visible: root.editing
-                    text: i18n("Cancel")
-                    onClicked: root.clearEditor()
-                }
-
-                Button
-                {
-                    text: root.editing ? i18n("Apply") : i18n("Add")
-                    enabled: root.controller && _mimeTypeField.text.trim().length > 0 && _applicationField.text.trim().length > 0
-                    highlighted: true
-                    onClicked: root.applyAssociation()
-                }
-            }
         }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: _associationDialog.close()
+            },
+            Action
+            {
+                text: root.editing ? i18n("Apply") : i18n("Add")
+                enabled: root.controller && _mimeTypeField.text.trim().length > 0 && _applicationField.text.trim().length > 0
+                onTriggered: root.applyAssociation()
+            }
+        ]
+
+        onClosed: root.clearEditor()
     }
 
-    Maui.SectionGroup
+    Maui.SectionHeader
     {
-        title: i18n("MIME Type Associations")
-        description: i18n("User-defined handlers.")
+        Layout.fillWidth: true
+        text1: i18n("MIME Defaults")
+        text2: i18n("Manage the applications used to open MIME types and links.")
+    }
 
-        background: Rectangle
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _associationsLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
         {
-            color: Maui.Theme.alternateBackgroundColor
-            radius: Maui.Style.radiusV
-            border.color: Maui.Theme.backgroundColor
-            border.width: 1
+            id: _associationsLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+        {
+            Layout.fillWidth: true
+            text1: i18n("MIME Type Associations")
+            text2: i18n("User-defined handlers.")
         }
 
         Repeater
@@ -277,6 +263,7 @@ Maui.ScrollColumn
             label1.text: i18n("No user-defined defaults")
             label2.text: i18n("Add an association below to create the Default Applications group.")
             template.iconSource: "documentinfo"
+        }
         }
     }
 

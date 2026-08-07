@@ -226,6 +226,29 @@ Maui.ApplicationWindow
 
                 Loader
                 {
+                    id: _defaultsAddLoader
+                    asynchronous: true
+                    active: root.currentSection === "applications-defaults"
+                    visible: active
+
+                    sourceComponent: ToolButton
+                    {
+                        icon.name: "list-add"
+                        display: ToolButton.IconOnly
+                        ToolTip.delay: 1000
+                        ToolTip.timeout: 5000
+                        ToolTip.visible: hovered
+                        ToolTip.text: i18n("Add association")
+                        onClicked:
+                        {
+                            if (_defaultsPageLoader.item)
+                                _defaultsPageLoader.item.addAssociation()
+                        }
+                    }
+                },
+
+                Loader
+                {
                     id: _settingsActionsLoader
                     asynchronous: true
                     active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen"
