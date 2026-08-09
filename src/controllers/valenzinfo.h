@@ -19,6 +19,8 @@ class ValenzInfo : public QObject
     Q_PROPERTY(QString darkColorScheme READ darkColorScheme WRITE setDarkColorScheme NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterPowerCommand READ controlCenterPowerCommand WRITE setControlCenterPowerCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterSettingsCommand READ controlCenterSettingsCommand WRITE setControlCenterSettingsCommand NOTIFY settingsChanged)
+    Q_PROPERTY(QString launcherCommand READ launcherCommand WRITE setLauncherCommand NOTIFY settingsChanged)
+    Q_PROPERTY(QString clipboardCommand READ clipboardCommand WRITE setClipboardCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterDiskUsagePath READ controlCenterDiskUsagePath WRITE setControlCenterDiskUsagePath NOTIFY settingsChanged)
     Q_PROPERTY(bool mprisAlwaysVisible READ mprisAlwaysVisible WRITE setMprisAlwaysVisible NOTIFY settingsChanged)
     Q_PROPERTY(double weatherLatitude READ weatherLatitude WRITE setWeatherLatitude NOTIFY settingsChanged)
@@ -42,6 +44,8 @@ public:
     QString darkColorScheme() const;
     QString controlCenterPowerCommand() const;
     QString controlCenterSettingsCommand() const;
+    QString launcherCommand() const;
+    QString clipboardCommand() const;
     QString controlCenterDiskUsagePath() const;
     bool mprisAlwaysVisible() const;
     double weatherLatitude() const;
@@ -61,6 +65,8 @@ public:
     void setDarkColorScheme(const QString &value);
     void setControlCenterPowerCommand(const QString &value);
     void setControlCenterSettingsCommand(const QString &value);
+    void setLauncherCommand(const QString &value);
+    void setClipboardCommand(const QString &value);
     void setControlCenterDiskUsagePath(const QString &value);
     void setMprisAlwaysVisible(bool value);
     void setWeatherLatitude(double value);
@@ -91,6 +97,8 @@ private:
     QString m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
     QString m_controlCenterPowerCommand = QStringLiteral("wlogout");
     QString m_controlCenterSettingsCommand = QStringLiteral("systemsettings");
+    QString m_launcherCommand = QStringLiteral("vicinae toggle");
+    QString m_clipboardCommand = QStringLiteral("vicinae vicinae://launch/clipboard/history");
     QString m_controlCenterDiskUsagePath = QStringLiteral("/");
     bool m_mprisAlwaysVisible = false;
     double m_weatherLatitude = 40.7128;

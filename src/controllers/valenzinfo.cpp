@@ -46,6 +46,8 @@ QString ValenzInfo::lightColorScheme() const { return m_lightColorScheme; }
 QString ValenzInfo::darkColorScheme() const { return m_darkColorScheme; }
 QString ValenzInfo::controlCenterPowerCommand() const { return m_controlCenterPowerCommand; }
 QString ValenzInfo::controlCenterSettingsCommand() const { return m_controlCenterSettingsCommand; }
+QString ValenzInfo::launcherCommand() const { return m_launcherCommand; }
+QString ValenzInfo::clipboardCommand() const { return m_clipboardCommand; }
 QString ValenzInfo::controlCenterDiskUsagePath() const { return m_controlCenterDiskUsagePath; }
 bool ValenzInfo::mprisAlwaysVisible() const { return m_mprisAlwaysVisible; }
 double ValenzInfo::weatherLatitude() const { return m_weatherLatitude; }
@@ -125,6 +127,24 @@ void ValenzInfo::setControlCenterSettingsCommand(const QString &value)
     if (m_controlCenterSettingsCommand == normalized)
         return;
     m_controlCenterSettingsCommand = normalized;
+    setChanged();
+}
+
+void ValenzInfo::setLauncherCommand(const QString &value)
+{
+    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("vicinae toggle") : value.trimmed();
+    if (m_launcherCommand == normalized)
+        return;
+    m_launcherCommand = normalized;
+    setChanged();
+}
+
+void ValenzInfo::setClipboardCommand(const QString &value)
+{
+    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("vicinae vicinae://launch/clipboard/history") : value.trimmed();
+    if (m_clipboardCommand == normalized)
+        return;
+    m_clipboardCommand = normalized;
     setChanged();
 }
 
@@ -213,6 +233,8 @@ void ValenzInfo::load()
     if (m_darkColorScheme.isEmpty()) m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
     m_controlCenterPowerCommand = value(QStringLiteral("ControlCenter/powerCommand"), QStringLiteral("wlogout")).toString().trimmed();
     m_controlCenterSettingsCommand = value(QStringLiteral("ControlCenter/settingsCommand"), QStringLiteral("systemsettings")).toString().trimmed();
+    m_launcherCommand = value(QStringLiteral("Actions/launcherCommand"), QStringLiteral("vicinae toggle")).toString().trimmed();
+    m_clipboardCommand = value(QStringLiteral("Actions/clipboardCommand"), QStringLiteral("vicinae vicinae://launch/clipboard/history")).toString().trimmed();
     m_controlCenterDiskUsagePath = value(QStringLiteral("ControlCenter/diskUsagePath"), QStringLiteral("/")).toString().trimmed();
     m_mprisAlwaysVisible = value(QStringLiteral("Mpris/alwaysVisible"), false).toBool();
     m_weatherLatitude = qBound(-90.0, value(QStringLiteral("Weather/latitude"), 40.7128).toDouble(), 90.0);
@@ -224,6 +246,8 @@ void ValenzInfo::load()
         m_controlCenterPowerCommand = QStringLiteral("wlogout");
     if (m_controlCenterSettingsCommand.isEmpty())
         m_controlCenterSettingsCommand = QStringLiteral("systemsettings");
+    if (m_launcherCommand.isEmpty()) m_launcherCommand = QStringLiteral("vicinae toggle");
+    if (m_clipboardCommand.isEmpty()) m_clipboardCommand = QStringLiteral("vicinae vicinae://launch/clipboard/history");
     if (m_controlCenterDiskUsagePath.isEmpty())
         m_controlCenterDiskUsagePath = QStringLiteral("/");
 
@@ -246,6 +270,8 @@ bool ValenzInfo::save()
     settings.setValue(QStringLiteral("ColorScheme/darkColors"), m_darkColorScheme);
     settings.setValue(QStringLiteral("ControlCenter/powerCommand"), m_controlCenterPowerCommand);
     settings.setValue(QStringLiteral("ControlCenter/settingsCommand"), m_controlCenterSettingsCommand);
+    settings.setValue(QStringLiteral("Actions/launcherCommand"), m_launcherCommand);
+    settings.setValue(QStringLiteral("Actions/clipboardCommand"), m_clipboardCommand);
     settings.setValue(QStringLiteral("ControlCenter/diskUsagePath"), m_controlCenterDiskUsagePath);
     settings.setValue(QStringLiteral("Mpris/alwaysVisible"), m_mprisAlwaysVisible);
     settings.setValue(QStringLiteral("Weather/latitude"), m_weatherLatitude);

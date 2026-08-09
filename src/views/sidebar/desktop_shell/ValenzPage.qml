@@ -634,6 +634,66 @@ Maui.ScrollColumn
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
         border.width: 1
+        implicitHeight: _actionsLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _actionsLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Actions")
+                text2: i18n("Configure the commands launched by the bar action buttons.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Launcher command")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Command launched by the launcher action.")
+                label2.wrapMode: Text.Wrap
+                template.content: TextField
+                {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    text: info ? info.launcherCommand : "vicinae toggle"
+                    onEditingFinished: if (info) info.launcherCommand = text
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Clipboard command")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Command launched by the clipboard action.")
+                label2.wrapMode: Text.Wrap
+                template.content: TextField
+                {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    text: info ? info.clipboardCommand : "vicinae vicinae://launch/clipboard/history"
+                    onEditingFinished: if (info) info.clipboardCommand = text
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
         implicitHeight: _mediaLayout.implicitHeight + Maui.Style.contentMargins * 2
 
         ColumnLayout
