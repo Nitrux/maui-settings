@@ -33,7 +33,7 @@
 namespace
 {
 constexpr auto greeterHelperId = "org.maui.settings.qmlgreet";
-constexpr auto greeterCopyActionId = "org.maui.settings.qmlgreet.copyKdeGlobals";
+constexpr auto greeterCopyActionId = "org.maui.settings.qmlgreet.copykdeglobals";
 QString systemDefaultFont()
 {
     return QApplication::font().toString();

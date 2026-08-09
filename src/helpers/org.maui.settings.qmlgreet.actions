@@ -6,7 +6,7 @@ Name=Save QMLGreet settings
 Description=Authentication is required to modify the system-wide QMLGreet configuration
 Policy=auth_admin
 
-[org.maui.settings.qmlgreet.copyKdeGlobals]
+[org.maui.settings.qmlgreet.copykdeglobals]
 Name=Copy KDE globals to QMLGreet
 Description=Authentication is required to update the greetd user KDE settings
 Policy=auth_admin

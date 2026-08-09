@@ -321,7 +321,7 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     return reply;
 }
 
-KAuth::ActionReply QmlGreetHelper::copyKdeGlobals(const QVariantMap &a)
+KAuth::ActionReply QmlGreetHelper::copykdeglobals(const QVariantMap &a)
 {
     const QString sourcePath = boundedString(a, QStringLiteral("sourcePath"), 4096);
     const QFileInfo sourceInfo(sourcePath);
