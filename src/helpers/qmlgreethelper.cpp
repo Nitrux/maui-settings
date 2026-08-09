@@ -2,6 +2,7 @@
 #include "systemfilepersistence.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QSaveFile>
 #include <QFileInfo>
@@ -26,19 +27,8 @@ QVariantMap readSettings()
         {QStringLiteral("wallpaperPath"), settings.value(
             QStringLiteral("Appearance/BackgroundImage"),
             QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"))},
-        {QStringLiteral("colorSchemePath"), settings.value(
-            QStringLiteral("Appearance/ColorScheme"),
-            QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors"))},
-        {QStringLiteral("iconTheme"), settings.value(
-            QStringLiteral("Appearance/IconTheme"), QStringLiteral("hicolor"))},
         {QStringLiteral("iconMode"), settings.value(
             QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
-        {QStringLiteral("fontFamily"), settings.value(
-            QStringLiteral("Appearance/Font"), QStringLiteral("Noto Sans"))},
-        {QStringLiteral("fontSize"), settings.value(
-            QStringLiteral("Appearance/FontSize"), 10)},
-        {QStringLiteral("borderRadius"), settings.value(
-            QStringLiteral("Style/BorderRadius"), 8)},
         {QStringLiteral("avatarPath"), settings.value(
             QStringLiteral("Appearance/AvatarImage"))},
         {QStringLiteral("timeFormat"), settings.value(
@@ -221,11 +211,9 @@ KAuth::ActionReply QmlGreetHelper::save(const QVariantMap &arguments)
 {
     qDebug() << "QmlGreetHelper::save received"
              << "keys=" << arguments.keys()
-             << "borderRadius=" << arguments.value(QStringLiteral("borderRadius"))
              << "configPath=" << QString::fromLatin1(configPath);
 
     QString wallpaperPath;
-    QString colorSchemePath;
     QString avatarPath;
     QString validationError;
 
@@ -276,10 +264,6 @@ const auto validateChangedFile = [&](const QString &argumentKey,
             QStringLiteral("Wallpaper"), true, true,
             QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"), &wallpaperPath)
         || !validateChangedFile(
-            QStringLiteral("colorSchemePath"), QStringLiteral("Appearance/ColorScheme"),
-            QStringLiteral("Color scheme"), false, true,
-            QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors"), &colorSchemePath)
-        || !validateChangedFile(
             QStringLiteral("avatarPath"), QStringLiteral("Appearance/AvatarImage"),
             QStringLiteral("Avatar"), true, true,
             QVariant(), &avatarPath))
@@ -294,12 +278,7 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     const QList<IniValue> entries = {
         {QStringLiteral("General"), QStringLiteral("DefaultSession"), QStringLiteral("defaultSession"), boundedString(arguments, QStringLiteral("defaultSession"), 256)},
         {QStringLiteral("Appearance"), QStringLiteral("BackgroundImage"), QStringLiteral("wallpaperPath"), wallpaperPath},
-        {QStringLiteral("Appearance"), QStringLiteral("ColorScheme"), QStringLiteral("colorSchemePath"), colorSchemePath},
-        {QStringLiteral("Appearance"), QStringLiteral("IconTheme"), QStringLiteral("iconTheme"), boundedString(arguments, QStringLiteral("iconTheme"), 256)},
         {QStringLiteral("Appearance"), QStringLiteral("IconMode"), QStringLiteral("iconMode"), arguments.value(QStringLiteral("iconMode")).toString().trimmed().toLower() == QStringLiteral("nerd") ? QStringLiteral("nerd") : QStringLiteral("system")},
-        {QStringLiteral("Appearance"), QStringLiteral("Font"), QStringLiteral("fontFamily"), boundedString(arguments, QStringLiteral("fontFamily"), 256)},
-        {QStringLiteral("Appearance"), QStringLiteral("FontSize"), QStringLiteral("fontSize"), QString::number(qBound(1, arguments.value(QStringLiteral("fontSize"), 10).toInt(), 256))},
-        {QStringLiteral("Style"), QStringLiteral("BorderRadius"), QStringLiteral("borderRadius"), QString::number(qBound(0, arguments.value(QStringLiteral("borderRadius"), 8).toInt(), 256))},
         {QStringLiteral("Appearance"), QStringLiteral("AvatarImage"), QStringLiteral("avatarPath"), avatarPath},
         {QStringLiteral("Appearance"), QStringLiteral("BlurEnabled"), QStringLiteral("blurEnabled"), boolValue(QStringLiteral("blurEnabled"), true)},
         {QStringLiteral("Appearance"), QStringLiteral("OverlayEnabled"), QStringLiteral("overlayEnabled"), boolValue(QStringLiteral("overlayEnabled"), true)},
@@ -337,12 +316,38 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     }
 
     const QVariantMap savedSettings = readSettings();
-    qDebug() << "QmlGreetHelper: save succeeded"
-             << "returned borderRadius="
-             << savedSettings.value(QStringLiteral("borderRadius"));
     KAuth::ActionReply reply = KAuth::ActionReply::SuccessReply();
     reply.setData(savedSettings);
     return reply;
+}
+
+KAuth::ActionReply QmlGreetHelper::copyKdeGlobals(const QVariantMap &a)
+{
+    const QString sourcePath = boundedString(a, QStringLiteral("sourcePath"), 4096);
+    const QFileInfo sourceInfo(sourcePath);
+    const QString canonicalSource = sourceInfo.canonicalFilePath();
+    if (canonicalSource.isEmpty() || sourceInfo.fileName() != QStringLiteral("kdeglobals")
+        || QFileInfo(canonicalSource).dir().dirName() != QStringLiteral(".config"))
+        return helperError(QStringLiteral("The kdeglobals source must be ~/.config/kdeglobals."), 1101);
+
+    QFile source(canonicalSource);
+    if (!source.open(QIODevice::ReadOnly))
+        return helperError(QStringLiteral("Could not read %1.").arg(canonicalSource), 1102);
+
+    const QString targetPath = QStringLiteral("/var/lib/greetd/.config/kdeglobals");
+    if (!QDir().mkpath(QFileInfo(targetPath).absolutePath()))
+        return helperError(QStringLiteral("Could not create the greetd configuration directory."), 1103);
+
+    QSaveFile target(targetPath);
+    if (!target.open(QIODevice::WriteOnly)
+        || target.write(source.readAll()) < 0
+        || !target.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                  | QFileDevice::ReadGroup | QFileDevice::ReadOther)
+        || !target.commit())
+        return helperError(QStringLiteral("Could not copy kdeglobals to %1.").arg(targetPath), 1104);
+
+    qDebug() << "QmlGreetHelper: copied kdeglobals" << canonicalSource << "to" << targetPath;
+    return KAuth::ActionReply::SuccessReply();
 }
 
 KAUTH_HELPER_MAIN("org.maui.settings.qmlgreet", QmlGreetHelper)

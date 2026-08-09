@@ -31,19 +31,8 @@ QVariantMap readSettings(QSettings &settings)
         {QStringLiteral("wallpaperPath"), settings.value(
             QStringLiteral("Appearance/BackgroundImage"),
             QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"))},
-        {QStringLiteral("colorSchemePath"), settings.value(
-            QStringLiteral("Appearance/ColorScheme"),
-            QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors"))},
-        {QStringLiteral("iconTheme"), settings.value(
-            QStringLiteral("Appearance/IconTheme"), QStringLiteral("hicolor"))},
         {QStringLiteral("iconMode"), settings.value(
             QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
-        {QStringLiteral("fontFamily"), settings.value(
-            QStringLiteral("Appearance/Font"), QStringLiteral("Noto Sans"))},
-        {QStringLiteral("fontSize"), settings.value(
-            QStringLiteral("Appearance/FontSize"), 10)},
-        {QStringLiteral("borderRadius"), settings.value(
-            QStringLiteral("Style/BorderRadius"), 8)},
         {QStringLiteral("avatarPath"), settings.value(
             QStringLiteral("Appearance/AvatarImage"))},
         {QStringLiteral("timeFormat"), settings.value(
@@ -85,20 +74,6 @@ QString QmlGreetController::wallpaperDirectory() const
 }
 
 QString QmlGreetController::wallpaperPath() const { return m_wallpaperPath; }
-
-QString QmlGreetController::colorSchemeDirectory() const
-{
-    return m_colorSchemePath.isEmpty()
-        ? QStringLiteral("/usr/share/color-schemes")
-        : QFileInfo(m_colorSchemePath).absolutePath();
-}
-
-QString QmlGreetController::colorSchemePath() const { return m_colorSchemePath; }
-QString QmlGreetController::iconTheme() const { return m_iconTheme; }
-QString QmlGreetController::iconMode() const { return m_iconMode; }
-QString QmlGreetController::fontFamily() const { return m_fontFamily; }
-int QmlGreetController::fontSize() const { return m_fontSize; }
-int QmlGreetController::borderRadius() const { return m_borderRadius; }
 
 QString QmlGreetController::avatarDirectory() const
 {
@@ -145,19 +120,16 @@ QString QmlGreetController::normalizeLocalPath(const QString &value)
     }
 
 SET_STRING_SETTING(setWallpaperPath, m_wallpaperPath, wallpaperPathChanged, normalizeLocalPath(value))
-SET_STRING_SETTING(setColorSchemePath, m_colorSchemePath, colorSchemePathChanged, normalizeLocalPath(value))
-    SET_STRING_SETTING(setIconTheme, m_iconTheme, iconThemeChanged, value.trimmed())
-    void QmlGreetController::setIconMode(const QString &value)
-    {
-        const QString normalized = value.trimmed().toLower() == QStringLiteral("nerd")
-            ? QStringLiteral("nerd") : QStringLiteral("system");
-        if (m_iconMode == normalized)
-            return;
-        m_iconMode = normalized;
-        Q_EMIT iconModeChanged();
-        updateDirty();
-    }
-SET_STRING_SETTING(setFontFamily, m_fontFamily, fontFamilyChanged, value.trimmed())
+void QmlGreetController::setIconMode(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower() == QStringLiteral("nerd")
+        ? QStringLiteral("nerd") : QStringLiteral("system");
+    if (m_iconMode == normalized)
+        return;
+    m_iconMode = normalized;
+    Q_EMIT iconModeChanged();
+    updateDirty();
+}
 SET_STRING_SETTING(setAvatarPath, m_avatarPath, avatarPathChanged, normalizeLocalPath(value))
 SET_STRING_SETTING(setTimeFormat, m_timeFormat, timeFormatChanged,
                    value.trimmed().isEmpty() ? QStringLiteral("hh:mm") : value.trimmed())
@@ -185,30 +157,6 @@ SET_BOOLEAN_SETTING(setShowBattery, m_showBattery, showBatteryChanged)
 
 #undef SET_BOOLEAN_SETTING
 
-void QmlGreetController::setFontSize(int value)
-{
-    value = qBound(1, value, 256);
-    if (m_fontSize == value)
-        return;
-
-    m_fontSize = value;
-    Q_EMIT fontSizeChanged();
-    updateDirty();
-}
-
-void QmlGreetController::setBorderRadius(int value)
-{
-    value = qBound(0, value, 256);
-    if (m_borderRadius == value)
-        return;
-
-    qDebug() << "QmlGreetController: borderRadius changed"
-             << m_borderRadius << "->" << value;
-    m_borderRadius = value;
-    Q_EMIT borderRadiusChanged();
-    updateDirty();
-}
-
 void QmlGreetController::setOverlayOpacity(double value)
 {
     value = qBound(0.0, value, 1.0);
@@ -224,12 +172,7 @@ QVariantMap QmlGreetController::stagedValues() const
 {
     return {
         {QStringLiteral("wallpaperPath"), m_wallpaperPath},
-        {QStringLiteral("colorSchemePath"), m_colorSchemePath},
-        {QStringLiteral("iconTheme"), m_iconTheme},
         {QStringLiteral("iconMode"), m_iconMode},
-        {QStringLiteral("fontFamily"), m_fontFamily},
-        {QStringLiteral("fontSize"), m_fontSize},
-        {QStringLiteral("borderRadius"), m_borderRadius},
         {QStringLiteral("avatarPath"), m_avatarPath},
         {QStringLiteral("timeFormat"), m_timeFormat},
         {QStringLiteral("dateFormat"), m_dateFormat},
@@ -260,18 +203,8 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_wallpaperPath = normalizeLocalPath(values.value(
         QStringLiteral("wallpaperPath"),
         QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png")).toString());
-    m_colorSchemePath = normalizeLocalPath(values.value(
-        QStringLiteral("colorSchemePath"),
-        QStringLiteral("/usr/share/color-schemes/QMLGreetDefault.colors")).toString());
-    m_iconTheme = values.value(
-        QStringLiteral("iconTheme"), QStringLiteral("hicolor")).toString().trimmed();
     m_iconMode = values.value(QStringLiteral("iconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
         ? QStringLiteral("nerd") : QStringLiteral("system");
-    m_fontFamily = values.value(
-        QStringLiteral("fontFamily"), QStringLiteral("Noto Sans")).toString().trimmed();
-    m_fontSize = qBound(1, values.value(QStringLiteral("fontSize"), 10).toInt(), 256);
-    m_borderRadius = qBound(
-        0, values.value(QStringLiteral("borderRadius"), 8).toInt(), 256);
     m_avatarPath = normalizeLocalPath(values.value(QStringLiteral("avatarPath")).toString());
     m_timeFormat = values.value(QStringLiteral("timeFormat"), QStringLiteral("hh:mm")).toString();
     m_dateFormat = values.value(
@@ -286,12 +219,7 @@ void QmlGreetController::applyValues(const QVariantMap &values)
     m_showBattery = values.value(QStringLiteral("showBattery"), true).toBool();
 
     Q_EMIT wallpaperPathChanged();
-    Q_EMIT colorSchemePathChanged();
-    Q_EMIT iconThemeChanged();
     Q_EMIT iconModeChanged();
-    Q_EMIT fontFamilyChanged();
-    Q_EMIT fontSizeChanged();
-    Q_EMIT borderRadiusChanged();
     Q_EMIT avatarPathChanged();
     Q_EMIT timeFormatChanged();
     Q_EMIT dateFormatChanged();
@@ -452,8 +380,7 @@ bool QmlGreetController::save()
              << "loading=" << m_loading
              << "saving=" << m_saving
              << "saveAvailable=" << m_saveAvailable
-             << "dirty=" << m_dirty
-             << "borderRadius=" << m_borderRadius;
+             << "dirty=" << m_dirty;
     if (m_loading || m_saving || !m_saveAvailable)
     {
         qWarning() << "QmlGreetController: save rejected by state guard";
@@ -467,8 +394,7 @@ bool QmlGreetController::save()
 
     const QVariantMap values = changedValues();
     qDebug() << "QmlGreetController: executing KAuth save"
-             << "keys=" << values.keys()
-             << "borderRadius argument=" << values.value(QStringLiteral("borderRadius"));
+             << "keys=" << values.keys();
     setSaving(true);
     setErrorMessage(QString());
     setStatusMessage(QStringLiteral("Waiting for administrator authentication…"));
@@ -485,9 +411,7 @@ bool QmlGreetController::save()
         setSaving(false);
         qDebug() << "QmlGreetController: KAuth save completed"
                  << "error=" << job->error()
-                 << "errorText=" << job->errorText()
-                 << "returned borderRadius="
-                 << job->data().value(QStringLiteral("borderRadius"));
+                 << "errorText=" << job->errorText();
         if (job->error() != 0)
         {
             const bool cancelled = job->error() == KAuth::ActionReply::UserCancelledError;

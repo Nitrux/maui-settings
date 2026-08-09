@@ -12,13 +12,7 @@ class QmlGreetController : public QObject
     Q_PROPERTY(bool saveAvailable READ saveAvailable NOTIFY saveAvailableChanged)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
-    Q_PROPERTY(QString colorSchemeDirectory READ colorSchemeDirectory NOTIFY colorSchemePathChanged)
-    Q_PROPERTY(QString colorSchemePath READ colorSchemePath WRITE setColorSchemePath NOTIFY colorSchemePathChanged)
-    Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme NOTIFY iconThemeChanged)
     Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY iconModeChanged)
-    Q_PROPERTY(QString fontFamily READ fontFamily WRITE setFontFamily NOTIFY fontFamilyChanged)
-    Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
-    Q_PROPERTY(int borderRadius READ borderRadius WRITE setBorderRadius NOTIFY borderRadiusChanged)
     Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
     Q_PROPERTY(QString avatarPath READ avatarPath WRITE setAvatarPath NOTIFY avatarPathChanged)
     Q_PROPERTY(QString timeFormat READ timeFormat WRITE setTimeFormat NOTIFY timeFormatChanged)
@@ -44,13 +38,7 @@ public:
     bool saveAvailable() const;
     QString wallpaperDirectory() const;
     QString wallpaperPath() const;
-    QString colorSchemeDirectory() const;
-    QString colorSchemePath() const;
-    QString iconTheme() const;
     QString iconMode() const;
-    QString fontFamily() const;
-    int fontSize() const;
-    int borderRadius() const;
     QString avatarDirectory() const;
     QString avatarPath() const;
     QString timeFormat() const;
@@ -70,12 +58,7 @@ public:
     QString errorMessage() const;
 
     void setWallpaperPath(const QString &value);
-    void setColorSchemePath(const QString &value);
-    void setIconTheme(const QString &value);
     void setIconMode(const QString &value);
-    void setFontFamily(const QString &value);
-    void setFontSize(int value);
-    void setBorderRadius(int value);
     void setAvatarPath(const QString &value);
     void setTimeFormat(const QString &value);
     void setDateFormat(const QString &value);
@@ -94,12 +77,7 @@ public:
 Q_SIGNALS:
     void saveAvailableChanged();
     void wallpaperPathChanged();
-    void colorSchemePathChanged();
-    void iconThemeChanged();
     void iconModeChanged();
-    void fontFamilyChanged();
-    void fontSizeChanged();
-    void borderRadiusChanged();
     void avatarPathChanged();
     void timeFormatChanged();
     void dateFormatChanged();
@@ -136,12 +114,7 @@ private:
 
     bool m_saveAvailable = false;
     QString m_wallpaperPath;
-    QString m_colorSchemePath;
-    QString m_iconTheme = QStringLiteral("hicolor");
     QString m_iconMode = QStringLiteral("system");
-    QString m_fontFamily = QStringLiteral("Noto Sans");
-    int m_fontSize = 10;
-    int m_borderRadius = 8;
     QString m_avatarPath;
     QString m_timeFormat = QStringLiteral("hh:mm");
     QString m_dateFormat = QStringLiteral("dddd, dd MMMM yyyy");

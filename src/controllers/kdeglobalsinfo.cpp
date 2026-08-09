@@ -4,6 +4,9 @@
 #include <QCryptographicHash>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <KAuth/Action>
+#include <KAuth/ExecuteJob>
+#include <KJob>
 
 #include <algorithm>
 #include <QColor>
@@ -29,6 +32,8 @@
 
 namespace
 {
+constexpr auto greeterHelperId = "org.maui.settings.qmlgreet";
+constexpr auto greeterCopyActionId = "org.maui.settings.qmlgreet.copyKdeGlobals";
 QString systemDefaultFont()
 {
     return QApplication::font().toString();
@@ -511,6 +516,22 @@ bool KdeGlobalsInfo::save()
             notifyKcmChange(0); // PaletteChanged
         if (cursorChanged)
             notifyKcmChange(5); // CursorChanged
+    }
+
+    if (settingsSaved && inputSettingsSaved)
+    {
+        KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
+        action.setHelperId(QString::fromLatin1(greeterHelperId));
+        action.setArguments({{QStringLiteral("sourcePath"), m_configPath}});
+        if (KAuth::ExecuteJob *job = action.execute())
+        {
+            connect(job, &KJob::result, this, [](KJob *completedJob)
+            {
+                if (completedJob->error() != 0)
+                    qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
+            });
+            job->start();
+        }
     }
 
     return settingsSaved && inputSettingsSaved;
