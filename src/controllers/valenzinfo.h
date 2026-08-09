@@ -15,6 +15,8 @@ class ValenzInfo : public QObject
     Q_PROPERTY(int barLayerSpacingRight READ barLayerSpacingRight WRITE setBarLayerSpacingRight NOTIFY settingsChanged)
     Q_PROPERTY(QString screenPlacement READ screenPlacement WRITE setScreenPlacement NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterIconMode READ controlCenterIconMode WRITE setControlCenterIconMode NOTIFY settingsChanged)
+    Q_PROPERTY(QString lightColorScheme READ lightColorScheme WRITE setLightColorScheme NOTIFY settingsChanged)
+    Q_PROPERTY(QString darkColorScheme READ darkColorScheme WRITE setDarkColorScheme NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterPowerCommand READ controlCenterPowerCommand WRITE setControlCenterPowerCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterSettingsCommand READ controlCenterSettingsCommand WRITE setControlCenterSettingsCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterDiskUsagePath READ controlCenterDiskUsagePath WRITE setControlCenterDiskUsagePath NOTIFY settingsChanged)
@@ -36,6 +38,8 @@ public:
     int barLayerSpacingRight() const;
     QString screenPlacement() const;
     QString controlCenterIconMode() const;
+    QString lightColorScheme() const;
+    QString darkColorScheme() const;
     QString controlCenterPowerCommand() const;
     QString controlCenterSettingsCommand() const;
     QString controlCenterDiskUsagePath() const;
@@ -53,6 +57,8 @@ public:
     void setBarLayerSpacingRight(int value);
     void setScreenPlacement(const QString &value);
     void setControlCenterIconMode(const QString &value);
+    void setLightColorScheme(const QString &value);
+    void setDarkColorScheme(const QString &value);
     void setControlCenterPowerCommand(const QString &value);
     void setControlCenterSettingsCommand(const QString &value);
     void setControlCenterDiskUsagePath(const QString &value);
@@ -81,6 +87,8 @@ private:
     int m_barLayerSpacingRight = 0;
     QString m_screenPlacement = QStringLiteral("active");
     QString m_controlCenterIconMode = QStringLiteral("system16");
+    QString m_lightColorScheme = QStringLiteral("CatppuccinLatteNitrux");
+    QString m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
     QString m_controlCenterPowerCommand = QStringLiteral("wlogout");
     QString m_controlCenterSettingsCommand = QStringLiteral("systemsettings");
     QString m_controlCenterDiskUsagePath = QStringLiteral("/");

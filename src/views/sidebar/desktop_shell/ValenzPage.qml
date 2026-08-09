@@ -429,6 +429,38 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                label1.text: i18n("Light color scheme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Color scheme used when Dark mode is disabled in Valenz.")
+                label2.wrapMode: Text.Wrap
+                template.content: TextField
+                {
+                    Layout.fillWidth: true
+                    text: info ? info.lightColorScheme : "CatppuccinLatteNitrux"
+                    onEditingFinished: if (info) info.lightColorScheme = text
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Dark color scheme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Color scheme used when Dark mode is enabled in Valenz.")
+                label2.wrapMode: Text.Wrap
+                template.content: TextField
+                {
+                    Layout.fillWidth: true
+                    text: info ? info.darkColorScheme : "CatppuccinMochaNitrux"
+                    onEditingFinished: if (info) info.darkColorScheme = text
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
                 label1.text: i18n("Disk usage path")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Filesystem path represented by the storage indicator.")

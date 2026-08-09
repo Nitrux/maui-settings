@@ -42,6 +42,8 @@ int ValenzInfo::barLayerSpacingLeft() const { return m_barLayerSpacingLeft; }
 int ValenzInfo::barLayerSpacingRight() const { return m_barLayerSpacingRight; }
 QString ValenzInfo::screenPlacement() const { return m_screenPlacement; }
 QString ValenzInfo::controlCenterIconMode() const { return m_controlCenterIconMode; }
+QString ValenzInfo::lightColorScheme() const { return m_lightColorScheme; }
+QString ValenzInfo::darkColorScheme() const { return m_darkColorScheme; }
 QString ValenzInfo::controlCenterPowerCommand() const { return m_controlCenterPowerCommand; }
 QString ValenzInfo::controlCenterSettingsCommand() const { return m_controlCenterSettingsCommand; }
 QString ValenzInfo::controlCenterDiskUsagePath() const { return m_controlCenterDiskUsagePath; }
@@ -87,6 +89,24 @@ void ValenzInfo::setControlCenterIconMode(const QString &value)
     if (m_controlCenterIconMode == normalized)
         return;
     m_controlCenterIconMode = normalized;
+    setChanged();
+}
+
+void ValenzInfo::setLightColorScheme(const QString &value)
+{
+    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("CatppuccinLatteNitrux") : value.trimmed();
+    if (m_lightColorScheme == normalized)
+        return;
+    m_lightColorScheme = normalized;
+    setChanged();
+}
+
+void ValenzInfo::setDarkColorScheme(const QString &value)
+{
+    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("CatppuccinMochaNitrux") : value.trimmed();
+    if (m_darkColorScheme == normalized)
+        return;
+    m_darkColorScheme = normalized;
     setChanged();
 }
 
@@ -187,6 +207,10 @@ void ValenzInfo::load()
     m_barLayerSpacingRight = qBound(0, value(QStringLiteral("Window/barLayerSpacingRight"), m_barLayerSpacing).toInt(), 64);
     m_screenPlacement = normalizedChoice(value(QStringLiteral("Window/screenPlacement"), QStringLiteral("active")).toString(), {QStringLiteral("active"), QStringLiteral("all")}, QStringLiteral("active"));
     m_controlCenterIconMode = normalizedChoice(value(QStringLiteral("ControlCenter/iconMode"), QStringLiteral("system16")).toString(), {QStringLiteral("system16"), QStringLiteral("nerd")}, QStringLiteral("system16"));
+    m_lightColorScheme = value(QStringLiteral("ColorScheme/lighColors"), QStringLiteral("CatppuccinLatteNitrux")).toString().trimmed();
+    if (m_lightColorScheme.isEmpty()) m_lightColorScheme = QStringLiteral("CatppuccinLatteNitrux");
+    m_darkColorScheme = value(QStringLiteral("ColorScheme/darkColors"), QStringLiteral("CatppuccinMochaNitrux")).toString().trimmed();
+    if (m_darkColorScheme.isEmpty()) m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
     m_controlCenterPowerCommand = value(QStringLiteral("ControlCenter/powerCommand"), QStringLiteral("wlogout")).toString().trimmed();
     m_controlCenterSettingsCommand = value(QStringLiteral("ControlCenter/settingsCommand"), QStringLiteral("systemsettings")).toString().trimmed();
     m_controlCenterDiskUsagePath = value(QStringLiteral("ControlCenter/diskUsagePath"), QStringLiteral("/")).toString().trimmed();
@@ -218,6 +242,8 @@ bool ValenzInfo::save()
     settings.setValue(QStringLiteral("Window/barLayerSpacingRight"), m_barLayerSpacingRight);
     settings.setValue(QStringLiteral("Window/screenPlacement"), m_screenPlacement);
     settings.setValue(QStringLiteral("ControlCenter/iconMode"), m_controlCenterIconMode);
+    settings.setValue(QStringLiteral("ColorScheme/lighColors"), m_lightColorScheme);
+    settings.setValue(QStringLiteral("ColorScheme/darkColors"), m_darkColorScheme);
     settings.setValue(QStringLiteral("ControlCenter/powerCommand"), m_controlCenterPowerCommand);
     settings.setValue(QStringLiteral("ControlCenter/settingsCommand"), m_controlCenterSettingsCommand);
     settings.setValue(QStringLiteral("ControlCenter/diskUsagePath"), m_controlCenterDiskUsagePath);
