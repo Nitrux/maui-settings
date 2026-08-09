@@ -74,6 +74,7 @@ QString QmlGreetController::wallpaperDirectory() const
 }
 
 QString QmlGreetController::wallpaperPath() const { return m_wallpaperPath; }
+QString QmlGreetController::iconMode() const { return m_iconMode; }
 
 QString QmlGreetController::avatarDirectory() const
 {
