@@ -82,6 +82,8 @@ set(settings_SRCS
     src/controllers/nudgeosdinfo.cpp
     src/controllers/networkcontroller.cpp
     src/controllers/valenzinfo.cpp
+    src/controllers/powerinfo.cpp
+    src/controllers/powerinfo.h
 )
 
 qt_add_executable(${APP_NAME}
@@ -164,6 +166,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/HardwareSoundGroup.qml
     src/views/sidebar/hardware_sound/AudioItem.qml
     src/views/sidebar/hardware_sound/AudioPage.qml
+    src/views/sidebar/hardware_sound/PerformanceItem.qml
+    src/views/sidebar/hardware_sound/PerformancePage.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml

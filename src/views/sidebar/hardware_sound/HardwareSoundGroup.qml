@@ -16,6 +16,12 @@ Item
 
     Component
     {
+        id: performanceComponent
+        PerformanceItem {}
+    }
+
+    Component
+    {
         id: inputDevicesComponent
         InputDevicesItem {}
     }
@@ -24,6 +30,7 @@ Item
     {
         items = [
             audioComponent.createObject(this),
+            performanceComponent.createObject(this),
             inputDevicesComponent.createObject(this)
         ]
     }
