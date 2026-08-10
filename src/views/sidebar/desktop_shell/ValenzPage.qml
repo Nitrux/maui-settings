@@ -157,47 +157,6 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Default spacing")
-                label1.elide: Text.ElideRight
-                label2.text: i18n("Fallback layer-shell margin in pixels.")
-                label2.wrapMode: Text.Wrap
-                template.content: SpinBox
-                {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    from: 0
-                    to: 64
-                    value: info ? info.barLayerSpacing : 0
-                    onValueModified: if (info) info.barLayerSpacing = value
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
                 label1.text: i18n("Top spacing")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Top layer-shell margin in pixels.")
@@ -978,7 +937,6 @@ Maui.ScrollColumn
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 11
                     from: 5
                     to: 180
                     value: info ? info.weatherRefreshMinutes : 20

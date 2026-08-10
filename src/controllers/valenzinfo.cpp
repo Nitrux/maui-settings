@@ -35,7 +35,6 @@ ValenzInfo::ValenzInfo(QObject *parent)
 
 QString ValenzInfo::configPath() const { return m_configPath; }
 int ValenzInfo::barHeight() const { return m_barHeight; }
-int ValenzInfo::barLayerSpacing() const { return m_barLayerSpacing; }
 int ValenzInfo::barLayerSpacingTop() const { return m_barLayerSpacingTop; }
 int ValenzInfo::barLayerSpacingBottom() const { return m_barLayerSpacingBottom; }
 int ValenzInfo::barLayerSpacingLeft() const { return m_barLayerSpacingLeft; }
@@ -68,7 +67,6 @@ void ValenzInfo::setChanged() { Q_EMIT settingsChanged(); }
     }
 
 SET_BOUNDED_INTEGER(BarHeight, m_barHeight, 1, 100)
-SET_BOUNDED_INTEGER(BarLayerSpacing, m_barLayerSpacing, 0, 64)
 SET_BOUNDED_INTEGER(BarLayerSpacingTop, m_barLayerSpacingTop, 0, 64)
 SET_BOUNDED_INTEGER(BarLayerSpacingBottom, m_barLayerSpacingBottom, 0, 64)
 SET_BOUNDED_INTEGER(BarLayerSpacingLeft, m_barLayerSpacingLeft, 0, 64)
@@ -220,11 +218,10 @@ void ValenzInfo::load()
     };
 
     m_barHeight = qBound(1, value(QStringLiteral("Window/barHeight"), 56).toInt(), 100);
-    m_barLayerSpacing = qBound(0, value(QStringLiteral("Window/barLayerSpacing"), 0).toInt(), 64);
-    m_barLayerSpacingTop = qBound(0, value(QStringLiteral("Window/barLayerSpacingTop"), m_barLayerSpacing).toInt(), 64);
-    m_barLayerSpacingBottom = qBound(0, value(QStringLiteral("Window/barLayerSpacingBottom"), m_barLayerSpacing).toInt(), 64);
-    m_barLayerSpacingLeft = qBound(0, value(QStringLiteral("Window/barLayerSpacingLeft"), m_barLayerSpacing).toInt(), 64);
-    m_barLayerSpacingRight = qBound(0, value(QStringLiteral("Window/barLayerSpacingRight"), m_barLayerSpacing).toInt(), 64);
+    m_barLayerSpacingTop = qBound(0, value(QStringLiteral("Window/barLayerSpacingTop"), 0).toInt(), 64);
+    m_barLayerSpacingBottom = qBound(0, value(QStringLiteral("Window/barLayerSpacingBottom"), 0).toInt(), 64);
+    m_barLayerSpacingLeft = qBound(0, value(QStringLiteral("Window/barLayerSpacingLeft"), 0).toInt(), 64);
+    m_barLayerSpacingRight = qBound(0, value(QStringLiteral("Window/barLayerSpacingRight"), 0).toInt(), 64);
     m_screenPlacement = normalizedChoice(value(QStringLiteral("Window/screenPlacement"), QStringLiteral("active")).toString(), {QStringLiteral("active"), QStringLiteral("all")}, QStringLiteral("active"));
     m_controlCenterIconMode = normalizedChoice(value(QStringLiteral("ControlCenter/iconMode"), QStringLiteral("system16")).toString(), {QStringLiteral("system16"), QStringLiteral("nerd")}, QStringLiteral("system16"));
     m_lightColorScheme = value(QStringLiteral("ColorScheme/lighColors"), QStringLiteral("CatppuccinLatteNitrux")).toString().trimmed();
@@ -259,7 +256,6 @@ bool ValenzInfo::save()
     QDir().mkpath(QDir::homePath() + QStringLiteral("/.config/valenz"));
     QSettings settings(m_configPath, QSettings::IniFormat);
     settings.setValue(QStringLiteral("Window/barHeight"), m_barHeight);
-    settings.setValue(QStringLiteral("Window/barLayerSpacing"), m_barLayerSpacing);
     settings.setValue(QStringLiteral("Window/barLayerSpacingTop"), m_barLayerSpacingTop);
     settings.setValue(QStringLiteral("Window/barLayerSpacingBottom"), m_barLayerSpacingBottom);
     settings.setValue(QStringLiteral("Window/barLayerSpacingLeft"), m_barLayerSpacingLeft);

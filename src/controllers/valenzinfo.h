@@ -8,7 +8,6 @@ class ValenzInfo : public QObject
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
     Q_PROPERTY(int barHeight READ barHeight WRITE setBarHeight NOTIFY settingsChanged)
-    Q_PROPERTY(int barLayerSpacing READ barLayerSpacing WRITE setBarLayerSpacing NOTIFY settingsChanged)
     Q_PROPERTY(int barLayerSpacingTop READ barLayerSpacingTop WRITE setBarLayerSpacingTop NOTIFY settingsChanged)
     Q_PROPERTY(int barLayerSpacingBottom READ barLayerSpacingBottom WRITE setBarLayerSpacingBottom NOTIFY settingsChanged)
     Q_PROPERTY(int barLayerSpacingLeft READ barLayerSpacingLeft WRITE setBarLayerSpacingLeft NOTIFY settingsChanged)
@@ -33,7 +32,6 @@ public:
 
     QString configPath() const;
     int barHeight() const;
-    int barLayerSpacing() const;
     int barLayerSpacingTop() const;
     int barLayerSpacingBottom() const;
     int barLayerSpacingLeft() const;
@@ -54,7 +52,6 @@ public:
     int weatherRefreshMinutes() const;
 
     void setBarHeight(int value);
-    void setBarLayerSpacing(int value);
     void setBarLayerSpacingTop(int value);
     void setBarLayerSpacingBottom(int value);
     void setBarLayerSpacingLeft(int value);
@@ -86,7 +83,6 @@ private:
 
     QString m_configPath;
     int m_barHeight = 56;
-    int m_barLayerSpacing = 0;
     int m_barLayerSpacingTop = 0;
     int m_barLayerSpacingBottom = 0;
     int m_barLayerSpacingLeft = 0;
