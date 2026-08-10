@@ -837,6 +837,25 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                enabled: controller ? controller.idleLockEnabled : true
+                label1.text: i18n("Dim screen timeout")
+                label2.text: i18n("Seconds of inactivity before dimming the screen.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    from: 0
+                    to: 86400
+                    stepSize: 30
+                    value: controller ? controller.dimTimeout : 300
+                    editable: true
+                    onValueModified: if (controller) controller.dimTimeout = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
                 label1.text: i18n("Idle lock timeout")
                 enabled: controller ? controller.idleLockEnabled : true
                 label1.elide: Text.ElideRight
@@ -856,25 +875,6 @@ Maui.ScrollColumn
                         if (controller)
                             controller.idleLockTimeout = value
                     }
-                }
-            }
-
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                flat: true
-                enabled: controller ? controller.idleLockEnabled : true
-                label1.text: i18n("Dim screen timeout")
-                label2.text: i18n("Seconds of inactivity before dimming the screen.")
-                label2.wrapMode: Text.Wrap
-                template.content: SpinBox
-                {
-                    from: 0
-                    to: 86400
-                    stepSize: 30
-                    value: controller ? controller.dimTimeout : 300
-                    editable: true
-                    onValueModified: if (controller) controller.dimTimeout = value
                 }
             }
 
@@ -910,7 +910,7 @@ Maui.ScrollColumn
                     from: 0
                     to: 86400
                     stepSize: 30
-                    value: controller ? controller.suspendTimeout : 650
+                    value: controller ? controller.suspendTimeout : 600
                     editable: true
                     onValueModified: if (controller) controller.suspendTimeout = value
                 }

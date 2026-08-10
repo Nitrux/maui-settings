@@ -132,5 +132,5 @@ private:
     bool m_idleLockEnabled = true;
     int m_idleLockTimeout = 350;
     int m_dpmsTimeout = 500;
-    int m_suspendTimeout = 650;
+    int m_suspendTimeout = 600;
 };

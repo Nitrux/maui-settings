@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QSaveFile>
+#include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QUrl>
@@ -31,6 +32,20 @@ QString hypridleConfigPath()
 
 constexpr auto defaultHypridleLockTimeout = 350;
 
+void restartHypridle(const QString &configPath)
+{
+    const QString executable = QStandardPaths::findExecutable(QStringLiteral("hypridle"));
+    if (executable.isEmpty())
+    {
+        qWarning() << "Could not find hypridle to restart it";
+        return;
+    }
+
+    QProcess::execute(QStringLiteral("pkill"), {QStringLiteral("-TERM"), QStringLiteral("-x"), QStringLiteral("hypridle")});
+    if (!QProcess::startDetached(executable, {QStringLiteral("--config"), configPath}))
+        qWarning() << "Could not restart hypridle";
+}
+
 bool isHypridleCommand(const QString &line, const QString &command)
 {
     if (command == QStringLiteral("dim"))
@@ -49,6 +64,74 @@ bool isHypridleCommand(const QString &line, const QString &command)
             && (line.contains(QStringLiteral("on-timeout = zzz"))
                 || line.contains(QStringLiteral("on-timeout = loginctl suspend")));
     return false;
+}
+
+QString uncommentedHypridleLine(const QString &line)
+{
+    QString result = line;
+    int indentation = 0;
+    while (indentation < result.size() && result.at(indentation).isSpace())
+        ++indentation;
+    if (result.mid(indentation).startsWith(QStringLiteral("#")))
+    {
+        result.remove(indentation, 1);
+        if (indentation < result.size() && result.at(indentation) == QLatin1Char(' '))
+            result.remove(indentation, 1);
+    }
+    return result;
+}
+
+struct HypridleListener
+{
+    int start = -1;
+    int end = -1;
+    int timeoutLine = -1;
+    int commandLine = -1;
+};
+
+HypridleListener findHypridleListener(const QStringList &lines, const QString &command)
+{
+    for (int start = 0; start < lines.size(); ++start)
+    {
+        if (uncommentedHypridleLine(lines[start]).trimmed() != QStringLiteral("listener {"))
+            continue;
+
+        int depth = 0;
+        int end = -1;
+        for (int i = start; i < lines.size(); ++i)
+        {
+            const QString normalized = uncommentedHypridleLine(lines[i]).trimmed();
+            if (normalized.endsWith(QLatin1Char('{')))
+                ++depth;
+            else if (normalized == QStringLiteral("}"))
+            {
+                --depth;
+                if (depth == 0)
+                {
+                    end = i;
+                    break;
+                }
+            }
+        }
+        if (end < 0)
+            continue;
+
+        HypridleListener listener{start, end};
+        for (int i = start + 1; i < end; ++i)
+        {
+            const QString normalized = uncommentedHypridleLine(lines[i]).trimmed();
+            const int equals = normalized.indexOf(QLatin1Char('='));
+            if (equals >= 0 && normalized.left(equals).trimmed() == QStringLiteral("timeout"))
+                listener.timeoutLine = i;
+            if (isHypridleCommand(normalized, command))
+                listener.commandLine = i;
+        }
+
+        if (listener.commandLine >= 0)
+            return listener;
+    }
+
+    return {};
 }
 
 bool updateIniValue(QStringList &lines, const QString &section, const QString &key, const QString &value)
@@ -400,7 +483,7 @@ void DesklockController::loadHypridleConfiguration()
         m_idleLockEnabled = false;
         m_idleLockTimeout = defaultHypridleLockTimeout;
         m_dpmsTimeout = 500;
-        m_suspendTimeout = 650;
+        m_suspendTimeout = 600;
     }
     else
     {
@@ -419,27 +502,16 @@ void DesklockController::loadHypridleConfiguration()
             return result;
         };
         const auto readTimeout = [&](const QString &command, int fallback) {
-            for (int i = 0; i < lines.size(); ++i)
-            {
-                const QString trimmed = uncommentedLine(lines[i]).trimmed();
-                if (!isHypridleCommand(trimmed, command))
-                    continue;
-                for (int j = i - 1; j >= 0; --j)
-                {
-                    const QString timeoutLine = uncommentedLine(lines[j]).trimmed();
-                    if (timeoutLine.startsWith(QStringLiteral("timeout")))
-                        return timeoutLine.section(QStringLiteral("="), 1).trimmed().toInt();
-                    if (timeoutLine == QStringLiteral("listener {"))
-                        break;
-                }
-            }
-            return fallback;
+            const HypridleListener listener = findHypridleListener(lines, command);
+            if (listener.timeoutLine < 0)
+                return fallback;
+            return uncommentedLine(lines[listener.timeoutLine]).trimmed().section(QStringLiteral("="), 1).trimmed().toInt();
         };
 
         m_dimTimeout = qBound(0, readTimeout(QStringLiteral("dim"), 300), 86400);
         m_idleLockTimeout = qBound(0, readTimeout(QStringLiteral("lock"), 350), 86400);
         m_dpmsTimeout = qBound(0, readTimeout(QStringLiteral("dpms"), 500), 86400);
-        m_suspendTimeout = qBound(0, readTimeout(QStringLiteral("suspend"), 650), 86400);
+        m_suspendTimeout = qBound(0, readTimeout(QStringLiteral("suspend"), 600), 86400);
         m_idleLockEnabled = false;
         for (const QString &line : lines)
         {
@@ -486,39 +558,38 @@ bool DesklockController::saveHypridleConfiguration() const
     };
 
     const auto updateListener = [&](const QString &command, int timeout) {
-        for (int i = 0; i < lines.size(); ++i)
-        {
-            const QString normalized = uncommentedLine(lines[i]).trimmed();
-            if (!isHypridleCommand(normalized, command))
-                continue;
+        const HypridleListener listener = findHypridleListener(lines, command);
+        if (listener.timeoutLine < 0)
+            return false;
 
-            for (int j = i - 1; j >= 0; --j)
-            {
-                const QString timeoutLine = uncommentedLine(lines[j]).trimmed();
-                if (timeoutLine.startsWith(QStringLiteral("timeout")))
-                {
-                    lines[j] = QStringLiteral("  timeout = %1").arg(timeout);
-                    return true;
-                }
-                if (timeoutLine == QStringLiteral("listener {"))
-                    break;
-            }
-        }
-        return false;
+        lines[listener.timeoutLine] = QStringLiteral("  timeout = %1").arg(timeout);
+        return true;
     };
 
     const auto setBlockEnabled = [&](const QString &command, const QString &blockName, bool enabled) {
+        if (blockName == QStringLiteral("listener {"))
+        {
+            const HypridleListener listener = findHypridleListener(lines, command);
+            if (listener.start < 0)
+                return false;
+
+            for (int i = listener.start; i <= listener.end; ++i)
+            {
+                if (enabled)
+                    lines[i] = uncommentedLine(lines[i]);
+                else if (!lines[i].trimmed().isEmpty())
+                    lines[i] = QStringLiteral("# ") + uncommentedLine(lines[i]);
+            }
+            return true;
+        }
+
         int commandLine = -1;
         for (int i = 0; i < lines.size(); ++i)
         {
             const QString normalized = uncommentedLine(lines[i]).trimmed();
-            if (blockName == QStringLiteral("listener {")) {
-                if (!isHypridleCommand(normalized, command))
-                    continue;
-            } else if (!(normalized.startsWith(QStringLiteral("lock_cmd ="))
-                         && normalized.contains(QStringLiteral("desklock")))) {
+            if (!(normalized.startsWith(QStringLiteral("lock_cmd ="))
+                  && normalized.contains(QStringLiteral("desklock"))))
                 continue;
-            }
             commandLine = i;
             break;
         }
@@ -589,5 +660,6 @@ bool DesklockController::saveHypridleConfiguration() const
         qWarning() << "Could not write hypridle configuration" << m_hypridleConfigPath;
         return false;
     }
+    restartHypridle(m_hypridleConfigPath);
     return true;
 }
