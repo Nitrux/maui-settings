@@ -43,7 +43,7 @@ Maui.ScrollColumn {
 
             Maui.SectionHeader {
                 Layout.fillWidth: true
-                text1: i18n("Power Daemon")
+                text1: i18n("NX Power Daemon")
                 text2: !info || !info.daemonAvailable ? i18n("nx-powerd is not installed.")
                        : !info.daemonRunning ? i18n("nx-powerd is not running.")
                        : !info.configAvailable ? i18n("The nx-powerd configuration file was not found.")
@@ -54,7 +54,7 @@ Maui.ScrollColumn {
             Maui.SectionItem {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Automatic profile management")
+                label1.text: i18n("Enable Automatic mode")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Turn off to select power profiles manually.")
                 label2.wrapMode: Text.Wrap
@@ -70,13 +70,6 @@ Maui.ScrollColumn {
                     checked: info ? info.enabled : true
                     onToggled: if (info) info.enabled = checked
                 }
-            }
-
-            Maui.SectionHeader {
-                Layout.fillWidth: true
-                text1: i18n("Battery Profile Ranges")
-                text2: i18n("Set the charge percentages used by automatic profile selection.")
-                label2.wrapMode: Text.Wrap
             }
 
             Maui.SectionItem {

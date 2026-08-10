@@ -8,7 +8,7 @@
 
 PowerInfo::PowerInfo(QObject *parent)
     : QObject(parent)
-    , m_configPath(QDir::homePath() + QStringLiteral("/.config/nx-powerd/nx-power.conf"))
+    , m_configPath(QDir::homePath() + QStringLiteral("/.config/nx-powerd/nx-powerd.conf"))
 {
     reload();
 }
