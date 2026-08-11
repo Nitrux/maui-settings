@@ -182,12 +182,14 @@ bool updateIniValue(QStringList &lines, const QString &section, const QString &k
 DesklockController::DesklockController(QObject *parent)
     : QObject(parent)
     , m_configPath(desklockConfigPath())
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("desklock")).isEmpty())
     , m_hypridleConfigPath(hypridleConfigPath())
 {
     load();
 }
 
 QString DesklockController::configPath() const { return m_configPath; }
+bool DesklockController::available() const { return m_available; }
 
 QString DesklockController::wallpaperDirectory() const
 {

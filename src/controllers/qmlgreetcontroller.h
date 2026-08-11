@@ -9,6 +9,7 @@ class QmlGreetController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(bool saveAvailable READ saveAvailable NOTIFY saveAvailableChanged)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
@@ -35,6 +36,7 @@ public:
     explicit QmlGreetController(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     bool saveAvailable() const;
     QString wallpaperDirectory() const;
     QString wallpaperPath() const;
@@ -112,6 +114,7 @@ private:
     static QString normalizeLocalPath(const QString &value);
     static QString authorizationError(int errorCode, const QString &fallback);
 
+    bool m_available = false;
     bool m_saveAvailable = false;
     QString m_wallpaperPath;
     QString m_iconMode = QStringLiteral("system");

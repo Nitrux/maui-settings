@@ -7,6 +7,7 @@ class MarinaInfo : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(int iconSize READ iconSize WRITE setIconSize NOTIFY settingsChanged)
     Q_PROPERTY(int edgeMargin READ edgeMargin WRITE setEdgeMargin NOTIFY settingsChanged)
     Q_PROPERTY(QString screenPlacement READ screenPlacement WRITE setScreenPlacement NOTIFY settingsChanged)
@@ -20,6 +21,7 @@ public:
     explicit MarinaInfo(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     int iconSize() const;
     int edgeMargin() const;
     QString screenPlacement() const;
@@ -49,6 +51,7 @@ private:
     void setChanged();
 
     QString m_configPath;
+    bool m_available = false;
     int m_iconSize = 48;
     int m_edgeMargin = 8;
     QString m_screenPlacement = QStringLiteral("all");

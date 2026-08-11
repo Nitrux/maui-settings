@@ -7,6 +7,7 @@ class DesklockController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
@@ -34,6 +35,7 @@ public:
     explicit DesklockController(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     QString wallpaperDirectory() const;
     QString wallpaperPath() const;
     QString avatarDirectory() const;
@@ -112,6 +114,7 @@ private:
     static QString normalizeLocalPath(const QString &value);
 
     QString m_configPath;
+    bool m_available = false;
     QString m_hypridleConfigPath;
     QString m_wallpaperPath;
     QString m_avatarPath;

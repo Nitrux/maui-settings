@@ -107,13 +107,16 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("Desklock Settings")
-        text2: i18n("Configure the lock screen.")
+        text2: !root.controller || !root.controller.available
+            ? i18n("desklock is not available.")
+            : i18n("Configure the lock screen.")
         label2.wrapMode: Text.Wrap
     }
 
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -456,6 +459,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -523,6 +527,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -756,6 +761,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor

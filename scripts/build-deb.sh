@@ -55,7 +55,7 @@ checkinstall -D -y \
 	--pakdir=. \
 	--maintainer=uri_herrera@nxos.org \
 	--provides=maui-settings \
-	--requires="cracklib-runtime,libcrack2,libpwquality-common,libpwquality1,wamerican,libkf6authcore6,libkf6configcore6,libqt6svg6,libxcursor1,mauikit \(\>= 4.0.4\),mauikit-filebrowsing \(\>= 4.0.4\),nx-powerd" \
+	--requires="cracklib-runtime,hypridle,hyprland,hyprpaper,libcrack2,libkf6authcore6,libkf6configcore6,libpwquality-common,libpwquality1,libqt6svg6,libxcursor1,mauikit \(\>= 4.0.4\),mauikit-filebrowsing \(\>= 4.0.4\),nx-powerd,wamerican" \
 	--nodoc \
 	--strip=no \
 	--stripso=yes \

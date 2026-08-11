@@ -241,7 +241,7 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("Theme")
-        text2: i18n("Configure MauiKit and desktop appearance settings from forms.")
+        text2: i18n("Configure MauiKit and desktop integration.")
     }
 
     Rectangle
@@ -264,7 +264,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("MauiKit Theme")
-                text2: i18n("These values are written to MauiMan and used by MauiKit components.")
+                text2: i18n("These values only affect MauiKit apps.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -546,33 +546,6 @@ Maui.ScrollColumn
                     }
                 }
             }
-        }
-    }
-
-    Rectangle
-    {
-        Layout.fillWidth: true
-        color: Maui.Theme.alternateBackgroundColor
-        radius: Maui.Style.radiusV
-        border.color: Maui.Theme.backgroundColor
-        border.width: 1
-        implicitHeight: _layoutLayout.implicitHeight + Maui.Style.contentMargins * 2
-
-        ColumnLayout
-        {
-            id: _layoutLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
-            spacing: Maui.Style.space.small
-
-            Maui.SectionHeader
-            {
-                Layout.fillWidth: true
-                text1: i18n("Spacing and Shape")
-                text2: i18n("These values map to the global Maui UI shape and spacing settings.")
-                label2.wrapMode: Text.Wrap
-            }
-
             Maui.SectionItem
             {
                 Layout.fillWidth: true
@@ -809,7 +782,6 @@ Maui.ScrollColumn
             }
         }
     }
-
     Rectangle
     {
         Layout.fillWidth: true

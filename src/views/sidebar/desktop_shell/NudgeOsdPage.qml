@@ -40,12 +40,15 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("NudgeOSD Settings")
-        text2: i18n("Configure the on-screen display.")
+        text2: !root.info || !root.info.available
+            ? i18n("nudge-osd is not available.")
+            : i18n("Configure the on-screen display.")
     }
 
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -195,6 +198,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -262,6 +266,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -414,6 +419,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor

@@ -44,12 +44,15 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("Valenz Settings")
-        text2: i18n("Configure the desktop bar.")
+        text2: !root.info || !root.info.available
+            ? i18n("valenz is not available.")
+            : i18n("Configure the desktop bar.")
     }
 
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -322,6 +325,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -589,6 +593,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -695,6 +700,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -757,6 +763,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor

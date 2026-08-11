@@ -1,6 +1,7 @@
 #include "valenzinfo.h"
 
 #include <QDir>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
@@ -29,10 +30,12 @@ QString normalizedChoice(const QString &value, const QStringList &choices, const
 ValenzInfo::ValenzInfo(QObject *parent)
     : QObject(parent)
     , m_configPath(QDir::homePath() + QStringLiteral("/.config/valenz/valenz.conf"))
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("valenz")).isEmpty())
 {
     load();
 }
 
+bool ValenzInfo::available() const { return m_available; }
 QString ValenzInfo::configPath() const { return m_configPath; }
 int ValenzInfo::barHeight() const { return m_barHeight; }
 int ValenzInfo::barLayerSpacingTop() const { return m_barLayerSpacingTop; }

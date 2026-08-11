@@ -7,6 +7,7 @@ class BackgroundInfo : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY settingsChanged)
     Q_PROPERTY(QString wallpaperMonitor READ wallpaperMonitor WRITE setWallpaperMonitor NOTIFY settingsChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY settingsChanged)
@@ -23,6 +24,7 @@ public:
     explicit BackgroundInfo(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     QString wallpaperDirectory() const;
     QString wallpaperMonitor() const;
     QString wallpaperPath() const;
@@ -62,6 +64,7 @@ private:
 
 private:
     QString m_configPath;
+    bool m_available = false;
     QString m_wallpaperMonitor;
     QString m_wallpaperPath;
     QString m_wallpaperFitMode = QStringLiteral("cover");

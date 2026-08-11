@@ -31,6 +31,7 @@
 #include "controllers/qmlgreetcontroller.h"
 #include "controllers/valenzinfo.h"
 #include "controllers/powerinfo.h"
+#include "controllers/hyprsunsetinfo.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
 
@@ -113,7 +114,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     ValenzInfo valenzInfo;
     PowerInfo powerInfo;
+    HyprsunsetInfo hyprsunsetInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("powerInfo"), &powerInfo);
+    engine.rootContext()->setContextProperty(QStringLiteral("hyprsunsetInfo"), &hyprsunsetInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);
 
     const QUrl url(QStringLiteral("qrc:/app/maui/settings/src/main.qml"));

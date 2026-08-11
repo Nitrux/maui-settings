@@ -58,12 +58,14 @@ QVariantMap readSettings(QSettings &settings)
 
 QmlGreetController::QmlGreetController(QObject *parent)
     : QObject(parent)
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("qmlgreet")).isEmpty())
 {
     refreshSessions();
     reload();
 }
 
 QString QmlGreetController::configPath() const { return QString::fromLatin1(systemConfigPath); }
+bool QmlGreetController::available() const { return m_available; }
 bool QmlGreetController::saveAvailable() const { return m_saveAvailable; }
 
 QString QmlGreetController::wallpaperDirectory() const

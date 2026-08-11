@@ -7,6 +7,7 @@ import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
+    id: root
     readonly property var info: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
 
     property var fitModeLabels: [
@@ -77,7 +78,9 @@ Maui.ScrollColumn
     {
         Layout.fillWidth: true
         text1: i18n("Background")
-        text2: i18n("Select a wallpaper, tune hyprpaper options, and save the generated config.")
+        text2: !root.info || !root.info.available
+            ? i18n("hyprpaper is not available.")
+            : i18n("Select a wallpaper, tune hyprpaper options, and save the generated config.")
     }
 
     FB.FileDialog
@@ -92,6 +95,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -204,6 +208,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -410,6 +415,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor

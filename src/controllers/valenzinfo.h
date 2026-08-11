@@ -7,6 +7,7 @@ class ValenzInfo : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(int barHeight READ barHeight WRITE setBarHeight NOTIFY settingsChanged)
     Q_PROPERTY(int barLayerSpacingTop READ barLayerSpacingTop WRITE setBarLayerSpacingTop NOTIFY settingsChanged)
     Q_PROPERTY(int barLayerSpacingBottom READ barLayerSpacingBottom WRITE setBarLayerSpacingBottom NOTIFY settingsChanged)
@@ -31,6 +32,7 @@ public:
     explicit ValenzInfo(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     int barHeight() const;
     int barLayerSpacingTop() const;
     int barLayerSpacingBottom() const;
@@ -82,6 +84,7 @@ private:
     void setChanged();
 
     QString m_configPath;
+    bool m_available = false;
     int m_barHeight = 56;
     int m_barLayerSpacingTop = 0;
     int m_barLayerSpacingBottom = 0;

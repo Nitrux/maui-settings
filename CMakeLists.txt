@@ -84,6 +84,8 @@ set(settings_SRCS
     src/controllers/valenzinfo.cpp
     src/controllers/powerinfo.cpp
     src/controllers/powerinfo.h
+    src/controllers/hyprsunsetinfo.cpp
+    src/controllers/hyprsunsetinfo.h
 )
 
 qt_add_executable(${APP_NAME}

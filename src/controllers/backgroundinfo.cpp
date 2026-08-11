@@ -88,6 +88,7 @@ bool BackgroundInfo::parseBool(const QString &value)
 BackgroundInfo::BackgroundInfo(QObject *parent)
     : QObject(parent)
     , m_configPath(homeConfigPath())
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("hyprpaper")).isEmpty())
 {
     load();
 }
@@ -95,6 +96,11 @@ BackgroundInfo::BackgroundInfo(QObject *parent)
 QString BackgroundInfo::configPath() const
 {
     return m_configPath;
+}
+
+bool BackgroundInfo::available() const
+{
+    return m_available;
 }
 
 QString BackgroundInfo::wallpaperDirectory() const

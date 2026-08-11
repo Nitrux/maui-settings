@@ -1,16 +1,19 @@
 #include "nudgeosdinfo.h"
 
 #include <QDir>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QtGlobal>
 
 NudgeOsdInfo::NudgeOsdInfo(QObject *parent)
     : QObject(parent)
     , m_configPath(QDir::homePath() + QStringLiteral("/.config/nudge-osd/nudge-osd.conf"))
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("nudge-osd")).isEmpty())
 {
     load();
 }
 
+bool NudgeOsdInfo::available() const { return m_available; }
 QString NudgeOsdInfo::configPath() const { return m_configPath; }
 QString NudgeOsdInfo::iconMode() const { return m_iconMode; }
 int NudgeOsdInfo::osdWidth() const { return m_osdWidth; }

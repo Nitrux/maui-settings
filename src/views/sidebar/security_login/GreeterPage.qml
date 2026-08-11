@@ -91,16 +91,16 @@ Maui.SettingsPage
     {
         Layout.fillWidth: true
         text1: i18n("QMLGreet Settings")
-        text2: controller
-            ? i18n("Configure the login screen. Settings are read from %1.", controller.configPath)
-            : i18n("Configure the login screen.")
+        text2: !root.controller || !root.controller.available
+            ? i18n("qmlgreet is not available.")
+            : i18n("Configure the login screen. Settings are read from %1.", controller.configPath)
         label2.wrapMode: Text.Wrap
     }
 
     Rectangle
     {
         Layout.fillWidth: true
-        enabled: root.editable
+        enabled: root.editable && root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -433,7 +433,7 @@ Maui.SettingsPage
     Rectangle
     {
         Layout.fillWidth: true
-        enabled: root.editable
+        enabled: root.editable && root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
@@ -629,7 +629,7 @@ Maui.SettingsPage
     Rectangle
     {
         Layout.fillWidth: true
-        enabled: root.editable
+        enabled: root.editable && root.controller ? root.controller.available : false
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor

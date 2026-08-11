@@ -7,6 +7,7 @@ class NudgeOsdInfo : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString configPath READ configPath CONSTANT)
+    Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY settingsChanged)
     Q_PROPERTY(int osdWidth READ osdWidth WRITE setOsdWidth NOTIFY settingsChanged)
     Q_PROPERTY(int osdHeight READ osdHeight WRITE setOsdHeight NOTIFY settingsChanged)
@@ -21,6 +22,7 @@ public:
     explicit NudgeOsdInfo(QObject *parent = nullptr);
 
     QString configPath() const;
+    bool available() const;
     QString iconMode() const;
     int osdWidth() const;
     int osdHeight() const;
@@ -52,6 +54,7 @@ private:
     void setChanged();
 
     QString m_configPath;
+    bool m_available = false;
     QString m_iconMode = QStringLiteral("system");
     int m_osdWidth = 292;
     int m_osdHeight = 66;

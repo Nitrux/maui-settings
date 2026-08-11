@@ -1,16 +1,19 @@
 #include "marinainfo.h"
 
 #include <QDir>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QtGlobal>
 
 MarinaInfo::MarinaInfo(QObject *parent)
     : QObject(parent)
     , m_configPath(QDir::homePath() + QStringLiteral("/.config/marina/marina.conf"))
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("marina")).isEmpty())
 {
     load();
 }
 
+bool MarinaInfo::available() const { return m_available; }
 QString MarinaInfo::configPath() const { return m_configPath; }
 int MarinaInfo::iconSize() const { return m_iconSize; }
 int MarinaInfo::edgeMargin() const { return m_edgeMargin; }
