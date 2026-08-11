@@ -24,6 +24,7 @@ namespace
 constexpr auto systemConfigPath = "/etc/qmlgreet/qmlgreet.conf";
 constexpr auto helperId = "org.maui.settings.qmlgreet";
 constexpr auto saveActionId = "org.maui.settings.qmlgreet.save";
+constexpr auto greetdHomePath = "/var/lib/greetd";
 
 QVariantMap readSettings(QSettings &settings)
 {
@@ -54,6 +55,27 @@ QVariantMap readSettings(QSettings &settings)
             QStringLiteral("Indicators/ShowBattery"), true)},
     };
 }
+}
+
+
+QString userVisibleWallpaperPath(const QString &path)
+{
+    const QString homePath = QFileInfo(
+        QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).canonicalFilePath();
+    const QString greetdPath = QFileInfo(QString::fromLatin1(greetdHomePath)).canonicalFilePath();
+    const QString canonicalPath = QFileInfo(path).canonicalFilePath();
+    if (homePath.isEmpty() || greetdPath.isEmpty() || canonicalPath.isEmpty())
+        return path;
+
+    const QString relativePath = QDir(greetdPath).relativeFilePath(canonicalPath);
+    const bool insideGreetdHome = relativePath != QStringLiteral("..")
+        && !relativePath.startsWith(QStringLiteral("../"))
+        && !QDir::isAbsolutePath(relativePath);
+    if (!insideGreetdHome)
+        return path;
+
+    const QString userPath = QDir(homePath).filePath(relativePath);
+    return QFileInfo(userPath).isFile() ? QFileInfo(userPath).absoluteFilePath() : path;
 }
 
 QmlGreetController::QmlGreetController(QObject *parent)
@@ -203,9 +225,9 @@ QVariantMap QmlGreetController::changedValues() const
 
 void QmlGreetController::applyValues(const QVariantMap &values)
 {
-    m_wallpaperPath = normalizeLocalPath(values.value(
+    m_wallpaperPath = normalizeLocalPath(userVisibleWallpaperPath(values.value(
         QStringLiteral("wallpaperPath"),
-        QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png")).toString());
+        QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png")).toString()));
     m_iconMode = values.value(QStringLiteral("iconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
         ? QStringLiteral("nerd") : QStringLiteral("system");
     m_avatarPath = normalizeLocalPath(values.value(QStringLiteral("avatarPath")).toString());
@@ -395,7 +417,28 @@ bool QmlGreetController::save()
         return true;
     }
 
-    const QVariantMap values = changedValues();
+    QVariantMap values = changedValues();
+    if (values.contains(QStringLiteral("wallpaperPath")))
+    {
+        const QString homePath = QFileInfo(
+            QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).canonicalFilePath();
+        const QString wallpaperPath = QFileInfo(
+            values.value(QStringLiteral("wallpaperPath")).toString()).canonicalFilePath();
+        if (!homePath.isEmpty() && !wallpaperPath.isEmpty())
+        {
+            const QString relativePath = QDir(homePath).relativeFilePath(wallpaperPath);
+            const bool insideHome = relativePath != QStringLiteral("..")
+                && !relativePath.startsWith(QStringLiteral("../"))
+                && !QDir::isAbsolutePath(relativePath);
+            if (insideHome)
+            {
+                values.insert(QStringLiteral("wallpaperSourcePath"), wallpaperPath);
+                values.insert(QStringLiteral("wallpaperPath"),
+                              QDir::cleanPath(QStringLiteral("%1/%2")
+                                                  .arg(QString::fromLatin1(greetdHomePath), relativePath)));
+            }
+        }
+    }
     qDebug() << "QmlGreetController: executing KAuth save"
              << "keys=" << values.keys();
     setSaving(true);

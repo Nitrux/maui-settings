@@ -18,6 +18,7 @@
 namespace
 {
 constexpr auto configPath = "/etc/qmlgreet/qmlgreet.conf";
+constexpr auto greetdHomePath = "/var/lib/greetd";
 constexpr qint64 maximumImageSize = 100 * 1024 * 1024;
 
 QVariantMap readSettings()
@@ -207,6 +208,65 @@ bool validateLocalFile(const QString &value,
 }
 }
 
+bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath, QString *error)
+{
+    const QString cleanTargetPath = QDir::cleanPath(targetPath);
+    const QString relativeTargetPath = QDir(QString::fromLatin1(greetdHomePath))
+        .relativeFilePath(cleanTargetPath);
+    if (relativeTargetPath == QStringLiteral("..")
+        || relativeTargetPath.startsWith(QStringLiteral("../"))
+        || QDir::isAbsolutePath(relativeTargetPath))
+    {
+        *error = QStringLiteral("The wallpaper destination must be inside /var/lib/greetd.");
+        return false;
+    }
+
+    const QFileInfo targetInfo(cleanTargetPath);
+    if (!QDir().mkpath(targetInfo.absolutePath()))
+    {
+        *error = QStringLiteral("Could not create the wallpaper directory %1.")
+                     .arg(targetInfo.absolutePath());
+        return false;
+    }
+
+    const QFileDevice::Permissions directoryPermissions =
+        QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner
+        | QFileDevice::ReadGroup | QFileDevice::ExeGroup
+        | QFileDevice::ReadOther | QFileDevice::ExeOther;
+    QString directoryPath = targetInfo.absolutePath();
+    const QString greetdHome = QDir::cleanPath(QString::fromLatin1(greetdHomePath));
+    while (directoryPath.startsWith(greetdHome + QLatin1Char(47)))
+    {
+        if (!QFile::setPermissions(directoryPath, directoryPermissions))
+        {
+            *error = QStringLiteral("Could not make the wallpaper directory readable by greetd: %1.")
+                         .arg(directoryPath);
+            return false;
+        }
+        directoryPath = QFileInfo(directoryPath).absolutePath();
+    }
+
+    QFile source(sourcePath);
+    if (!source.open(QIODevice::ReadOnly))
+    {
+        *error = QStringLiteral("Could not read %1.").arg(sourcePath);
+        return false;
+    }
+
+    QSaveFile destination(cleanTargetPath);
+    if (!destination.open(QIODevice::WriteOnly)
+        || destination.write(source.readAll()) < 0
+        || !destination.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                       | QFileDevice::ReadGroup | QFileDevice::ReadOther)
+        || !destination.commit())
+    {
+        *error = QStringLiteral("Could not copy the wallpaper to %1.").arg(cleanTargetPath);
+        return false;
+    }
+
+    return true;
+}
+
 KAuth::ActionReply QmlGreetHelper::save(const QVariantMap &arguments)
 {
     qDebug() << "QmlGreetHelper::save received"
@@ -259,11 +319,30 @@ const auto validateChangedFile = [&](const QString &argumentKey,
             requestedRaw, label, image, optional, validatedPath, &validationError);
     };
 
+    const bool copyWallpaper = arguments.contains(QStringLiteral("wallpaperSourcePath"));
+    if (copyWallpaper)
+    {
+        const QString destinationPath = boundedString(
+            arguments, QStringLiteral("wallpaperPath"), 4096);
+        QString sourcePath;
+        if (!validateLocalFile(
+                boundedString(arguments, QStringLiteral("wallpaperSourcePath"), 4096),
+                QStringLiteral("Wallpaper"), true, false, &sourcePath, &validationError)
+            || !copyImageToGreetd(sourcePath, destinationPath, &validationError))
+        {
+            return helperError(validationError, 1003);
+        }
+        wallpaperPath = QDir::cleanPath(destinationPath);
+    }
+    else if (!validateChangedFile(
+                   QStringLiteral("wallpaperPath"), QStringLiteral("Appearance/BackgroundImage"),
+                   QStringLiteral("Wallpaper"), true, true,
+                   QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"), &wallpaperPath))
+    {
+        return helperError(validationError, 1003);
+    }
+
     if (!validateChangedFile(
-            QStringLiteral("wallpaperPath"), QStringLiteral("Appearance/BackgroundImage"),
-            QStringLiteral("Wallpaper"), true, true,
-            QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"), &wallpaperPath)
-        || !validateChangedFile(
             QStringLiteral("avatarPath"), QStringLiteral("Appearance/AvatarImage"),
             QStringLiteral("Avatar"), true, true,
             QVariant(), &avatarPath))
