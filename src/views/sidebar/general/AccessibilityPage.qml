@@ -14,6 +14,9 @@ Maui.ScrollColumn
 
     property bool stagedSingleClick: true
     property bool stagedScrollBarOnLeft: false
+    property bool editingDaytimeProfile: true
+    property int tempHour: 7
+    property int tempMinute: 0
 
     function prepareResponsive(control)
     {
@@ -242,11 +245,12 @@ Maui.ScrollColumn
                 label2.text: i18n("Switch to the daytime profile at this time.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: RowLayout
+                template.content: Button
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    readonly property bool responsiveNarrow: responsiveSectionItem
+                        && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
 
                     function updateResponsiveParent()
                     {
@@ -256,33 +260,28 @@ Maui.ScrollColumn
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted: root.prepareResponsive(this)
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
                     Layout.fillWidth: responsiveNarrow
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    spacing: Maui.Style.space.small
-
-                    SpinBox
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: Qt.formatTime(new Date(0, 0, 0,
+                                                 root.hyprsunset ? root.hyprsunset.daytimeHour : 7,
+                                                 root.hyprsunset ? root.hyprsunset.daytimeMinute : 0), "hh:mm")
+                    onClicked:
                     {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 5
-                        from: 0
-                        to: 23
-                        value: root.hyprsunset ? root.hyprsunset.daytimeHour : 7
-                        onValueModified: if (root.hyprsunset) root.hyprsunset.daytimeHour = value
-                    }
-
-                    Label
-                    {
-                        text: ":"
-                        color: Maui.Theme.textColor
-                    }
-
-                    SpinBox
-                    {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 5
-                        from: 0
-                        to: 59
-                        value: root.hyprsunset ? root.hyprsunset.daytimeMinute : 0
-                        onValueModified: if (root.hyprsunset) root.hyprsunset.daytimeMinute = value
+                        root.editingDaytimeProfile = true
+                        root.tempHour = root.hyprsunset ? root.hyprsunset.daytimeHour : 7
+                        root.tempMinute = root.hyprsunset ? root.hyprsunset.daytimeMinute : 0
+                        timeDialog.open()
                     }
                 }
             }
@@ -325,11 +324,12 @@ Maui.ScrollColumn
                 label2.text: i18n("Switch to the nighttime profile at this time.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: RowLayout
+                template.content: Button
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    readonly property bool responsiveNarrow: responsiveSectionItem
+                        && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
 
                     function updateResponsiveParent()
                     {
@@ -339,33 +339,28 @@ Maui.ScrollColumn
                     }
 
                     onResponsiveNarrowChanged: updateResponsiveParent()
-                    Component.onCompleted: root.prepareResponsive(this)
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
                     Layout.fillWidth: responsiveNarrow
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
-                    spacing: Maui.Style.space.small
-
-                    SpinBox
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: Qt.formatTime(new Date(0, 0, 0,
+                                                 root.hyprsunset ? root.hyprsunset.nighttimeHour : 19,
+                                                 root.hyprsunset ? root.hyprsunset.nighttimeMinute : 0), "hh:mm")
+                    onClicked:
                     {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 5
-                        from: 0
-                        to: 23
-                        value: root.hyprsunset ? root.hyprsunset.nighttimeHour : 19
-                        onValueModified: if (root.hyprsunset) root.hyprsunset.nighttimeHour = value
-                    }
-
-                    Label
-                    {
-                        text: ":"
-                        color: Maui.Theme.textColor
-                    }
-
-                    SpinBox
-                    {
-                        Layout.preferredWidth: Maui.Style.units.gridUnit * 5
-                        from: 0
-                        to: 59
-                        value: root.hyprsunset ? root.hyprsunset.nighttimeMinute : 0
-                        onValueModified: if (root.hyprsunset) root.hyprsunset.nighttimeMinute = value
+                        root.editingDaytimeProfile = false
+                        root.tempHour = root.hyprsunset ? root.hyprsunset.nighttimeHour : 19
+                        root.tempMinute = root.hyprsunset ? root.hyprsunset.nighttimeMinute : 0
+                        timeDialog.open()
                     }
                 }
             }
@@ -439,5 +434,115 @@ Maui.ScrollColumn
             }
         }
     }
+
+    Maui.SettingsDialog
+    {
+        id: timeDialog
+        title: i18n("Select Time")
+        persistent: true
+
+        onOpened:
+        {
+            if (root.editingDaytimeProfile)
+            {
+                root.tempHour = root.hyprsunset ? root.hyprsunset.daytimeHour : 7
+                root.tempMinute = root.hyprsunset ? root.hyprsunset.daytimeMinute : 0
+            }
+            else
+            {
+                root.tempHour = root.hyprsunset ? root.hyprsunset.nighttimeHour : 19
+                root.tempMinute = root.hyprsunset ? root.hyprsunset.nighttimeMinute : 0
+            }
+        }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: timeDialog.close()
+            },
+            Action
+            {
+                text: i18n("Accept")
+                onTriggered:
+                {
+                    if (root.hyprsunset)
+                    {
+                        if (root.editingDaytimeProfile)
+                        {
+                            root.hyprsunset.daytimeHour = root.tempHour
+                            root.hyprsunset.daytimeMinute = root.tempMinute
+                        }
+                        else
+                        {
+                            root.hyprsunset.nighttimeHour = root.tempHour
+                            root.hyprsunset.nighttimeMinute = root.tempMinute
+                        }
+                    }
+                    timeDialog.close()
+                }
+            }
+        ]
+
+        RowLayout
+        {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            implicitHeight: Maui.Style.units.gridUnit * 12
+            spacing: Maui.Style.space.small
+
+            Tumbler
+            {
+                id: hoursTumbler
+                Layout.fillHeight: true
+                Layout.preferredWidth: Maui.Style.units.gridUnit * 5
+                model: 24
+                currentIndex: root.tempHour
+
+                delegate: Label
+                {
+                    required property int index
+                    width: hoursTumbler.width
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: ("0" + index).slice(-2)
+                    font.bold: index === hoursTumbler.currentIndex
+                    opacity: index === hoursTumbler.currentIndex ? 1.0 : 0.4
+                }
+
+                onCurrentIndexChanged: root.tempHour = currentIndex
+            }
+
+            Label
+            {
+                text: ":"
+                font.pointSize: Maui.Style.fontSizes.big
+                font.bold: true
+            }
+
+            Tumbler
+            {
+                id: minutesTumbler
+                Layout.fillHeight: true
+                Layout.preferredWidth: Maui.Style.units.gridUnit * 5
+                model: 60
+                currentIndex: root.tempMinute
+
+                delegate: Label
+                {
+                    required property int index
+                    width: minutesTumbler.width
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: ("0" + index).slice(-2)
+                    font.bold: index === minutesTumbler.currentIndex
+                    opacity: index === minutesTumbler.currentIndex ? 1.0 : 0.4
+                }
+
+                onCurrentIndexChanged: root.tempMinute = currentIndex
+            }
+        }
+    }
+
     Component.onCompleted: reloadSettings()
 }
