@@ -18,6 +18,7 @@
 namespace
 {
 constexpr auto configPath = "/etc/qmlgreet/qmlgreet.conf";
+constexpr auto hyprpaperConfigPath = "/etc/greetd/hyprpaper.conf";
 constexpr auto greetdHomePath = "/var/lib/greetd";
 constexpr qint64 maximumImageSize = 100 * 1024 * 1024;
 
@@ -144,6 +145,62 @@ bool writeIniValues(const QString &path, const QList<IniValue> &entries, QString
         || !destination.commit())
     {
         *error = QStringLiteral("Could not write %1.").arg(path);
+        return false;
+    }
+    return true;
+}
+
+bool writeHyprpaperWallpaper(const QString &wallpaperPath, QString *error)
+{
+    const QFileInfo sourceInfo(QString::fromLatin1(hyprpaperConfigPath));
+    const QFileDevice::Permissions sourcePermissions = sourceInfo.permissions();
+    QFile source(sourceInfo.absoluteFilePath());
+    if (!source.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        *error = QStringLiteral("Could not read %1.").arg(sourceInfo.absoluteFilePath());
+        return false;
+    }
+
+    QStringList lines = QString::fromUtf8(source.readAll()).split(QLatin1Char(10));
+    bool inWallpaperBlock = false;
+    bool replaced = false;
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        const QString trimmed = lines.at(i).trimmed();
+        if (trimmed.startsWith(QStringLiteral("wallpaper"))
+            && trimmed.contains(QLatin1Char(123)))
+        {
+            inWallpaperBlock = true;
+            continue;
+        }
+        if (!inWallpaperBlock)
+            continue;
+        if (trimmed == QStringLiteral("}"))
+            break;
+        if (!trimmed.startsWith(QStringLiteral("path"))
+            || !trimmed.mid(4).trimmed().startsWith(QLatin1Char(61)))
+            continue;
+
+        const qsizetype pathStart = lines.at(i).indexOf(QStringLiteral("path"));
+        lines[i] = lines.at(i).left(pathStart)
+            + QStringLiteral("path = ") + iniValue(wallpaperPath);
+        replaced = true;
+        break;
+    }
+
+    if (!replaced)
+    {
+        *error = QStringLiteral("Could not find a wallpaper path in %1.").arg(sourceInfo.absoluteFilePath());
+        return false;
+    }
+
+    QSaveFile destination(sourceInfo.absoluteFilePath());
+    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text)
+        || !destination.setPermissions(sourcePermissions)
+        || destination.write(lines.join(QLatin1Char(10)).toUtf8()) < 0
+        || !destination.commit())
+    {
+        *error = QStringLiteral("Could not write %1.").arg(sourceInfo.absoluteFilePath());
         return false;
     }
     return true;
@@ -380,6 +437,11 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     if (!writeIniValues(QString::fromLatin1(configPath), changedEntries, &writeError))
         return helperError(writeError, 1001);
 
+    const bool updateHyprpaper = !wallpaperPath.isEmpty();
+    if (updateHyprpaper
+        && !writeHyprpaperWallpaper(wallpaperPath, &writeError))
+        return helperError(writeError, 1005);
+
     QSettings liveVerification(QString::fromLatin1(configPath), QSettings::IniFormat);
     liveVerification.sync();
     if (liveVerification.status() != QSettings::NoError)
@@ -392,6 +454,14 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         return helperError(QStringLiteral(
             "QMLGreet settings were applied to the running system, but could not be made persistent: %1")
             .arg(persistenceError), 1004);
+    }
+
+    if (updateHyprpaper
+        && !SystemFilePersistence::persist(QString::fromLatin1(hyprpaperConfigPath), &persistenceError))
+    {
+        return helperError(QStringLiteral(
+            "QMLGreet settings were applied, but the greeter wallpaper could not be made persistent: %1")
+            .arg(persistenceError), 1006);
     }
 
     const QVariantMap savedSettings = readSettings();
