@@ -57,10 +57,11 @@ Maui.ScrollColumn
     }
 
     Component.onCompleted: if (controller) controller.refresh()
+    onVisibleChanged: if (visible && controller) controller.refresh()
 
     Timer
     {
-        interval: 60 * 1000
+        interval: 5 * 1000
         repeat: true
         running: root.visible
         onTriggered: if (root.controller) root.controller.refresh()
@@ -148,6 +149,8 @@ Maui.ScrollColumn
                     ProgressBar
                     {
                         Layout.fillWidth: true
+                        Layout.leftMargin: Maui.Style.defaultPadding
+                        Layout.rightMargin: Maui.Style.defaultPadding
                         from: 0
                         to: 100
                         value: root.controller && root.controller.hasBattery ? root.controller.percentage : 0
@@ -236,7 +239,7 @@ Maui.ScrollColumn
 
                         const left = 42
                         const top = 12
-                        const right = 10
+                        const right = 64
                         const bottom = 28
                         const width = Math.max(1, graph.width - left - right)
                         const height = Math.max(1, graph.height - top - bottom)

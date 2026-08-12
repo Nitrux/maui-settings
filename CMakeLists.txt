@@ -89,6 +89,8 @@ set(settings_SRCS
     src/controllers/batterycontroller.h
     src/controllers/hyprsunsetinfo.cpp
     src/controllers/hyprsunsetinfo.h
+    src/controllers/displayscontroller.cpp
+    src/controllers/displayscontroller.h
 )
 
 qt_add_executable(${APP_NAME}
@@ -176,6 +178,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
     src/views/sidebar/hardware_sound/BatteryItem.qml
     src/views/sidebar/hardware_sound/BatteryPage.qml
+    src/views/sidebar/hardware_sound/DisplaysItem.qml
+    src/views/sidebar/hardware_sound/DisplaysPage.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
     src/views/sidebar/security_login/GreeterPage.qml

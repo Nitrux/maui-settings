@@ -47,6 +47,8 @@ Maui.ApplicationWindow
             return _audioPageLoader.item
         case "hardware-sound-battery":
             return _batteryPageLoader.item
+        case "hardware-sound-displays":
+            return _displaysPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
         case "security-login-greeter":
@@ -112,6 +114,8 @@ Maui.ApplicationWindow
             return i18n("Audio")
         case "hardware-sound-battery":
             return i18n("Battery")
+        case "hardware-sound-displays":
+            return i18n("Displays")
         case "hardware-sound-input":
             return i18n("Input Devices")
         case "hardware-sound-form-factor":
@@ -257,7 +261,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen"
+                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "hardware-sound-displays"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -478,6 +482,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _displaysPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "hardware-sound-displays"
+                        visible: active
+                        source: active ? "views/sidebar/hardware_sound/DisplaysPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _greeterPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-greeter"
@@ -497,7 +510,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

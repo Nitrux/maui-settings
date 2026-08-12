@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QDBusObjectPath>
 #include <QList>
 #include <QObject>
 #include <QVariantList>
+#include <QVariantMap>
 
 class BatteryController : public QObject
 {
@@ -59,6 +61,13 @@ public:
 Q_SIGNALS:
     void dataChanged();
     void historyChanged();
+
+private Q_SLOTS:
+    void handlePropertiesChanged(const QString &interfaceName,
+                                 const QVariantMap &changedProperties,
+                                 const QStringList &invalidatedProperties);
+    void handleUpowerChanged();
+    void handleDeviceChanged(const QDBusObjectPath &devicePath);
 
 private:
     struct HistoryEntry {

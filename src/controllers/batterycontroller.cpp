@@ -104,7 +104,59 @@ BatteryController::BatteryController(QObject *parent)
     , m_historyPath(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
                     + QStringLiteral("/battery-history.json"))
 {
+    auto connection = QDBusConnection::systemBus();
+    const QString upowerService = QStringLiteral("org.freedesktop.UPower");
+    const QString propertiesInterface = QStringLiteral("org.freedesktop.DBus.Properties");
+    const QString upowerInterface = QStringLiteral("org.freedesktop.UPower");
+    const QString upowerPath = QStringLiteral("/org/freedesktop/UPower");
+
+    connection.connect(upowerService,
+                       QString(),
+                       propertiesInterface,
+                       "PropertiesChanged",
+                       this,
+                       SLOT(handlePropertiesChanged(QString,QVariantMap,QStringList)));
+    connection.connect(upowerService,
+                       upowerPath,
+                       upowerInterface,
+                       "Changed",
+                       this,
+                       SLOT(handleUpowerChanged()));
+    connection.connect(upowerService,
+                       upowerPath,
+                       upowerInterface,
+                       "DeviceAdded",
+                       this,
+                       SLOT(handleDeviceChanged(QDBusObjectPath)));
+    connection.connect(upowerService,
+                       upowerPath,
+                       upowerInterface,
+                       "DeviceRemoved",
+                       this,
+                       SLOT(handleDeviceChanged(QDBusObjectPath)));
+
     loadHistory();
+    refresh();
+}
+
+void BatteryController::handlePropertiesChanged(const QString &interfaceName,
+                                             const QVariantMap &changedProperties,
+                                             const QStringList &invalidatedProperties)
+{
+    Q_UNUSED(changedProperties)
+    Q_UNUSED(invalidatedProperties)
+    if (interfaceName == QStringLiteral("org.freedesktop.UPower.Device"))
+        refresh();
+}
+
+void BatteryController::handleUpowerChanged()
+{
+    refresh();
+}
+
+void BatteryController::handleDeviceChanged(const QDBusObjectPath &devicePath)
+{
+    Q_UNUSED(devicePath)
     refresh();
 }
 
