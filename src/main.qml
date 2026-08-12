@@ -45,6 +45,8 @@ Maui.ApplicationWindow
             return _performancePageLoader.item
         case "hardware-sound-audio":
             return _audioPageLoader.item
+        case "hardware-sound-battery":
+            return _batteryPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
         case "security-login-greeter":
@@ -108,6 +110,8 @@ Maui.ApplicationWindow
             return i18n("Network")
         case "hardware-sound-audio":
             return i18n("Audio")
+        case "hardware-sound-battery":
+            return i18n("Battery")
         case "hardware-sound-input":
             return i18n("Input Devices")
         case "hardware-sound-form-factor":
@@ -465,6 +469,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _batteryPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "hardware-sound-battery" || item
+                        visible: root.currentSection === "hardware-sound-battery"
+                        source: "views/sidebar/hardware_sound/BatteryPage.qml"
+                    }
+
+                    Loader
+                    {
                         id: _greeterPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-greeter"
@@ -484,7 +497,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

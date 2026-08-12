@@ -26,12 +26,19 @@ Item
         InputDevicesItem {}
     }
 
+    Component
+    {
+        id: batteryComponent
+        BatteryItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
             audioComponent.createObject(this),
             performanceComponent.createObject(this),
-            inputDevicesComponent.createObject(this)
+            inputDevicesComponent.createObject(this),
+            batteryComponent.createObject(this)
         ]
     }
 }

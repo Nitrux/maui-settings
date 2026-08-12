@@ -46,6 +46,7 @@ endif()
 
 find_package(KF6 REQUIRED COMPONENTS Auth BluezQt Config CoreAddons I18n NetworkManagerQt)
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
+find_package(MauiKitSystemControl REQUIRED)
 find_package(MauiMan4 REQUIRED)
 
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_URL_CAST_FROM_STRING)
@@ -84,6 +85,8 @@ set(settings_SRCS
     src/controllers/valenzinfo.cpp
     src/controllers/powerinfo.cpp
     src/controllers/powerinfo.h
+    src/controllers/batterycontroller.cpp
+    src/controllers/batterycontroller.h
     src/controllers/hyprsunsetinfo.cpp
     src/controllers/hyprsunsetinfo.h
 )
@@ -171,6 +174,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/PerformanceItem.qml
     src/views/sidebar/hardware_sound/PerformancePage.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
+    src/views/sidebar/hardware_sound/BatteryItem.qml
+    src/views/sidebar/hardware_sound/BatteryPage.qml
     src/views/sidebar/security_login/SecurityLoginGroup.qml
     src/views/sidebar/security_login/GreeterItem.qml
     src/views/sidebar/security_login/GreeterPage.qml
@@ -182,6 +187,7 @@ target_link_libraries(${APP_NAME}
     PRIVATE
     MauiKit4
     MauiKit4::FileBrowsing
+    MauiKitSystem::Control
     MauiMan4::MauiMan4
     Qt6::Core
     Qt6::DBus
