@@ -33,10 +33,16 @@ Maui.ApplicationWindow
             return _nudgeOsdPageLoader.item
         case "desktop-marina":
             return _marinaPageLoader.item
+        case "desktop-window-compositor":
+            return _windowCompositorPageLoader.item
+        case "hardware-sound-input":
+            return _inputDevicesPageLoader.item
         case "general-accessibility":
             return _accessibilityPageLoader.item
         case "applications-defaults":
             return _defaultsPageLoader.item
+        case "applications-default-apps":
+            return _defaultAppsPageLoader.item
         case "connectivity-network":
             return _networkPageLoader.item
         case "connectivity-bluetooth":
@@ -51,6 +57,10 @@ Maui.ApplicationWindow
             return _displaysPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
+        case "security-login-autostart":
+            return _autostartPageLoader.item
+        case "security-login-environment-variables":
+            return _environmentVariablesPageLoader.item
         case "security-login-greeter":
             return _greeterPageLoader.item
         default:
@@ -105,6 +115,8 @@ Maui.ApplicationWindow
         case "desktop-window-compositor":
             return i18n("Window Compositor")
         case "applications-defaults":
+            return i18n("MIME Defaults")
+        case "applications-default-apps":
             return i18n("Default Applications")
         case "applications-cache":
             return i18n("Cache")
@@ -128,6 +140,10 @@ Maui.ApplicationWindow
             return i18n("Greeter")
         case "security-login-lock-screen":
             return i18n("Lock Screen")
+        case "security-login-autostart":
+            return i18n("Autostart")
+        case "security-login-environment-variables":
+            return i18n("Environment Variables")
         default:
             return i18n("General")
         }
@@ -263,7 +279,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "hardware-sound-displays"
+                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "desktop-window-compositor" || root.currentSection === "applications-default-apps" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "security-login-autostart" || root.currentSection === "security-login-environment-variables" || root.currentSection === "hardware-sound-displays" || root.currentSection === "hardware-sound-input"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -295,6 +311,44 @@ Maui.ApplicationWindow
 
                         ToolSeparator
                         {
+                            visible: root.currentSection === "desktop-window-compositor"
+                            topPadding: 10
+                            bottomPadding: 10
+                        }
+
+                        ToolButton
+                        {
+                            visible: root.currentSection === "desktop-window-compositor"
+                            icon.name: "list-add"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Add window rule")
+                            onClicked: if (_windowCompositorPageLoader.item) _windowCompositorPageLoader.item.addWindowRule()
+                        }
+
+                        ToolSeparator
+                        {
+                            visible: root.currentSection === "hardware-sound-input"
+                            topPadding: 10
+                            bottomPadding: 10
+                        }
+
+                        ToolButton
+                        {
+                            visible: root.currentSection === "hardware-sound-input"
+                            icon.name: "list-add"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Add input device or keybind")
+                            onClicked: if (_inputDevicesPageLoader.item) _inputDevicesPageLoader.item.addInputItem()
+                        }
+
+                        ToolSeparator
+                        {
                             visible: root.currentSection === "general-system"
                             topPadding: 10
                             bottomPadding: 10
@@ -310,6 +364,66 @@ Maui.ApplicationWindow
                             ToolTip.visible: hovered
                             ToolTip.text: i18n("Add user")
                             onClicked: if (_systemPageLoader.item) _systemPageLoader.item.openAddUserDialog()
+                        }
+                    }
+                },
+
+                ToolSeparator
+                {
+                    visible: _autostartAddLoader.active
+                    topPadding: 10
+                    bottomPadding: 10
+                },
+
+                Loader
+                {
+                    id: _autostartAddLoader
+                    asynchronous: true
+                    active: root.currentSection === "security-login-autostart"
+                    visible: active
+
+                    sourceComponent: ToolButton
+                    {
+                        icon.name: "list-add"
+                        display: ToolButton.IconOnly
+                        ToolTip.delay: 1000
+                        ToolTip.timeout: 5000
+                        ToolTip.visible: hovered
+                        ToolTip.text: i18n("Add autostart command")
+                        onClicked:
+                        {
+                            if (_autostartPageLoader.item)
+                                _autostartPageLoader.item.openAddDialog()
+                        }
+                    }
+                },
+
+                ToolSeparator
+                {
+                    visible: _environmentVariablesAddLoader.active
+                    topPadding: 10
+                    bottomPadding: 10
+                },
+
+                Loader
+                {
+                    id: _environmentVariablesAddLoader
+                    asynchronous: true
+                    active: root.currentSection === "security-login-environment-variables"
+                    visible: active
+
+                    sourceComponent: ToolButton
+                    {
+                        icon.name: "list-add"
+                        display: ToolButton.IconOnly
+                        ToolTip.delay: 1000
+                        ToolTip.timeout: 5000
+                        ToolTip.visible: hovered
+                        ToolTip.text: i18n("Add environment variable")
+                        onClicked:
+                        {
+                            if (_environmentVariablesPageLoader.item)
+                                _environmentVariablesPageLoader.item.openAddDialog()
                         }
                     }
                 }
@@ -421,6 +535,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _windowCompositorPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "desktop-window-compositor"
+                        visible: active
+                        source: active ? "views/sidebar/desktop_shell/WindowCompositorPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _accessibilityPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "general-accessibility"
@@ -435,6 +558,15 @@ Maui.ApplicationWindow
                         active: root.currentSection === "applications-defaults"
                         visible: active
                         source: active ? "views/sidebar/applications/DefaultsPage.qml" : ""
+                    }
+
+                    Loader
+                    {
+                        id: _defaultAppsPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "applications-default-apps"
+                        visible: active
+                        source: active ? "views/sidebar/applications/DefaultAppsPage.qml" : ""
                     }
 
                     Loader
@@ -493,6 +625,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _inputDevicesPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "hardware-sound-input"
+                        visible: active
+                        source: active ? "views/sidebar/hardware_sound/InputDevicesPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _greeterPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-greeter"
@@ -508,11 +649,29 @@ Maui.ApplicationWindow
                         source: active ? "views/sidebar/security_login/LockScreenPage.qml" : ""
                     }
 
+                    Loader
+                    {
+                        id: _autostartPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-autostart"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/AutostartPage.qml" : ""
+                    }
+
+                    Loader
+                    {
+                        id: _environmentVariablesPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-environment-variables"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/EnvironmentVariablesPage.qml" : ""
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen"
+                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "desktop-window-compositor" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "applications-default-apps" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "hardware-sound-input" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen" && root.currentSection !== "security-login-autostart" && root.currentSection !== "security-login-environment-variables"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

@@ -20,11 +20,25 @@ Item
         LockScreenItem {}
     }
 
+    Component
+    {
+        id: autostartComponent
+        AutostartItem {}
+    }
+
+    Component
+    {
+        id: environmentVariablesComponent
+        EnvironmentVariablesItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
             greeterComponent.createObject(this),
-            lockScreenComponent.createObject(this)
+            lockScreenComponent.createObject(this),
+            autostartComponent.createObject(this),
+            environmentVariablesComponent.createObject(this)
         ]
     }
 }

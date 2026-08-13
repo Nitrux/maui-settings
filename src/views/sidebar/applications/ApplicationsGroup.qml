@@ -14,10 +14,17 @@ Item
         DefaultsItem {}
     }
 
+    Component
+    {
+        id: defaultAppsComponent
+        DefaultAppsItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
-            defaultsComponent.createObject(this)
+            defaultsComponent.createObject(this),
+            defaultAppsComponent.createObject(this)
         ]
     }
 }

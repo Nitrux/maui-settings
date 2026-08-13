@@ -89,6 +89,18 @@ set(settings_SRCS
     src/controllers/batterycontroller.h
     src/controllers/hyprsunsetinfo.cpp
     src/controllers/hyprsunsetinfo.h
+    src/controllers/hyprlandinfo.cpp
+    src/controllers/hyprlandinfo.h
+    src/controllers/hyprlandkeybinds.cpp
+    src/controllers/hyprlandkeybinds.h
+    src/controllers/hyprlanddevices.cpp
+    src/controllers/hyprlanddevices.h
+    src/controllers/hyprlandrules.cpp
+    src/controllers/hyprlandrules.h
+    src/controllers/autostartcontroller.cpp
+    src/controllers/autostartcontroller.h
+    src/controllers/environmentcontroller.cpp
+    src/controllers/environmentcontroller.h
     src/controllers/displayscontroller.cpp
     src/controllers/displayscontroller.h
 )
@@ -163,9 +175,12 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/desktop_shell/NudgeOsdItem.qml
     src/views/sidebar/desktop_shell/NudgeOsdPage.qml
     src/views/sidebar/desktop_shell/WindowCompositorItem.qml
+    src/views/sidebar/desktop_shell/WindowCompositorPage.qml
     src/views/sidebar/applications/ApplicationsGroup.qml
     src/views/sidebar/applications/DefaultsItem.qml
     src/views/sidebar/applications/DefaultsPage.qml
+    src/views/sidebar/applications/DefaultAppsItem.qml
+    src/views/sidebar/applications/DefaultAppsPage.qml
     src/views/sidebar/connectivity/ConnectivityGroup.qml
     src/views/sidebar/connectivity/BluetoothItem.qml
     src/views/sidebar/connectivity/BluetoothPage.qml
@@ -177,6 +192,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/hardware_sound/PerformanceItem.qml
     src/views/sidebar/hardware_sound/PerformancePage.qml
     src/views/sidebar/hardware_sound/InputDevicesItem.qml
+    src/views/sidebar/hardware_sound/InputDevicesPage.qml
     src/views/sidebar/hardware_sound/BatteryItem.qml
     src/views/sidebar/hardware_sound/BatteryPage.qml
     src/views/sidebar/hardware_sound/DisplaysItem.qml
@@ -186,6 +202,10 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/security_login/GreeterPage.qml
     src/views/sidebar/security_login/LockScreenItem.qml
     src/views/sidebar/security_login/LockScreenPage.qml
+    src/views/sidebar/security_login/AutostartItem.qml
+    src/views/sidebar/security_login/AutostartPage.qml
+    src/views/sidebar/security_login/EnvironmentVariablesItem.qml
+    src/views/sidebar/security_login/EnvironmentVariablesPage.qml
 )
 
 target_link_libraries(${APP_NAME}

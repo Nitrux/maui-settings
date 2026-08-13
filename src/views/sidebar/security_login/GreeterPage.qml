@@ -93,7 +93,7 @@ Maui.SettingsPage
         text1: i18n("QMLGreet Settings")
         text2: !root.controller || !root.controller.available
             ? i18n("qmlgreet is not available.")
-            : i18n("Configure the login screen. Settings are read from %1.", controller.configPath)
+            : i18n("Configure the login screen.")
         label2.wrapMode: Text.Wrap
     }
 

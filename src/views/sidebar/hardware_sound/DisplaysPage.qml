@@ -14,6 +14,7 @@ Maui.ScrollColumn
     readonly property int controlWidth: Maui.Style.units.gridUnit * 13
     readonly property int spinnerWidth: Maui.Style.units.gridUnit * 7
     readonly property real previewPadding: 18
+    readonly property real previewSpacing: Maui.Style.space.small
     readonly property real layoutMinX: {
         let value = 0
         if (controller)
@@ -86,12 +87,19 @@ Maui.ScrollColumn
         border.width: 1
         clip: true
 
+        readonly property real previewContentTop: arrangementHeader.y + arrangementHeader.height + root.previewSpacing
+        readonly property real previewContentHeight: Math.max(1, height - previewContentTop - root.previewPadding)
         property real previewScale: Math.min(
             (width - root.previewPadding * 2) / root.layoutWidth,
-            (height - root.previewPadding * 2) / root.layoutHeight)
+            previewContentHeight / root.layoutHeight)
+        readonly property real layoutOffsetX: root.previewPadding
+            + Math.max(0, (width - root.previewPadding * 2 - root.layoutWidth * previewScale) / 2)
+        readonly property real layoutOffsetY: previewContentTop
+            + Math.max(0, (previewContentHeight - root.layoutHeight * previewScale) / 2)
 
         Maui.SectionHeader
         {
+            id: arrangementHeader
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
@@ -110,10 +118,10 @@ Maui.ScrollColumn
                 required property var modelData
                 required property int index
                 readonly property bool selected: root.controller && index === root.controller.selectedMonitorIndex
-                x: root.previewPadding + (Number(modelData.x) - root.layoutMinX) * preview.previewScale
-                y: 92 + (Number(modelData.y) - root.layoutMinY) * preview.previewScale
-                width: Math.max(56, (Number(modelData.width) || 160) * preview.previewScale)
-                height: Math.max(42, (Number(modelData.height) || 90) * preview.previewScale)
+                x: preview.layoutOffsetX + (Number(modelData.x) - root.layoutMinX) * preview.previewScale
+                y: preview.layoutOffsetY + (Number(modelData.y) - root.layoutMinY) * preview.previewScale
+                width: Math.max(1, (Number(modelData.width) || 160) * preview.previewScale)
+                height: Math.max(1, (Number(modelData.height) || 90) * preview.previewScale)
                 color: selected ? Maui.Theme.highlightColor : Maui.Theme.backgroundColor
                 border.color: selected ? Maui.Theme.highlightedTextColor : Maui.Theme.textColor
                 border.width: selected ? 2 : 1
