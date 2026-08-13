@@ -102,6 +102,8 @@ Maui.ApplicationWindow
             return i18n("NudgeOSD Settings")
         case "desktop-marina":
             return i18n("Marina Settings")
+        case "desktop-window-compositor":
+            return i18n("Window Compositor")
         case "applications-defaults":
             return i18n("Default Applications")
         case "applications-cache":

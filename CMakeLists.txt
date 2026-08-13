@@ -162,6 +162,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/desktop_shell/ValenzPage.qml
     src/views/sidebar/desktop_shell/NudgeOsdItem.qml
     src/views/sidebar/desktop_shell/NudgeOsdPage.qml
+    src/views/sidebar/desktop_shell/WindowCompositorItem.qml
     src/views/sidebar/applications/ApplicationsGroup.qml
     src/views/sidebar/applications/DefaultsItem.qml
     src/views/sidebar/applications/DefaultsPage.qml

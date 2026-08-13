@@ -26,12 +26,19 @@ Item
         MarinaItem {}
     }
 
+    Component
+    {
+        id: windowCompositorComponent
+        WindowCompositorItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
             valenzComponent.createObject(this),
             nudgeOsdComponent.createObject(this),
-            marinaComponent.createObject(this)
+            marinaComponent.createObject(this),
+            windowCompositorComponent.createObject(this)
         ]
     }
 }
