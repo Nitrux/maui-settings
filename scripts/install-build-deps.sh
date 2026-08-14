@@ -39,6 +39,7 @@ $APT_COMMAND install -y --no-install-recommends \
     libgtk-4-dev \
     libkf6auth-dev \
     libkf6bluezqt-dev \
+    libkf6colorscheme-dev \
     libkf6config-dev \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
