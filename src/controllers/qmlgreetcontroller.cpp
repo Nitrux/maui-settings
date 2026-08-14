@@ -284,12 +284,6 @@ void QmlGreetController::refreshSaveAvailability()
     const bool helperAvailable = (registered.isValid() && registered.value())
         || (activatable.isValid() && activatable.value().contains(serviceName));
     const bool available = action.isValid() && helperAvailable;
-    qDebug() << "QmlGreetController: save availability"
-             << "actionValid=" << action.isValid()
-             << "registered=" << (registered.isValid() && registered.value())
-             << "activatable=" << (activatable.isValid()
-                    && activatable.value().contains(serviceName))
-             << "available=" << available;
     if (m_saveAvailable == available)
         return;
 

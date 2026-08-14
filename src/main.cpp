@@ -24,6 +24,7 @@
 #include "controllers/bluetoothcontroller.h"
 #include "controllers/desklockcontroller.h"
 #include "controllers/kdeglobalsinfo.h"
+#include "controllers/gtksettingsinfo.h"
 #include "controllers/marinainfo.h"
 #include "controllers/mimecontroller.h"
 #include "controllers/nudgeosdinfo.h"
@@ -101,6 +102,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KdeGlobalsInfo kdeGlobalsInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("kdeGlobalsInfo"), &kdeGlobalsInfo);
+
+    GtkSettingsInfo gtkSettingsInfo;
+    engine.rootContext()->setContextProperty(QStringLiteral("gtkSettingsInfo"), &gtkSettingsInfo);
 
     MarinaInfo marinaInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("marinaInfo"), &marinaInfo);

@@ -9,6 +9,7 @@ Maui.ScrollColumn
     id: root
     readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
+    readonly property var gtk: (typeof gtkSettingsInfo !== "undefined" && gtkSettingsInfo) ? gtkSettingsInfo : null
 
     property int stagedStyleType: 0
     property string stagedAccentColor: "#26c6da"
@@ -21,14 +22,33 @@ Maui.ScrollColumn
     property int stagedPaddingSize: 0
     property int stagedMarginSize: 0
     property int stagedSpacingSize: 0
+    property string stagedWidgetStyle: ""
+    property string stagedGtkTheme: ""
+    property string stagedGtkIconTheme: ""
+    property string stagedGtkCursorTheme: ""
+    property string stagedGtkFont: ""
+    property int stagedGtkCursorSize: 24
+    property string stagedGtkColorScheme: "default"
+    property bool stagedGtkEventSounds: true
+    property bool stagedGtkInputFeedbackSounds: false
+    property string stagedGtkFontHinting: "medium"
+    property string stagedGtkFontAntialiasing: "grayscale"
+    property string stagedGtkFontRgbaOrder: "rgb"
+    property double stagedGtkTextScalingFactor: 1.0
     property string stagedIconTheme: ""
     property string stagedCursorTheme: ""
+    property int stagedKdeCursorSize: 24
+    property string stagedKdeFontHinting: "slight"
+    property string stagedKdeFontAntialiasing: "grayscale"
+    property string stagedKdeFontRgbaOrder: "rgb"
     property string stagedColorScheme: ""
     property string stagedDefaultFont: ""
     property string stagedMenuFont: ""
     property string stagedToolBarFont: ""
     property string stagedSmallFont: ""
     property string stagedMonospaceFont: ""
+    property string fontDialogSettingName: ""
+    property font fontDialogFont
 
     function reloadSettings()
     {
@@ -52,14 +72,36 @@ Maui.ScrollColumn
 
         if (kde)
         {
+            stagedWidgetStyle = kde.widgetStyle
             stagedIconTheme = kde.iconTheme
             stagedCursorTheme = kde.cursorTheme
+            stagedKdeCursorSize = kde.cursorSize
+            stagedKdeFontHinting = kde.fontHinting
+            stagedKdeFontAntialiasing = kde.fontAntialiasing
+            stagedKdeFontRgbaOrder = kde.fontRgbaOrder
             stagedColorScheme = kde.colorScheme
             stagedDefaultFont = kde.defaultFont
             stagedMenuFont = kde.menuFont
             stagedToolBarFont = kde.toolBarFont
             stagedSmallFont = kde.smallFont
             stagedMonospaceFont = kde.monospaceFont
+        }
+
+        if (gtk)
+        {
+            gtk.reload()
+            stagedGtkTheme = gtk.theme
+            stagedGtkIconTheme = gtk.iconTheme
+            stagedGtkCursorTheme = gtk.cursorTheme
+            stagedGtkFont = gtk.font
+            stagedGtkCursorSize = gtk.cursorSize
+            stagedGtkColorScheme = gtk.colorScheme
+            stagedGtkEventSounds = gtk.eventSounds
+            stagedGtkInputFeedbackSounds = gtk.inputFeedbackSounds
+            stagedGtkFontHinting = gtk.fontHinting
+            stagedGtkFontAntialiasing = gtk.fontAntialiasing
+            stagedGtkFontRgbaOrder = gtk.fontRgbaOrder
+            stagedGtkTextScalingFactor = gtk.textScalingFactor
         }
     }
 
@@ -82,8 +124,13 @@ Maui.ScrollColumn
 
         if (kde)
         {
+            kde.widgetStyle = stagedWidgetStyle
             kde.iconTheme = stagedIconTheme
             kde.cursorTheme = stagedCursorTheme
+            kde.cursorSize = stagedKdeCursorSize
+            kde.fontHinting = stagedKdeFontHinting
+            kde.fontAntialiasing = stagedKdeFontAntialiasing
+            kde.fontRgbaOrder = stagedKdeFontRgbaOrder
             kde.colorScheme = stagedColorScheme
             kde.defaultFont = stagedDefaultFont
             kde.menuFont = stagedMenuFont
@@ -91,6 +138,23 @@ Maui.ScrollColumn
             kde.smallFont = stagedSmallFont
             kde.monospaceFont = stagedMonospaceFont
             kde.save()
+        }
+
+        if (gtk)
+        {
+            gtk.theme = stagedGtkTheme
+            gtk.iconTheme = stagedGtkIconTheme
+            gtk.cursorTheme = stagedGtkCursorTheme
+            gtk.font = stagedGtkFont
+            gtk.cursorSize = stagedGtkCursorSize
+            gtk.colorScheme = stagedGtkColorScheme
+            gtk.eventSounds = stagedGtkEventSounds
+            gtk.inputFeedbackSounds = stagedGtkInputFeedbackSounds
+            gtk.fontHinting = stagedGtkFontHinting
+            gtk.fontAntialiasing = stagedGtkFontAntialiasing
+            gtk.fontRgbaOrder = stagedGtkFontRgbaOrder
+            gtk.textScalingFactor = stagedGtkTextScalingFactor
+            gtk.save()
         }
     }
 
@@ -104,6 +168,13 @@ Maui.ScrollColumn
     ]
 
     property var styleTypeValues: [0, 1, 2, 3, 4, 5]
+
+    property var gtkColorSchemes: [i18n("Default"), i18n("Prefer dark"), i18n("Prefer light")]
+    property var gtkColorSchemeValues: ["default", "prefer-dark", "prefer-light"]
+    property var gtkHintingValues: ["none", "slight", "medium", "full"]
+    property var gtkAntialiasingValues: ["none", "grayscale", "rgba"]
+    property var gtkRgbaValues: ["none", "rgb", "bgr", "vrgb", "vbgr"]
+    property var kdeAntialiasingValues: ["none", "grayscale"]
 
     property var windowControlsThemes: [
         "Arena",
@@ -129,6 +200,11 @@ Maui.ScrollColumn
         }
 
         return 0
+    }
+
+    function indexFor(model, value)
+    {
+        return indexForString(model, value)
     }
 
     function indexForString(model, value)
@@ -194,12 +270,12 @@ Maui.ScrollColumn
 
     function kdeString(propertyName, fallback)
     {
-        return propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "menuFont" ? stagedMenuFont : propertyName === "toolBarFont" ? stagedToolBarFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
+        return propertyName === "widgetStyle" ? stagedWidgetStyle : propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "menuFont" ? stagedMenuFont : propertyName === "toolBarFont" ? stagedToolBarFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
     }
 
     function setStagedFont(settingName, font)
     {
-        const value = kde.fontToString(font)
+        const value = settingName === "gtkFont" && gtk ? gtk.fontToString(font) : kde.fontToString(font)
         switch (settingName)
         {
         case "defaultFont":
@@ -217,6 +293,9 @@ Maui.ScrollColumn
         case "monospaceFont":
             stagedMonospaceFont = value
             break
+        case "gtkFont":
+            stagedGtkFont = value
+            break
         }
     }
 
@@ -225,11 +304,11 @@ Maui.ScrollColumn
         if (!kde)
             return
 
-        _fontDialog.settingName = settingName
-        _fontDialog.pendingFont = kde.fontFromString(value || "")
-        _fontPickerLoader.active = false
-        _fontPickerLoader.active = true
-        _fontDialog.open()
+        fontDialogSettingName = settingName
+        fontDialogFont = kde.fontFromString(value || "")
+        _fontPickerDialogLoader.active = false
+        _fontPickerDialogLoader.active = true
+        _fontPickerDialogLoader.item.open()
     }
 
     Component.onCompleted: reloadSettings()
@@ -810,6 +889,69 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                label1.text: i18n("Widget style")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Qt Widgets style used by KDE and other Qt applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: RowLayout
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _widgetStyleCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 16
+                        model: kde ? kde.widgetStyles : []
+                        currentIndex: kde ? indexForString(kde.widgetStyleIds, stagedWidgetStyle) : -1
+                        enabled: kde !== null
+                        onActivated: root.stagedWidgetStyle = kde.widgetStyleIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: kde !== null && _widgetStyleCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _widgetStylePreviewDialog.previewName = _widgetStyleCombo.currentText
+                            _widgetStylePreviewDialog.preview = kde.widgetStylePreview(kde.widgetStyleIds[_widgetStyleCombo.currentIndex])
+                            _widgetStylePreviewDialog.open()
+                        }
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
                 label1.text: i18n("Icon theme")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred desktop icon theme.")
@@ -1002,6 +1144,47 @@ Maui.ScrollColumn
                     }
                 }
             }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Cursor size")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Pointer size used by KDE and MauiKit applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 7
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 7
+                    from: 0
+                    to: 128
+                    value: stagedKdeCursorSize
+                    editable: true
+                    enabled: kde !== null
+                    onValueModified: stagedKdeCursorSize = value
+                }
+            }
+
         }
     }
 
@@ -1253,6 +1436,769 @@ Maui.ScrollColumn
                             openFontDialog("monospaceFont", kdeString("monospaceFont", ""))
                     }
                 }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Font hinting")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls how glyphs are aligned to the pixel grid.")
+                label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkHintingValues
+                    currentIndex: indexFor(gtkHintingValues, stagedKdeFontHinting)
+                    enabled: kde !== null
+                    onActivated: stagedKdeFontHinting = currentText
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Font antialiasing")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls how KDE and MauiKit smooth rendered text.")
+                label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: kdeAntialiasingValues
+                    currentIndex: indexFor(kdeAntialiasingValues, stagedKdeFontAntialiasing)
+                    enabled: kde !== null
+                    onActivated: stagedKdeFontAntialiasing = currentText
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Subpixel order")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls the RGB order used for subpixel rendering.")
+                label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkRgbaValues
+                    currentIndex: indexFor(gtkRgbaValues, stagedKdeFontRgbaOrder)
+                    enabled: kde !== null
+                    onActivated: stagedKdeFontRgbaOrder = currentText
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _gtkAppearanceLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _gtkAppearanceLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("GTK Appearance")
+                text2: i18n("Configure GTK themes, icons, cursors, fonts, and theme preferences.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("GTK theme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Theme used by GTK applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtk ? gtk.themes : []
+                    currentIndex: gtk ? indexFor(gtk.themeIds, stagedGtkTheme) : -1
+                    enabled: gtk !== null
+                    onActivated: stagedGtkTheme = gtk.themeIds[currentIndex]
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Icon theme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Icons used by GTK applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: RowLayout
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 16
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _gtkIconThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.maximumWidth: parent.responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                        model: gtk ? gtk.iconThemes : []
+                        currentIndex: gtk ? indexFor(gtk.iconThemeIds, stagedGtkIconTheme) : -1
+                        enabled: gtk !== null
+                        onActivated: root.stagedGtkIconTheme = gtk.iconThemeIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: gtk !== null && kde !== null && _gtkIconThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _iconThemePreviewDialog.previewTheme = gtk.iconThemeIds[_gtkIconThemeCombo.currentIndex]
+                            _iconThemePreviewDialog.previewName = _gtkIconThemeCombo.currentText
+                            _iconThemePreviewDialog.previewIcons = kde.iconThemePreviewIcons(_iconThemePreviewDialog.previewTheme)
+                            _iconThemePreviewDialog.open()
+                        }
+                    }
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Cursor theme")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Pointer theme used by GTK applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: RowLayout
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 16
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _gtkCursorThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.maximumWidth: parent.responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                        model: gtk ? gtk.cursorThemes : []
+                        currentIndex: gtk ? indexFor(gtk.cursorThemeIds, stagedGtkCursorTheme) : -1
+                        enabled: gtk !== null
+                        onActivated: root.stagedGtkCursorTheme = gtk.cursorThemeIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: gtk !== null && kde !== null && _gtkCursorThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            _cursorThemePreviewDialog.previewTheme = gtk.cursorThemeIds[_gtkCursorThemeCombo.currentIndex]
+                            _cursorThemePreviewDialog.previewName = _gtkCursorThemeCombo.currentText
+                            _cursorThemePreviewDialog.previewImages = kde.cursorThemePreviewImages(_cursorThemePreviewDialog.previewTheme)
+                            _cursorThemePreviewDialog.open()
+                        }
+                    }
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Cursor size")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Pointer size used by GTK applications.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 7
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 7
+                    from: 0
+                    to: 128
+                    value: stagedGtkCursorSize
+                    editable: true
+                    enabled: gtk !== null
+                    onValueModified: stagedGtkCursorSize = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Font")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Font used by GTK applications, for example Noto Sans 10.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    text: kde ? kde.fontLabel(stagedGtkFont) : stagedGtkFont
+                    enabled: gtk !== null && kde !== null
+                    onClicked: openFontDialog("gtkFont", stagedGtkFont)
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Theme preference")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Choose whether GTK applications prefer the default, dark, or light theme.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkColorSchemes
+                    currentIndex: indexFor(gtkColorSchemeValues, stagedGtkColorScheme)
+                    enabled: gtk !== null
+                    onActivated: stagedGtkColorScheme = gtkColorSchemeValues[currentIndex]
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _gtkDetailsLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _gtkDetailsLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("GTK Details")
+                text2: i18n("Configure GTK font rendering, scaling, and sound behavior.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Font hinting")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls how glyphs are aligned to the pixel grid.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkHintingValues
+                    currentIndex: indexFor(gtkHintingValues, stagedGtkFontHinting)
+                    enabled: gtk !== null
+                    onActivated: stagedGtkFontHinting = currentText
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Font antialiasing")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls how GTK smooths rendered text.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkAntialiasingValues
+                    currentIndex: indexFor(gtkAntialiasingValues, stagedGtkFontAntialiasing)
+                    enabled: gtk !== null
+                    onActivated: stagedGtkFontAntialiasing = currentText
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Subpixel order")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Controls the RGB order used for subpixel rendering.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: ComboBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: gtkRgbaValues
+                    currentIndex: indexFor(gtkRgbaValues, stagedGtkFontRgbaOrder)
+                    enabled: gtk !== null
+                    onActivated: stagedGtkFontRgbaOrder = currentText
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Text scaling")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Scale GTK text from 50% to 300%.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    from: 50
+                    to: 300
+                    value: Math.round(stagedGtkTextScalingFactor * 100)
+                    editable: true
+                    enabled: gtk !== null
+                    onValueModified: stagedGtkTextScalingFactor = value / 100.0
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Event sounds")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Enable sounds for GTK interface events.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    Layout.preferredWidth: implicitWidth
+                    Layout.alignment: Qt.AlignRight
+                    checked: stagedGtkEventSounds
+                    enabled: gtk !== null
+                    onToggled: stagedGtkEventSounds = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Input feedback sounds")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Enable sounds for input feedback.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    Layout.preferredWidth: implicitWidth
+                    Layout.alignment: Qt.AlignRight
+                    checked: stagedGtkInputFeedbackSounds
+                    enabled: gtk !== null
+                    onToggled: stagedGtkInputFeedbackSounds = checked
+                }
+            }
+        }
+    }
+    Maui.SettingsDialog
+    {
+        id: _widgetStylePreviewDialog
+        title: i18n("Widget style preview")
+        persistent: true
+
+        property string previewName
+        property var preview: ({})
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _widgetStylePreviewDialog.previewName
+                text2: i18n("A sample of Qt Widgets rendered with the selected style.")
+            }
+
+            Maui.Icon
+            {
+                readonly property int previewWidth: _widgetStylePreviewDialog.preview.width || 460
+                readonly property int previewHeight: _widgetStylePreviewDialog.preview.height || 190
+                Layout.alignment: Qt.AlignHCenter
+                Layout.minimumWidth: previewWidth
+                Layout.preferredWidth: previewWidth
+                Layout.maximumWidth: previewWidth
+                Layout.minimumHeight: previewHeight
+                Layout.preferredHeight: previewHeight
+                Layout.maximumHeight: previewHeight
+                source: _widgetStylePreviewDialog.preview.image
+                isMask: false
+                smooth: true
             }
         }
     }
@@ -1559,53 +2505,27 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    Loader
     {
-        id: _fontDialog
-        title: i18n("Fonts")
-        persistent: true
-
-        property string settingName
-        property font pendingFont
-
-        Loader
+        id: _fontPickerDialogLoader
+        active: false
+        sourceComponent: Component
         {
-            id: _fontPickerLoader
-            Layout.fillWidth: true
-            active: true
-            sourceComponent: _fontPickerComponent
-        }
-
-        Component
-        {
-            id: _fontPickerComponent
-
-            Maui.FontPicker
+            Maui.FontPickerDialog
             {
-                Layout.fillWidth: true
-                mfont: _fontDialog.pendingFont
                 showStyle: false
-                model.onlyMonospaced: _fontDialog.settingName === "monospaceFont"
-            }
-        }
+                mfont: root.fontDialogFont
+                model.onlyMonospaced: root.fontDialogSettingName === "monospaceFont"
 
-        actions: [
-            Action
-            {
-                text: i18n("Cancel")
-                onTriggered: _fontDialog.close()
-            },
-            Action
-            {
-                text: i18n("Accept")
-                    onTriggered:
-                    {
-                        if (kde && _fontDialog.settingName.length > 0)
-                            root.setStagedFont(_fontDialog.settingName, _fontPickerLoader.item.mfont)
+                onAccepted:
+                {
+                    if (root.kde && root.fontDialogSettingName.length > 0)
+                        root.setStagedFont(root.fontDialogSettingName, mfont)
 
-                    _fontDialog.close()
+                    close()
                 }
             }
-        ]
+        }
     }
+
 }

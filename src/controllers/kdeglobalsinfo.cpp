@@ -1,14 +1,22 @@
 #include "kdeglobalsinfo.h"
 
 #include <QApplication>
+#include <QGuiApplication>
+#include <QWindow>
+#include <QWidget>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QCryptographicHash>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QDBusConnectionInterface>
+#include <QDBusReply>
 #include <KAuth/Action>
 #include <KAuth/ExecuteJob>
 #include <KJob>
 
 #include <algorithm>
+#include <utility>
 #include <QColor>
 #include <QDir>
 #include <QFile>
@@ -16,14 +24,27 @@
 #include <QFontDatabase>
 #include <QIcon>
 #include <QImage>
+#include <QPainter>
+#include <QPalette>
+#include <QRegularExpression>
+#include <QPixmapCache>
 #include <QLocale>
 #include <QSet>
 #include <QVariant>
 #include <QVariantMap>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QStyleFactory>
+#include <QStyle>
 #include <QStyleHints>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSlider>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
+#include <KColorScheme>
 #include <KConfig>
 #include <KConfigGroup>
 #include <KSharedConfig>
@@ -34,6 +55,17 @@ namespace
 {
 constexpr auto greeterHelperId = "org.maui.settings.qmlgreet";
 constexpr auto greeterCopyActionId = "org.maui.settings.qmlgreet.copykdeglobals";
+bool authHelperAvailable(const QString &serviceName)
+{
+    QDBusConnectionInterface *busInterface = QDBusConnection::systemBus().interface();
+    if (!busInterface)
+        return false;
+
+    const QDBusReply<bool> registered = busInterface->isServiceRegistered(serviceName);
+    const QDBusReply<QStringList> activatable = busInterface->activatableServiceNames();
+    return (registered.isValid() && registered.value())
+        || (activatable.isValid() && activatable.value().contains(serviceName));
+}
 QString systemDefaultFont()
 {
     return QApplication::font().toString();
@@ -49,10 +81,109 @@ QString systemMonospaceFont()
     return QFontDatabase::systemFont(QFontDatabase::FixedFont).toString();
 }
 
+QString xftHintStyle(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower();
+    if (normalized == QStringLiteral("none"))
+        return QStringLiteral("hintnone");
+    if (normalized == QStringLiteral("medium"))
+        return QStringLiteral("hintmedium");
+    if (normalized == QStringLiteral("full"))
+        return QStringLiteral("hintfull");
+    return QStringLiteral("hintslight");
+}
+
+QString kdeHintingValue(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower();
+    if (normalized.startsWith(QStringLiteral("hint")))
+        return normalized.mid(4);
+    if (normalized == QStringLiteral("none") || normalized == QStringLiteral("medium") || normalized == QStringLiteral("full"))
+        return normalized;
+    return QStringLiteral("slight");
+}
+
+void setWidgetStyleRecursively(QWidget *widget, QStyle *style, const QPalette &palette)
+{
+    widget->setPalette(QPalette());
+    widget->setPalette(palette);
+    widget->setStyle(style);
+
+    for (QObject *child : widget->children())
+    {
+        if (child->isWidgetType())
+            setWidgetStyleRecursively(static_cast<QWidget *>(child), style, palette);
+    }
+}
+
+bool parseFontDescription(const QString &value, QFont &font)
+{
+    const QString description = value.trimmed();
+    if (description.isEmpty())
+        return false;
+
+    // GTK stores Pango descriptions such as "Noto Sans Bold 10", while
+    // kdeglobals stores QFont::toString() values containing commas.
+    if (!description.contains(QLatin1Char(44)))
+    {
+        static const QRegularExpression gtkFontPattern(QStringLiteral(R"(^(.+?)\s+([0-9]+(?:\.[0-9]+)?)$)"));
+        const QRegularExpressionMatch match = gtkFontPattern.match(description);
+        if (match.hasMatch())
+        {
+            const QString familyAndStyle = match.captured(1).trimmed();
+            bool sizeOk = false;
+            const qreal pointSize = match.captured(2).toDouble(&sizeOk);
+            if (!sizeOk || pointSize <= 0)
+                return false;
+
+            const QFontDatabase database;
+            QString family = familyAndStyle;
+            QString style;
+            QStringList families = database.families();
+            std::sort(families.begin(), families.end(), [](const QString &left, const QString &right) {
+                return left.size() > right.size();
+            });
+
+            for (const QString &candidate : std::as_const(families))
+            {
+                if (familyAndStyle.compare(candidate, Qt::CaseInsensitive) == 0)
+                {
+                    family = candidate;
+                    break;
+                }
+
+                const QString prefix = candidate + QLatin1Char(32);
+                if (!familyAndStyle.startsWith(prefix, Qt::CaseInsensitive))
+                    continue;
+
+                const QString candidateStyle = familyAndStyle.mid(prefix.size()).trimmed();
+                const QStringList styles = database.styles(candidate);
+                const bool knownStyle = std::any_of(styles.cbegin(), styles.cend(), [&candidateStyle](const QString &value) {
+                    return value.compare(candidateStyle, Qt::CaseInsensitive) == 0;
+                });
+                if (knownStyle)
+                {
+                    family = candidate;
+                    style = candidateStyle;
+                    break;
+                }
+            }
+
+            font.setFamily(family);
+            font.setPointSizeF(pointSize);
+            if (!style.isEmpty())
+                font.setStyleName(style);
+            return true;
+        }
+    }
+
+    return font.fromString(description);
+}
+
 QFont configFont(const QString &value)
 {
     QFont font;
-    return font.fromString(value.trimmed()) ? font : QApplication::font();
+    return parseFontDescription(value, font) ? font : QApplication::font();
 }
 
 void notifyKcmChange(int changeType)
@@ -297,6 +428,11 @@ QString KdeGlobalsInfo::configPath() const
     return m_configPath;
 }
 
+QString KdeGlobalsInfo::widgetStyle() const
+{
+    return m_widgetStyle;
+}
+
 QString KdeGlobalsInfo::colorScheme() const
 {
     return m_colorScheme;
@@ -310,6 +446,11 @@ QString KdeGlobalsInfo::iconTheme() const
 QString KdeGlobalsInfo::cursorTheme() const
 {
     return m_cursorTheme;
+}
+
+int KdeGlobalsInfo::cursorSize() const
+{
+    return m_cursorSize;
 }
 
 QString KdeGlobalsInfo::defaultFont() const
@@ -335,6 +476,21 @@ QString KdeGlobalsInfo::smallFont() const
 QString KdeGlobalsInfo::monospaceFont() const
 {
     return m_monospaceFont;
+}
+
+QString KdeGlobalsInfo::fontHinting() const
+{
+    return m_fontHinting;
+}
+
+QString KdeGlobalsInfo::fontAntialiasing() const
+{
+    return m_fontAntialiasing;
+}
+
+QString KdeGlobalsInfo::fontRgbaOrder() const
+{
+    return m_fontRgbaOrder;
 }
 
 bool KdeGlobalsInfo::singleClick() const
@@ -367,6 +523,16 @@ QStringList KdeGlobalsInfo::cursorThemeIds() const
     return m_cursorThemeIds;
 }
 
+QStringList KdeGlobalsInfo::widgetStyles() const
+{
+    return m_widgetStyles;
+}
+
+QStringList KdeGlobalsInfo::widgetStyleIds() const
+{
+    return m_widgetStyleIds;
+}
+
 void KdeGlobalsInfo::setChanged()
 {
     Q_EMIT settingsChanged();
@@ -379,6 +545,16 @@ void KdeGlobalsInfo::setColorScheme(const QString &value)
         return;
 
     m_colorScheme = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setWidgetStyle(const QString &value)
+{
+    const QString normalized = value.trimmed();
+    if (m_widgetStyle == normalized)
+        return;
+
+    m_widgetStyle = normalized;
     setChanged();
 }
 
@@ -399,6 +575,16 @@ void KdeGlobalsInfo::setCursorTheme(const QString &value)
         return;
 
     m_cursorTheme = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setCursorSize(int value)
+{
+    const int normalized = qBound(0, value, 1024);
+    if (m_cursorSize == normalized)
+        return;
+
+    m_cursorSize = normalized;
     setChanged();
 }
 
@@ -452,6 +638,35 @@ void KdeGlobalsInfo::setMonospaceFont(const QString &value)
     setChanged();
 }
 
+void KdeGlobalsInfo::setFontHinting(const QString &value)
+{
+    const QString normalized = kdeHintingValue(value);
+    if (m_fontHinting == normalized)
+        return;
+    m_fontHinting = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setFontAntialiasing(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower() == QStringLiteral("none") ? QStringLiteral("none") : QStringLiteral("grayscale");
+    if (m_fontAntialiasing == normalized)
+        return;
+    m_fontAntialiasing = normalized;
+    setChanged();
+}
+
+void KdeGlobalsInfo::setFontRgbaOrder(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower();
+    const QStringList validValues {QStringLiteral("none"), QStringLiteral("rgb"), QStringLiteral("bgr"), QStringLiteral("vrgb"), QStringLiteral("vbgr")};
+    const QString result = validValues.contains(normalized) ? normalized : QStringLiteral("rgb");
+    if (m_fontRgbaOrder == result)
+        return;
+    m_fontRgbaOrder = result;
+    setChanged();
+}
+
 void KdeGlobalsInfo::setSingleClick(bool value)
 {
     if (m_singleClick == value)
@@ -477,6 +692,16 @@ bool KdeGlobalsInfo::save()
         applyColorScheme(settings.data(), colorSchemeFilePath(m_colorScheme));
     }
 
+    const bool fontRenderingChanged = generalGroup.readEntry(QStringLiteral("XftHintStyle"), QStringLiteral("hintslight")) != xftHintStyle(m_fontHinting)
+        || generalGroup.readEntry(QStringLiteral("XftAntialias"), true) != (m_fontAntialiasing != QStringLiteral("none"))
+        || generalGroup.readEntry(QStringLiteral("XftSubPixel"), QStringLiteral("rgb")) != m_fontRgbaOrder;
+    if (fontRenderingChanged)
+    {
+        generalGroup.writeEntry(QStringLiteral("XftHintStyle"), xftHintStyle(m_fontHinting));
+        generalGroup.writeEntry(QStringLiteral("XftAntialias"), m_fontAntialiasing != QStringLiteral("none"));
+        generalGroup.writeEntry(QStringLiteral("XftSubPixel"), m_fontRgbaOrder);
+    }
+
     const auto writeFontIfChanged = [&generalGroup](const QString &key, const QString &value) {
         const QFont desired = configFont(value);
         const QFont current = generalGroup.readEntry(key, QFont());
@@ -493,6 +718,10 @@ bool KdeGlobalsInfo::save()
     writeFontIfChanged(QStringLiteral("fixed"), m_monospaceFont);
 
     KConfigGroup kdeGroup(settings, QStringLiteral("KDE"));
+    const bool widgetStyleChanged = kdeGroup.readEntry(QStringLiteral("widgetStyle"), QString()) != m_widgetStyle;
+    if (widgetStyleChanged)
+        kdeGroup.writeEntry(QStringLiteral("widgetStyle"), m_widgetStyle);
+
     if (kdeGroup.readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation()) != m_singleClick)
         kdeGroup.writeEntry(QStringLiteral("SingleClick"), m_singleClick);
 
@@ -503,34 +732,45 @@ bool KdeGlobalsInfo::save()
 
     const KSharedConfigPtr inputSettings = KSharedConfig::openConfig(m_inputConfigPath, KConfig::SimpleConfig);
     KConfigGroup mouseGroup(inputSettings, QStringLiteral("Mouse"));
-    const bool cursorChanged = mouseGroup.readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME")) != m_cursorTheme;
-    if (cursorChanged)
+    const bool cursorThemeChanged = mouseGroup.readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME")) != m_cursorTheme;
+    const bool cursorSizeChanged = mouseGroup.readEntry(QStringLiteral("cursorSize"), 24) != m_cursorSize;
+    if (cursorThemeChanged)
         mouseGroup.writeEntry(QStringLiteral("cursorTheme"), m_cursorTheme);
+    if (cursorSizeChanged)
+        mouseGroup.writeEntry(QStringLiteral("cursorSize"), m_cursorSize);
     inputSettings->sync();
 
     const bool settingsSaved = !settings->isDirty();
     const bool inputSettingsSaved = !inputSettings->isDirty();
     if (settingsSaved && inputSettingsSaved)
     {
-        if (paletteChanged)
+        if (paletteChanged || fontRenderingChanged)
             notifyKcmChange(0); // PaletteChanged
-        if (cursorChanged)
+        if (widgetStyleChanged)
+            notifyKcmChange(2); // StyleChanged
+        if (cursorThemeChanged || cursorSizeChanged)
             notifyKcmChange(5); // CursorChanged
     }
 
-    if (settingsSaved && inputSettingsSaved)
+    if (settingsSaved && inputSettingsSaved && authHelperAvailable(QString::fromLatin1(greeterHelperId)))
     {
         KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
         action.setHelperId(QString::fromLatin1(greeterHelperId));
         action.setArguments({{QStringLiteral("sourcePath"), m_configPath}});
-        if (KAuth::ExecuteJob *job = action.execute())
+        if (QWindow *window = QGuiApplication::focusWindow())
+            action.setParentWindow(window);
+
+        if (action.isValid())
         {
-            connect(job, &KJob::result, this, [](KJob *completedJob)
+            if (KAuth::ExecuteJob *job = action.execute())
             {
-                if (completedJob->error() != 0)
-                    qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
-            });
-            job->start();
+                connect(job, &KJob::result, this, [](KJob *completedJob)
+                {
+                    if (completedJob->error() != 0)
+                        qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
+                });
+                job->start();
+            }
         }
     }
 
@@ -558,7 +798,7 @@ QString KdeGlobalsInfo::fontLabel(const QString &value) const
         return {};
 
     QFont font;
-    if (!font.fromString(description))
+    if (!parseFontDescription(description, font))
         return value.trimmed();
 
     const QString family = font.family().trimmed();
@@ -578,6 +818,76 @@ QString KdeGlobalsInfo::fontLabel(const QString &value) const
     return family;
 }
 
+
+QVariantMap KdeGlobalsInfo::widgetStylePreview(const QString &style) const
+{
+    QVariantMap preview;
+    const QString normalized = style.trimmed();
+    if (normalized.isEmpty())
+        return preview;
+
+    QStyle *widgetStyle = QStyleFactory::create(normalized);
+    if (!widgetStyle)
+        return preview;
+
+    QWidget widget;
+    widget.setAttribute(Qt::WA_DontShowOnScreen);
+    widget.setAttribute(Qt::WA_QuitOnClose, false);
+    widget.setAutoFillBackground(true);
+    widget.setWindowTitle(QStringLiteral("Widget style preview"));
+
+    auto *layout = new QVBoxLayout(&widget);
+    layout->setContentsMargins(16, 16, 16, 16);
+    layout->setSpacing(10);
+
+    auto *title = new QLabel(QStringLiteral("Qt Widgets preview"), &widget);
+    title->setStyleSheet(QString());
+    layout->addWidget(title);
+
+    auto *lineEdit = new QLineEdit(QStringLiteral("Text field"), &widget);
+    layout->addWidget(lineEdit);
+
+    auto *controls = new QHBoxLayout;
+    auto *button = new QPushButton(QStringLiteral("Button"), &widget);
+    auto *checkBox = new QCheckBox(QStringLiteral("Check box"), &widget);
+    auto *comboBox = new QComboBox(&widget);
+    comboBox->addItems({QStringLiteral("Option one"), QStringLiteral("Option two")});
+    controls->addWidget(button);
+    controls->addWidget(checkBox);
+    controls->addWidget(comboBox);
+    layout->addLayout(controls);
+
+    auto *slider = new QSlider(Qt::Horizontal, &widget);
+    slider->setValue(60);
+    layout->addWidget(slider);
+
+    widget.resize(460, 190);
+
+    QPixmapCache::clear();
+    QPalette palette(KColorScheme::createApplicationPalette(KSharedConfig::openConfig()));
+    widgetStyle->polish(palette);
+    for (int i = 0; i < QPalette::NColorRoles; ++i)
+    {
+        const auto role = static_cast<QPalette::ColorRole>(i);
+        palette.setColor(QPalette::Inactive, role, palette.color(QPalette::Active, role));
+    }
+
+    setWidgetStyleRecursively(&widget, widgetStyle, palette);
+    widget.ensurePolished();
+    widget.show();
+
+    QImage image(widget.size(), QImage::Format_ARGB32_Premultiplied);
+    image.fill(widget.palette().window().color());
+    QPainter painter(&image);
+    widget.render(&painter);
+    painter.end();
+    widget.hide();
+
+    preview.insert(QStringLiteral("image"), image);
+    preview.insert(QStringLiteral("width"), image.width());
+    preview.insert(QStringLiteral("height"), image.height());
+    return preview;
+}
 
 QVariantList KdeGlobalsInfo::iconThemePreviewIcons(const QString &theme) const
 {
@@ -788,6 +1098,15 @@ QStringList KdeGlobalsInfo::scanColorSchemes() const
     return schemes;
 }
 
+QStringList KdeGlobalsInfo::scanWidgetStyles() const
+{
+    QStringList styles = QStyleFactory::keys();
+    styles.sort(Qt::CaseInsensitive);
+    if (!m_widgetStyle.isEmpty() && !styles.contains(m_widgetStyle, Qt::CaseInsensitive))
+        styles.append(m_widgetStyle);
+    return styles;
+}
+
 QVariantList KdeGlobalsInfo::scanIconThemes() const
 {
     return scanThemeOptions(false);
@@ -801,13 +1120,18 @@ QVariantList KdeGlobalsInfo::scanCursorThemes() const
 void KdeGlobalsInfo::load()
 {
     m_colorScheme.clear();
+    m_widgetStyle.clear();
     m_iconTheme.clear();
     m_cursorTheme.clear();
+    m_cursorSize = 24;
     m_defaultFont.clear();
     m_menuFont.clear();
     m_toolBarFont.clear();
     m_smallFont.clear();
     m_monospaceFont.clear();
+    m_fontHinting = QStringLiteral("slight");
+    m_fontAntialiasing = QStringLiteral("grayscale");
+    m_fontRgbaOrder = QStringLiteral("rgb");
 
     const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
     const KConfigGroup generalGroup(settings, QStringLiteral("General"));
@@ -817,14 +1141,24 @@ void KdeGlobalsInfo::load()
     m_toolBarFont = generalGroup.readEntry(QStringLiteral("toolBarFont"), m_defaultFont);
     m_smallFont = generalGroup.readEntry(QStringLiteral("smallestReadableFont"), systemSmallFont());
     m_monospaceFont = generalGroup.readEntry(QStringLiteral("fixed"), systemMonospaceFont());
+    m_fontHinting = kdeHintingValue(generalGroup.readEntry(QStringLiteral("XftHintStyle"), QStringLiteral("hintslight")));
+    m_fontAntialiasing = generalGroup.readEntry(QStringLiteral("XftAntialias"), true) ? QStringLiteral("grayscale") : QStringLiteral("none");
+    m_fontRgbaOrder = generalGroup.readEntry(QStringLiteral("XftSubPixel"), QStringLiteral("rgb")).trimmed().toLower();
+    const QStringList rgbaValues {QStringLiteral("none"), QStringLiteral("rgb"), QStringLiteral("bgr"), QStringLiteral("vrgb"), QStringLiteral("vbgr")};
+    if (!rgbaValues.contains(m_fontRgbaOrder))
+        m_fontRgbaOrder = QStringLiteral("rgb");
 
     if (m_colorScheme.isEmpty())
         m_colorScheme = settings->group(QStringLiteral("KDE")).readEntry(QStringLiteral("ColorScheme"), QString());
-    m_singleClick = settings->group(QStringLiteral("KDE")).readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation());
+    const KConfigGroup kdeGroup(settings, QStringLiteral("KDE"));
+    m_widgetStyle = kdeGroup.readEntry(QStringLiteral("widgetStyle"), QString());
+    m_singleClick = kdeGroup.readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation());
 
     m_iconTheme = settings->group(QStringLiteral("Icons")).readEntry(QStringLiteral("Theme"), QString());
     const KSharedConfigPtr inputSettings = KSharedConfig::openConfig(m_inputConfigPath, KConfig::SimpleConfig);
-    m_cursorTheme = inputSettings->group(QStringLiteral("Mouse")).readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME"));
+    const KConfigGroup mouseGroup(inputSettings, QStringLiteral("Mouse"));
+    m_cursorTheme = mouseGroup.readEntry(QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME"));
+    m_cursorSize = qBound(0, mouseGroup.readEntry(QStringLiteral("cursorSize"), 24), 1024);
 
     if (m_defaultFont.isEmpty())
         m_defaultFont = systemDefaultFont();
@@ -837,7 +1171,22 @@ void KdeGlobalsInfo::load()
     if (m_monospaceFont.isEmpty())
         m_monospaceFont = systemMonospaceFont();
 
+    if (m_widgetStyle.isEmpty())
+        m_widgetStyle = QApplication::style() ? QApplication::style()->objectName() : QStringLiteral("Fusion");
+
+    const QStringList availableStyles = QStyleFactory::keys();
+    for (const QString &style : availableStyles)
+    {
+        if (style.compare(m_widgetStyle, Qt::CaseInsensitive) == 0)
+        {
+            m_widgetStyle = style;
+            break;
+        }
+    }
+
     m_colorSchemes = scanColorSchemes();
+    m_widgetStyleIds = scanWidgetStyles();
+    m_widgetStyles = m_widgetStyleIds;
     m_iconThemes.clear();
     m_iconThemeIds.clear();
     const QVariantList iconThemeOptions = scanIconThemes();
