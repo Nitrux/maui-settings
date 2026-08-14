@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QFont>
+#include <QVariantList>
 #include <QStringList>
 
 class GtkSettingsInfo : public QObject
@@ -64,6 +65,7 @@ public:
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
     Q_INVOKABLE QString fontToString(const QFont &font) const;
+    Q_INVOKABLE QVariantList gtkThemePreviews(const QString &theme) const;
 
 Q_SIGNALS:
     void settingsChanged();

@@ -137,6 +137,29 @@ target_compile_features(${DATETIME_HELPER_TARGET} PRIVATE cxx_std_23)
 target_link_libraries(${DATETIME_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
 
 find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(GTK3 QUIET IMPORTED_TARGET gtk+-3.0)
+if(GTK3_FOUND)
+    add_executable(maui-settings-gtk3-preview-helper
+        src/helpers/gtkpreviewhelper.cpp
+    )
+    target_compile_features(maui-settings-gtk3-preview-helper PRIVATE cxx_std_23)
+    target_compile_definitions(maui-settings-gtk3-preview-helper PRIVATE MAUI_SETTINGS_GTK3)
+    target_link_libraries(maui-settings-gtk3-preview-helper PRIVATE PkgConfig::GTK3)
+    install(TARGETS maui-settings-gtk3-preview-helper DESTINATION ${KDE_INSTALL_BINDIR})
+endif()
+
+pkg_check_modules(GTK4 QUIET IMPORTED_TARGET gtk4)
+if(GTK4_FOUND)
+    add_executable(maui-settings-gtk4-preview-helper
+        src/helpers/gtkpreviewhelper.cpp
+    )
+    target_compile_features(maui-settings-gtk4-preview-helper PRIVATE cxx_std_23)
+    target_compile_definitions(maui-settings-gtk4-preview-helper PRIVATE MAUI_SETTINGS_GTK4)
+    target_link_libraries(maui-settings-gtk4-preview-helper PRIVATE PkgConfig::GTK4)
+    install(TARGETS maui-settings-gtk4-preview-helper DESTINATION ${KDE_INSTALL_BINDIR})
+endif()
+
 pkg_check_modules(PWQUALITY REQUIRED IMPORTED_TARGET pwquality)
 target_link_libraries(${DATETIME_HELPER_TARGET} PRIVATE PkgConfig::PWQUALITY)
 target_compile_definitions(${DATETIME_HELPER_TARGET} PRIVATE MAUI_SETTINGS_HAS_PWQUALITY)

@@ -1587,7 +1587,7 @@ Maui.ScrollColumn
                 label2.text: i18n("Theme used by GTK applications.")
                 label2.wrapMode: Text.Wrap
 
-                template.content: ComboBox
+                template.content: RowLayout
                 {
                     property Item wideParent
                     property Item responsiveSectionItem
@@ -1612,15 +1612,39 @@ Maui.ScrollColumn
 
                     Layout.fillWidth: responsiveNarrow
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
-                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
-                    model: gtk ? gtk.themes : []
-                    currentIndex: gtk ? indexFor(gtk.themeIds, stagedGtkTheme) : -1
-                    enabled: gtk !== null
-                    onActivated: stagedGtkTheme = gtk.themeIds[currentIndex]
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 16
+                    spacing: Maui.Style.space.small
+
+                    ComboBox
+                    {
+                        id: _gtkThemeCombo
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.maximumWidth: parent.responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 13
+                        Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                        model: gtk ? gtk.themes : []
+                        currentIndex: gtk ? indexFor(gtk.themeIds, stagedGtkTheme) : -1
+                        enabled: gtk !== null
+                        onActivated: root.stagedGtkTheme = gtk.themeIds[currentIndex]
+                    }
+
+                    ToolButton
+                    {
+                        enabled: gtk !== null && _gtkThemeCombo.currentIndex >= 0
+                        icon.name: "view-preview"
+                        onClicked:
+                        {
+                            const previews = gtk.gtkThemePreviews(gtk.themeIds[_gtkThemeCombo.currentIndex])
+                            _gtkThemePreviewDialog.previewName = _gtkThemeCombo.currentText
+                            _gtkThemePreviewDialog.previews = previews
+                            _gtkThemePreviewDialog.previewStatus = previews.length > 0
+                                ? i18n("Representative GTK widgets rendered with the selected theme.")
+                                : i18n("No GTK preview could be rendered. Build the GTK preview helper and ensure the selected toolkit is installed.")
+                            _gtkThemePreviewDialog.open()
+                        }
+                    }
                 }
             }
-
             Maui.SectionItem
             {
                 Layout.fillWidth: true
@@ -2164,6 +2188,64 @@ Maui.ScrollColumn
             }
         }
     }
+    Maui.SettingsDialog
+    {
+        id: _gtkThemePreviewDialog
+        title: i18n("GTK theme preview")
+        persistent: true
+
+        property string previewName
+        property string previewStatus: i18n("Representative GTK widgets rendered with the selected theme.")
+        property var previews: []
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: _gtkThemePreviewDialog.previewName
+                text2: _gtkThemePreviewDialog.previewStatus
+            }
+
+            Repeater
+            {
+                model: _gtkThemePreviewDialog.previews
+
+                delegate: ColumnLayout
+                {
+                    Layout.fillWidth: true
+                    spacing: Maui.Style.space.small
+
+                    Maui.SectionHeader
+                    {
+                        Layout.fillWidth: true
+                        text1: modelData.toolkit
+                        text2: i18n("Rendered with the selected GTK theme.")
+                    }
+
+                    Maui.Icon
+                    {
+                        readonly property int previewWidth: modelData.width || 460
+                        readonly property int previewHeight: modelData.height || 190
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.minimumWidth: previewWidth
+                        Layout.preferredWidth: previewWidth
+                        Layout.maximumWidth: previewWidth
+                        Layout.minimumHeight: previewHeight
+                        Layout.preferredHeight: previewHeight
+                        Layout.maximumHeight: previewHeight
+                        source: modelData.image
+                        isMask: false
+                        smooth: true
+                    }
+                }
+            }
+        }
+    }
+
     Maui.SettingsDialog
     {
         id: _widgetStylePreviewDialog

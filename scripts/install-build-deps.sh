@@ -35,6 +35,8 @@ $APT_COMMAND install -y --no-install-recommends \
     extra-cmake-modules \
     gettext \
     gnupg2 \
+    libgtk-3-dev \
+    libgtk-4-dev \
     libkf6auth-dev \
     libkf6bluezqt-dev \
     libkf6config-dev \

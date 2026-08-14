@@ -1,6 +1,9 @@
 #include "gtksettingsinfo.h"
 
 #include <QApplication>
+#include <QCoreApplication>
+#include <QImage>
+#include <QList>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -8,6 +11,8 @@
 #include <QIcon>
 #include <QMap>
 #include <QProcess>
+#include <QProcessEnvironment>
+#include <QPair>
 #include <QSaveFile>
 #include <QSettings>
 #include <QSet>
@@ -29,6 +34,38 @@ void addUnique(QStringList &list, const QString &value)
     const QString normalized = value.trimmed();
     if (!normalized.isEmpty() && !list.contains(normalized))
         list.append(normalized);
+}
+
+QString findPreviewHelper(const QString &name)
+{
+    const QString localPath = QDir(QCoreApplication::applicationDirPath()).filePath(name);
+    if (QFileInfo(localPath).isExecutable())
+        return localPath;
+
+    return QStandardPaths::findExecutable(name);
+}
+
+QImage renderThemePreview(const QString &helper, const QString &theme)
+{
+    if (helper.isEmpty() || theme.trimmed().isEmpty())
+        return {};
+
+    QProcess process;
+    process.setProcessEnvironment(QProcessEnvironment::systemEnvironment());
+    process.start(helper, {
+        QStringLiteral("--theme"), theme,
+        QStringLiteral("--width"), QStringLiteral("460"),
+        QStringLiteral("--height"), QStringLiteral("190")
+    });
+
+    if (!process.waitForFinished(5000)
+        || process.exitStatus() != QProcess::NormalExit
+        || process.exitCode() != 0)
+        return {};
+
+    QImage image;
+    image.loadFromData(process.readAllStandardOutput(), "PNG");
+    return image;
 }
 
 QString gsettingsValue(const QString &schema, const QString &key, const QString &fallback)
@@ -425,6 +462,35 @@ QString GtkSettingsInfo::fontToString(const QFont &font) const
         parts.append(QString::number(pointSize));
 
     return parts.join(QLatin1Char(32));
+}
+
+QVariantList GtkSettingsInfo::gtkThemePreviews(const QString &theme) const
+{
+    QVariantList previews;
+    const QString normalizedTheme = theme.trimmed();
+    if (normalizedTheme.isEmpty())
+        return previews;
+
+    const QList<QPair<QString, QString>> helpers {
+        {QStringLiteral("GTK 3"), QStringLiteral("maui-settings-gtk3-preview-helper")},
+        {QStringLiteral("GTK 4"), QStringLiteral("maui-settings-gtk4-preview-helper")}
+    };
+
+    for (const auto &helper : helpers)
+    {
+        const QImage image = renderThemePreview(findPreviewHelper(helper.second), normalizedTheme);
+        if (image.isNull())
+            continue;
+
+        previews.append(QVariantMap {
+            {QStringLiteral("toolkit"), helper.first},
+            {QStringLiteral("image"), image},
+            {QStringLiteral("width"), image.width()},
+            {QStringLiteral("height"), image.height()}
+        });
+    }
+
+    return previews;
 }
 
 bool GtkSettingsInfo::save()
