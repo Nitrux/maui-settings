@@ -2,9 +2,12 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QDate>
+#include <QDir>
 #include <QIcon>
+#include <QLockFile>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QStandardPaths>
 #include <QSurfaceFormat>
 #include <QUrl>
 
@@ -49,8 +52,31 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
+    app.setApplicationName(QStringLiteral("maui-settings"));
     app.setOrganizationName(QStringLiteral("Maui"));
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("preferences-desktop-theme")));
+
+    QString instanceDirectory =
+        QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
+    if (instanceDirectory.isEmpty())
+        instanceDirectory =
+            QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    if (instanceDirectory.isEmpty() || !QDir().mkpath(instanceDirectory)) {
+        qCritical() << "Maui Settings could not create its single-instance lock directory.";
+        return -1;
+    }
+
+    QLockFile instanceLock(
+        QDir(instanceDirectory).filePath(QStringLiteral("org.maui.settings.lock")));
+    if (!instanceLock.tryLock()) {
+        if (instanceLock.error() == QLockFile::LockFailedError) {
+            qInfo() << "Maui Settings is already running.";
+            return 0;
+        }
+
+        qCritical() << "Maui Settings could not acquire its single-instance lock.";
+        return -1;
+    }
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
