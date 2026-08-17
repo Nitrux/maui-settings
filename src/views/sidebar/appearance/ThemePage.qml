@@ -2238,7 +2238,6 @@ Maui.ScrollColumn
                         Layout.preferredHeight: previewHeight
                         Layout.maximumHeight: previewHeight
                         source: modelData.image
-                        isMask: false
                         smooth: true
                     }
                 }
@@ -2279,7 +2278,6 @@ Maui.ScrollColumn
                 Layout.preferredHeight: previewHeight
                 Layout.maximumHeight: previewHeight
                 source: _widgetStylePreviewDialog.preview.image
-                isMask: false
                 smooth: true
             }
         }
@@ -2323,7 +2321,6 @@ Maui.ScrollColumn
                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                         iconSource: modelData.image
                         iconSizeHint: Math.max(modelData.width, modelData.height)
-                        isMask: false
                         smooth: false
                     }
                 }
@@ -2369,7 +2366,6 @@ Maui.ScrollColumn
                         Layout.alignment: Qt.AlignHCenter
                         iconSource: modelData.icon
                         iconSizeHint: modelData.size
-                        isMask: false
                         smooth: false
                     }
                 }
