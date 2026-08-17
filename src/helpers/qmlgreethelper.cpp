@@ -265,7 +265,8 @@ bool validateLocalFile(const QString &value,
 }
 }
 
-bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath, QString *error)
+bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath,
+                       const QString &label, QString *error)
 {
     const QString cleanTargetPath = QDir::cleanPath(targetPath);
     const QString relativeTargetPath = QDir(QString::fromLatin1(greetdHomePath))
@@ -274,14 +275,15 @@ bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath, QSt
         || relativeTargetPath.startsWith(QStringLiteral("../"))
         || QDir::isAbsolutePath(relativeTargetPath))
     {
-        *error = QStringLiteral("The wallpaper destination must be inside /var/lib/greetd.");
+        *error = QStringLiteral("The %1 destination must be inside /var/lib/greetd.").arg(label);
         return false;
     }
 
     const QFileInfo targetInfo(cleanTargetPath);
     if (!QDir().mkpath(targetInfo.absolutePath()))
     {
-        *error = QStringLiteral("Could not create the wallpaper directory %1.")
+        *error = QStringLiteral("Could not create the %1 directory %2.")
+                     .arg(label)
                      .arg(targetInfo.absolutePath());
         return false;
     }
@@ -296,7 +298,8 @@ bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath, QSt
     {
         if (!QFile::setPermissions(directoryPath, directoryPermissions))
         {
-            *error = QStringLiteral("Could not make the wallpaper directory readable by greetd: %1.")
+            *error = QStringLiteral("Could not make the %1 directory readable by greetd: %2.")
+                         .arg(label)
                          .arg(directoryPath);
             return false;
         }
@@ -317,7 +320,7 @@ bool copyImageToGreetd(const QString &sourcePath, const QString &targetPath, QSt
                                        | QFileDevice::ReadGroup | QFileDevice::ReadOther)
         || !destination.commit())
     {
-        *error = QStringLiteral("Could not copy the wallpaper to %1.").arg(cleanTargetPath);
+        *error = QStringLiteral("Could not copy the %1 to %2.").arg(label).arg(cleanTargetPath);
         return false;
     }
 
@@ -385,7 +388,8 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         if (!validateLocalFile(
                 boundedString(arguments, QStringLiteral("wallpaperSourcePath"), 4096),
                 QStringLiteral("Wallpaper"), true, false, &sourcePath, &validationError)
-            || !copyImageToGreetd(sourcePath, destinationPath, &validationError))
+            || !copyImageToGreetd(sourcePath, destinationPath, QStringLiteral("wallpaper"),
+                                  &validationError))
         {
             return helperError(validationError, 1003);
         }
@@ -399,7 +403,23 @@ const auto validateChangedFile = [&](const QString &argumentKey,
         return helperError(validationError, 1003);
     }
 
-    if (!validateChangedFile(
+    const bool copyAvatar = arguments.contains(QStringLiteral("avatarSourcePath"));
+    if (copyAvatar)
+    {
+        const QString destinationPath = boundedString(
+            arguments, QStringLiteral("avatarPath"), 4096);
+        QString sourcePath;
+        if (!validateLocalFile(
+                boundedString(arguments, QStringLiteral("avatarSourcePath"), 4096),
+                QStringLiteral("Avatar"), true, false, &sourcePath, &validationError)
+            || !copyImageToGreetd(sourcePath, destinationPath, QStringLiteral("avatar"),
+                                  &validationError))
+        {
+            return helperError(validationError, 1003);
+        }
+        avatarPath = QDir::cleanPath(destinationPath);
+    }
+    else if (!validateChangedFile(
             QStringLiteral("avatarPath"), QStringLiteral("Appearance/AvatarImage"),
             QStringLiteral("Avatar"), true, true,
             QVariant(), &avatarPath))

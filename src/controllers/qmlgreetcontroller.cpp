@@ -58,7 +58,7 @@ QVariantMap readSettings(QSettings &settings)
 }
 
 
-QString userVisibleWallpaperPath(const QString &path)
+QString userVisiblePath(const QString &path)
 {
     const QString homePath = QFileInfo(
         QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).canonicalFilePath();
@@ -225,12 +225,13 @@ QVariantMap QmlGreetController::changedValues() const
 
 void QmlGreetController::applyValues(const QVariantMap &values)
 {
-    m_wallpaperPath = normalizeLocalPath(userVisibleWallpaperPath(values.value(
+    m_wallpaperPath = normalizeLocalPath(userVisiblePath(values.value(
         QStringLiteral("wallpaperPath"),
         QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png")).toString()));
     m_iconMode = values.value(QStringLiteral("iconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
         ? QStringLiteral("nerd") : QStringLiteral("system");
-    m_avatarPath = normalizeLocalPath(values.value(QStringLiteral("avatarPath")).toString());
+    m_avatarPath = normalizeLocalPath(userVisiblePath(
+        values.value(QStringLiteral("avatarPath")).toString()));
     m_timeFormat = values.value(QStringLiteral("timeFormat"), QStringLiteral("hh:mm")).toString();
     m_dateFormat = values.value(
         QStringLiteral("dateFormat"), QStringLiteral("dddd, dd MMMM yyyy")).toString();
@@ -412,27 +413,31 @@ bool QmlGreetController::save()
     }
 
     QVariantMap values = changedValues();
-    if (values.contains(QStringLiteral("wallpaperPath")))
+    const QString homePath = QFileInfo(
+        QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).canonicalFilePath();
+    const auto stageHomeImage = [&](const QString &pathKey, const QString &sourceKey)
     {
-        const QString homePath = QFileInfo(
-            QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).canonicalFilePath();
-        const QString wallpaperPath = QFileInfo(
-            values.value(QStringLiteral("wallpaperPath")).toString()).canonicalFilePath();
-        if (!homePath.isEmpty() && !wallpaperPath.isEmpty())
+        if (homePath.isEmpty() || !values.contains(pathKey))
+            return;
+
+        const QString sourcePath = QFileInfo(values.value(pathKey).toString()).canonicalFilePath();
+        if (sourcePath.isEmpty())
+            return;
+
+        const QString relativePath = QDir(homePath).relativeFilePath(sourcePath);
+        const bool insideHome = relativePath != QStringLiteral("..")
+            && !relativePath.startsWith(QStringLiteral("../"))
+            && !QDir::isAbsolutePath(relativePath);
+        if (insideHome)
         {
-            const QString relativePath = QDir(homePath).relativeFilePath(wallpaperPath);
-            const bool insideHome = relativePath != QStringLiteral("..")
-                && !relativePath.startsWith(QStringLiteral("../"))
-                && !QDir::isAbsolutePath(relativePath);
-            if (insideHome)
-            {
-                values.insert(QStringLiteral("wallpaperSourcePath"), wallpaperPath);
-                values.insert(QStringLiteral("wallpaperPath"),
-                              QDir::cleanPath(QStringLiteral("%1/%2")
-                                                  .arg(QString::fromLatin1(greetdHomePath), relativePath)));
-            }
+            values.insert(sourceKey, sourcePath);
+            values.insert(pathKey,
+                          QDir::cleanPath(QStringLiteral("%1/%2")
+                                              .arg(QString::fromLatin1(greetdHomePath), relativePath)));
         }
-    }
+    };
+    stageHomeImage(QStringLiteral("wallpaperPath"), QStringLiteral("wallpaperSourcePath"));
+    stageHomeImage(QStringLiteral("avatarPath"), QStringLiteral("avatarSourcePath"));
     qDebug() << "QmlGreetController: executing KAuth save"
              << "keys=" << values.keys();
     setSaving(true);
