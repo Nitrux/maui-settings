@@ -34,6 +34,13 @@ class HyprlandInfo : public QObject
     Q_PROPERTY(int followMouse READ followMouse WRITE setFollowMouse NOTIFY settingsChanged)
     Q_PROPERTY(double pointerSensitivity READ pointerSensitivity WRITE setPointerSensitivity NOTIFY settingsChanged)
     Q_PROPERTY(bool naturalScroll READ naturalScroll WRITE setNaturalScroll NOTIFY settingsChanged)
+    Q_PROPERTY(bool workspaceSwipeEnabled READ workspaceSwipeEnabled WRITE setWorkspaceSwipeEnabled NOTIFY settingsChanged)
+    Q_PROPERTY(int workspaceSwipeFingers READ workspaceSwipeFingers WRITE setWorkspaceSwipeFingers NOTIFY settingsChanged)
+    Q_PROPERTY(bool workspaceSwipeInvert READ workspaceSwipeInvert WRITE setWorkspaceSwipeInvert NOTIFY settingsChanged)
+    Q_PROPERTY(int workspaceSwipeDistance READ workspaceSwipeDistance WRITE setWorkspaceSwipeDistance NOTIFY settingsChanged)
+    Q_PROPERTY(bool pinchZoomGestureEnabled READ pinchZoomGestureEnabled WRITE setPinchZoomGestureEnabled NOTIFY settingsChanged)
+    Q_PROPERTY(bool moveWindowGestureEnabled READ moveWindowGestureEnabled WRITE setMoveWindowGestureEnabled NOTIFY settingsChanged)
+    Q_PROPERTY(int moveWindowGestureFingers READ moveWindowGestureFingers WRITE setMoveWindowGestureFingers NOTIFY settingsChanged)
     Q_PROPERTY(QVariantList keybinds READ keybinds NOTIFY settingsChanged)
     Q_PROPERTY(QVariantList devices READ devices NOTIFY settingsChanged)
     Q_PROPERTY(QString terminal READ terminal WRITE setTerminal NOTIFY settingsChanged)
@@ -71,6 +78,13 @@ public:
     int followMouse() const;
     double pointerSensitivity() const;
     bool naturalScroll() const;
+    bool workspaceSwipeEnabled() const;
+    int workspaceSwipeFingers() const;
+    bool workspaceSwipeInvert() const;
+    int workspaceSwipeDistance() const;
+    bool pinchZoomGestureEnabled() const;
+    bool moveWindowGestureEnabled() const;
+    int moveWindowGestureFingers() const;
     QVariantList keybinds() const;
     QVariantList devices() const;
     QString terminal() const;
@@ -111,6 +125,13 @@ public:
     void setFollowMouse(int value);
     void setPointerSensitivity(double value);
     void setNaturalScroll(bool value);
+    void setWorkspaceSwipeEnabled(bool value);
+    void setWorkspaceSwipeFingers(int value);
+    void setWorkspaceSwipeInvert(bool value);
+    void setWorkspaceSwipeDistance(int value);
+    void setPinchZoomGestureEnabled(bool value);
+    void setMoveWindowGestureEnabled(bool value);
+    void setMoveWindowGestureFingers(int value);
     void setTerminal(const QString &value);
     void setFileManager(const QString &value);
     void setMenu(const QString &value);
@@ -154,6 +175,13 @@ private:
     int m_followMouse = 1;
     double m_pointerSensitivity = 0.0;
     bool m_naturalScroll = false;
+    bool m_workspaceSwipeEnabled = false;
+    int m_workspaceSwipeFingers = 3;
+    bool m_workspaceSwipeInvert = true;
+    int m_workspaceSwipeDistance = 300;
+    bool m_pinchZoomGestureEnabled = false;
+    bool m_moveWindowGestureEnabled = false;
+    int m_moveWindowGestureFingers = 4;
     QVariantList m_keybinds;
     QVariantList m_devices;
     QString m_terminal = QStringLiteral("station");

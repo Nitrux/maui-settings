@@ -26,6 +26,10 @@ Maui.ScrollColumn
     property var inputItemTypeLabels: [i18n("Keybind"), i18n("Device")]
     property var followMouseLabels: [i18n("Disabled"), i18n("Hover"), i18n("Click"), i18n("Button")]
     property var followMouseValues: [0, 1, 2, 3]
+    property var gestureFingerLabels: [i18n("Three fingers"), i18n("Four fingers")]
+    property var gestureFingerValues: [3, 4]
+    property var moveGestureFingerLabels: [i18n("Three fingers"), i18n("Four fingers"), i18n("Five fingers")]
+    property var moveGestureFingerValues: [3, 4, 5]
     property var keyboardLayouts: ["us", "gb", "de", "fr", "es", "it", "pt", "br", "ru", "ua", "pl", "cz", "sk", "hu", "tr", "se", "no", "dk", "fi", "nl", "be", "ch", "at", "jp", "kr", "il", "ara", "latam"]
 
     function responsive(control)
@@ -314,6 +318,124 @@ Maui.ScrollColumn
                     onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
                     checked: root.info ? root.info.naturalScroll : false; Layout.fillWidth: responsiveNarrow; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
                     onToggled: if (root.info) root.info.naturalScroll = checked
+                }
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _gestureLayout.implicitHeight + Maui.Style.contentMargins * 2
+        ColumnLayout
+        {
+            id: _gestureLayout
+            anchors.fill: parent; anchors.margins: Maui.Style.contentMargins; spacing: Maui.Style.space.small
+            Maui.SectionHeader { Layout.fillWidth: true; text1: i18n("Touchpad Gestures"); text2: i18n("Use practical touchpad gestures for workspaces, zooming, and window movement."); label2.wrapMode: Text.Wrap }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true
+                label1.text: i18n("Workspace navigation"); label1.elide: Text.ElideRight; label2.text: i18n("Use a multi-finger horizontal swipe to switch workspaces."); label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    checked: root.info ? root.info.workspaceSwipeEnabled : false; Layout.fillWidth: responsiveNarrow; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    onToggled: if (root.info) root.info.workspaceSwipeEnabled = checked
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true; enabled: root.info ? root.info.workspaceSwipeEnabled : false
+                label1.text: i18n("Fingers"); label1.elide: Text.ElideRight; label2.text: i18n("Choose how many fingers trigger workspace navigation."); label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    model: root.gestureFingerLabels; currentIndex: root.indexForValue(root.gestureFingerValues, root.info ? root.info.workspaceSwipeFingers : 3)
+                    Layout.fillWidth: responsiveNarrow; Layout.minimumWidth: responsiveNarrow ? 0 : -1; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.controlWidth; Layout.preferredWidth: root.controlWidth
+                    onActivated: if (root.info) root.info.workspaceSwipeFingers = root.gestureFingerValues[currentIndex]
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true; enabled: root.info ? root.info.workspaceSwipeEnabled : false
+                label1.text: i18n("Reverse direction"); label1.elide: Text.ElideRight; label2.text: i18n("Reverse which workspace is selected by a left or right swipe."); label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    checked: root.info ? root.info.workspaceSwipeInvert : true; Layout.fillWidth: responsiveNarrow; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    onToggled: if (root.info) root.info.workspaceSwipeInvert = checked
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true; enabled: root.info ? root.info.workspaceSwipeEnabled : false
+                label1.text: i18n("Swipe distance"); label1.elide: Text.ElideRight; label2.text: i18n("Set the distance used by the workspace transition."); label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    from: 0; to: 2000; stepSize: 10; value: root.info ? root.info.workspaceSwipeDistance : 300
+                    Layout.fillWidth: responsiveNarrow; Layout.minimumWidth: responsiveNarrow ? 0 : -1; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.spinBoxWidth; Layout.preferredWidth: root.spinBoxWidth
+                    onValueModified: if (root.info) root.info.workspaceSwipeDistance = value
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true
+                label1.text: i18n("Pinch to zoom"); label1.elide: Text.ElideRight; label2.text: i18n("Zoom the desktop view with a two-finger pinch gesture."); label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    checked: root.info ? root.info.pinchZoomGestureEnabled : false; Layout.fillWidth: responsiveNarrow; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    onToggled: if (root.info) root.info.pinchZoomGestureEnabled = checked
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true
+                label1.text: i18n("Move active window"); label1.elide: Text.ElideRight; label2.text: i18n("Move the focused window with a multi-finger swipe."); label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    checked: root.info ? root.info.moveWindowGestureEnabled : false; Layout.fillWidth: responsiveNarrow; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
+                    onToggled: if (root.info) root.info.moveWindowGestureEnabled = checked
+                }
+            }
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true; flat: true; enabled: root.info ? root.info.moveWindowGestureEnabled : false
+                label1.text: i18n("Move gesture fingers"); label1.elide: Text.ElideRight; label2.text: i18n("Choose how many fingers trigger window movement."); label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    property Item wideParent; property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent(); Component.onCompleted: root.responsive(this)
+                    model: root.moveGestureFingerLabels; currentIndex: root.indexForValue(root.moveGestureFingerValues, root.info ? root.info.moveWindowGestureFingers : 4)
+                    Layout.fillWidth: responsiveNarrow; Layout.minimumWidth: responsiveNarrow ? 0 : -1; Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.controlWidth; Layout.preferredWidth: root.controlWidth
+                    onActivated: if (root.info) root.info.moveWindowGestureFingers = root.moveGestureFingerValues[currentIndex]
                 }
             }
         }

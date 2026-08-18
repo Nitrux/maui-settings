@@ -97,6 +97,39 @@ QString valueInTable(const QStringList &lines, const TableRange &table, const QS
     return {};
 }
 
+TableRange findGesture(const QStringList &lines, const QString &wantedDirection, const QString &wantedAction)
+{
+    const QString direction = wantedDirection.trimmed().toLower();
+    const QString action = wantedAction.trimmed().toLower();
+    const QRegularExpression startExpression(QStringLiteral("^\\s*hl\\.gesture\\s*\\(\\s*\\{"));
+    for (int start = 0; start < lines.size(); ++start)
+    {
+        if (!startExpression.match(lines.at(start)).hasMatch())
+            continue;
+
+        int depth = 0;
+        for (int end = start; end < lines.size(); ++end)
+        {
+            depth += braceDelta(lines.at(end));
+            if (depth != 0)
+                continue;
+
+            const TableRange gesture{start, end};
+            if (valueInTable(lines, gesture, QStringLiteral("direction")).trimmed().toLower() == direction
+                && valueInTable(lines, gesture, QStringLiteral("action")).trimmed().toLower() == action)
+                return gesture;
+            break;
+        }
+    }
+
+    return {};
+}
+
+TableRange findWorkspaceSwipeGesture(const QStringList &lines)
+{
+    return findGesture(lines, QStringLiteral("horizontal"), QStringLiteral("workspace"));
+}
+
 bool replaceValue(QStringList &lines, const TableRange &table, const QString &key, const QString &value)
 {
     if (table.start < 0 || table.end < table.start)
@@ -158,6 +191,16 @@ bool replaceLocalValue(QStringList &lines, const QString &key, const QString &va
 QString boolValue(bool value)
 {
     return value ? QStringLiteral("true") : QStringLiteral("false");
+}
+
+bool parsedBool(const QString &value, bool fallback)
+{
+    const QString normalized = value.trimmed().toLower();
+    if (normalized == QLatin1String("true"))
+        return true;
+    if (normalized == QLatin1String("false"))
+        return false;
+    return fallback;
 }
 
 int integerValue(const QString &value, int fallback, int minimum, int maximum)
@@ -273,6 +316,13 @@ QString HyprlandInfo::keyboardRules() const { return m_keyboardRules; }
 int HyprlandInfo::followMouse() const { return m_followMouse; }
 double HyprlandInfo::pointerSensitivity() const { return m_pointerSensitivity; }
 bool HyprlandInfo::naturalScroll() const { return m_naturalScroll; }
+bool HyprlandInfo::workspaceSwipeEnabled() const { return m_workspaceSwipeEnabled; }
+int HyprlandInfo::workspaceSwipeFingers() const { return m_workspaceSwipeFingers; }
+bool HyprlandInfo::workspaceSwipeInvert() const { return m_workspaceSwipeInvert; }
+int HyprlandInfo::workspaceSwipeDistance() const { return m_workspaceSwipeDistance; }
+bool HyprlandInfo::pinchZoomGestureEnabled() const { return m_pinchZoomGestureEnabled; }
+bool HyprlandInfo::moveWindowGestureEnabled() const { return m_moveWindowGestureEnabled; }
+int HyprlandInfo::moveWindowGestureFingers() const { return m_moveWindowGestureFingers; }
 QVariantList HyprlandInfo::keybinds() const { return m_keybinds; }
 QVariantList HyprlandInfo::devices() const { return m_devices; }
 
@@ -683,6 +733,65 @@ void HyprlandInfo::setNaturalScroll(bool value)
     setChanged();
 }
 
+void HyprlandInfo::setWorkspaceSwipeEnabled(bool value)
+{
+    if (m_workspaceSwipeEnabled == value)
+        return;
+    m_workspaceSwipeEnabled = value;
+    setChanged();
+}
+
+void HyprlandInfo::setWorkspaceSwipeFingers(int value)
+{
+    const int normalized = qBound(3, value, 9);
+    if (m_workspaceSwipeFingers == normalized)
+        return;
+    m_workspaceSwipeFingers = normalized;
+    setChanged();
+}
+
+void HyprlandInfo::setWorkspaceSwipeInvert(bool value)
+{
+    if (m_workspaceSwipeInvert == value)
+        return;
+    m_workspaceSwipeInvert = value;
+    setChanged();
+}
+
+void HyprlandInfo::setWorkspaceSwipeDistance(int value)
+{
+    const int normalized = qBound(0, value, 2000);
+    if (m_workspaceSwipeDistance == normalized)
+        return;
+    m_workspaceSwipeDistance = normalized;
+    setChanged();
+}
+
+void HyprlandInfo::setPinchZoomGestureEnabled(bool value)
+{
+    if (m_pinchZoomGestureEnabled == value)
+        return;
+    m_pinchZoomGestureEnabled = value;
+    setChanged();
+}
+
+void HyprlandInfo::setMoveWindowGestureEnabled(bool value)
+{
+    if (m_moveWindowGestureEnabled == value)
+        return;
+    m_moveWindowGestureEnabled = value;
+    setChanged();
+}
+
+void HyprlandInfo::setMoveWindowGestureFingers(int value)
+{
+    const int normalized = qBound(3, value, 5);
+    if (m_moveWindowGestureFingers == normalized)
+        return;
+    m_moveWindowGestureFingers = normalized;
+    setChanged();
+}
+
 void HyprlandInfo::reload()
 {
     load();
@@ -703,6 +812,10 @@ void HyprlandInfo::load()
     const TableRange animations = findTable(lines, QStringLiteral("animations"));
     const TableRange input = findTable(lines, QStringLiteral("input"));
     const TableRange touchpad = findTable(lines, QStringLiteral("touchpad"), input.start, input.end);
+    const TableRange gestures = findTable(lines, QStringLiteral("gestures"));
+    const TableRange workspaceSwipeGesture = findWorkspaceSwipeGesture(lines);
+    const TableRange pinchZoomGesture = findGesture(lines, QStringLiteral("pinch"), QStringLiteral("cursorzoom"));
+    const TableRange moveWindowGesture = findGesture(lines, QStringLiteral("swipe"), QStringLiteral("move"));
 
     m_gapsIn = integerValue(valueInTable(lines, general, QStringLiteral("gaps_in")), 4, 0, 64);
     m_gapsOut = integerValue(valueInTable(lines, general, QStringLiteral("gaps_out")), 8, 0, 64);
@@ -733,6 +846,13 @@ void HyprlandInfo::load()
     const double parsedSensitivity = valueInTable(lines, input, QStringLiteral("sensitivity")).toDouble(&sensitivityOk);
     m_pointerSensitivity = sensitivityOk ? qBound(-1.0, parsedSensitivity, 1.0) : 0.0;
     m_naturalScroll = valueInTable(lines, touchpad, QStringLiteral("natural_scroll")).trimmed().toLower() == QLatin1String("true");
+    m_workspaceSwipeEnabled = workspaceSwipeGesture.start >= 0;
+    m_workspaceSwipeFingers = integerValue(valueInTable(lines, workspaceSwipeGesture, QStringLiteral("fingers")), 3, 3, 9);
+    m_workspaceSwipeInvert = parsedBool(valueInTable(lines, gestures, QStringLiteral("workspace_swipe_invert")), true);
+    m_workspaceSwipeDistance = integerValue(valueInTable(lines, gestures, QStringLiteral("workspace_swipe_distance")), 300, 0, 2000);
+    m_pinchZoomGestureEnabled = pinchZoomGesture.start >= 0;
+    m_moveWindowGestureEnabled = moveWindowGesture.start >= 0;
+    m_moveWindowGestureFingers = integerValue(valueInTable(lines, moveWindowGesture, QStringLiteral("fingers")), 4, 3, 5);
     m_keybinds = HyprlandKeybinds::parse(lines);
     m_devices = HyprlandDevices::parse(lines);
     m_terminal = localValue(lines, QStringLiteral("terminal"));
@@ -770,6 +890,27 @@ bool HyprlandInfo::save()
     const TableRange animations = findTable(lines, QStringLiteral("animations"));
     const TableRange input = findTable(lines, QStringLiteral("input"));
     const TableRange touchpad = findTable(lines, QStringLiteral("touchpad"), input.start, input.end);
+    TableRange gestures = findTable(lines, QStringLiteral("gestures"));
+    TableRange workspaceSwipeGesture = findWorkspaceSwipeGesture(lines);
+    TableRange pinchZoomGesture = findGesture(lines, QStringLiteral("pinch"), QStringLiteral("cursorzoom"));
+    TableRange moveWindowGesture = findGesture(lines, QStringLiteral("swipe"), QStringLiteral("move"));
+
+    if (gestures.start < 0 && input.end >= input.start)
+    {
+        int gestureInsertAt = input.end + 1;
+        lines.insert(gestureInsertAt++, QString());
+        lines.insert(gestureInsertAt++, QStringLiteral("hl.config({"));
+        lines.insert(gestureInsertAt++, QStringLiteral("    gestures = {"));
+        lines.insert(gestureInsertAt++, QStringLiteral("        workspace_swipe_distance = 300,"));
+        lines.insert(gestureInsertAt++, QStringLiteral("        workspace_swipe_invert = true,"));
+        lines.insert(gestureInsertAt++, QStringLiteral("    },"));
+        lines.insert(gestureInsertAt++, QStringLiteral("})"));
+        lines.insert(gestureInsertAt, QString());
+        gestures = findTable(lines, QStringLiteral("gestures"));
+        workspaceSwipeGesture = findWorkspaceSwipeGesture(lines);
+        pinchZoomGesture = findGesture(lines, QStringLiteral("pinch"), QStringLiteral("cursorzoom"));
+        moveWindowGesture = findGesture(lines, QStringLiteral("swipe"), QStringLiteral("move"));
+    }
 
     const bool updated = replaceValue(lines, general, QStringLiteral("gaps_in"), QString::number(m_gapsIn))
         && replaceValue(lines, general, QStringLiteral("gaps_out"), QString::number(m_gapsOut))
@@ -793,6 +934,8 @@ bool HyprlandInfo::save()
         && replaceValue(lines, input, QStringLiteral("follow_mouse"), QString::number(m_followMouse))
         && replaceValue(lines, input, QStringLiteral("sensitivity"), QString::number(m_pointerSensitivity, 'f', 2))
         && replaceValue(lines, touchpad, QStringLiteral("natural_scroll"), boolValue(m_naturalScroll))
+        && replaceValue(lines, gestures, QStringLiteral("workspace_swipe_distance"), QString::number(m_workspaceSwipeDistance))
+        && replaceValue(lines, gestures, QStringLiteral("workspace_swipe_invert"), boolValue(m_workspaceSwipeInvert))
         && replaceLocalValue(lines, QStringLiteral("terminal"), m_terminal)
         && replaceLocalValue(lines, QStringLiteral("fileManager"), m_fileManager)
         && replaceLocalValue(lines, QStringLiteral("menu"), m_menu)
@@ -800,6 +943,75 @@ bool HyprlandInfo::save()
         && replaceLocalValue(lines, QStringLiteral("webBrowser"), m_webBrowser);
     if (!updated)
         return false;
+
+    if (m_moveWindowGestureEnabled)
+    {
+        if (moveWindowGesture.start < 0)
+        {
+            int gestureInsertAt = lines.size();
+            lines.insert(gestureInsertAt++, QString());
+            lines.insert(gestureInsertAt++, QStringLiteral("hl.gesture({"));
+            lines.insert(gestureInsertAt++, QStringLiteral("    fingers = %1,").arg(m_moveWindowGestureFingers));
+            lines.insert(gestureInsertAt++, QStringLiteral("    direction = \"swipe\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("    action = \"move\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("})"));
+            lines.insert(gestureInsertAt, QString());
+        }
+    }
+    else if (moveWindowGesture.start >= 0)
+    {
+        lines.erase(lines.begin() + moveWindowGesture.start,
+                    lines.begin() + moveWindowGesture.end + 1);
+    }
+
+    pinchZoomGesture = findGesture(lines, QStringLiteral("pinch"), QStringLiteral("cursorzoom"));
+    if (m_pinchZoomGestureEnabled)
+    {
+        if (pinchZoomGesture.start < 0)
+        {
+            int gestureInsertAt = lines.size();
+            lines.insert(gestureInsertAt++, QString());
+            lines.insert(gestureInsertAt++, QStringLiteral("hl.gesture({"));
+            lines.insert(gestureInsertAt++, QStringLiteral("    fingers = 2,"));
+            lines.insert(gestureInsertAt++, QStringLiteral("    direction = \"pinch\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("    action = \"cursorZoom\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("    zoom_level = \"1\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("    mode = \"live\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("})"));
+            lines.insert(gestureInsertAt, QString());
+        }
+    }
+    else if (pinchZoomGesture.start >= 0)
+    {
+        lines.erase(lines.begin() + pinchZoomGesture.start,
+                    lines.begin() + pinchZoomGesture.end + 1);
+    }
+
+    workspaceSwipeGesture = findWorkspaceSwipeGesture(lines);
+    if (m_workspaceSwipeEnabled)
+    {
+        if (workspaceSwipeGesture.start >= 0)
+        {
+            if (!replaceValue(lines, workspaceSwipeGesture, QStringLiteral("fingers"), QString::number(m_workspaceSwipeFingers)))
+                return false;
+        }
+        else
+        {
+            int gestureInsertAt = input.end >= input.start ? input.end + 1 : lines.size();
+            lines.insert(gestureInsertAt++, QString());
+            lines.insert(gestureInsertAt++, QStringLiteral("hl.gesture({"));
+            lines.insert(gestureInsertAt++, QStringLiteral("    fingers = %1,").arg(m_workspaceSwipeFingers));
+            lines.insert(gestureInsertAt++, QStringLiteral("    direction = \"horizontal\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("    action = \"workspace\","));
+            lines.insert(gestureInsertAt++, QStringLiteral("})"));
+            lines.insert(gestureInsertAt, QString());
+        }
+    }
+    else if (workspaceSwipeGesture.start >= 0)
+    {
+        lines.erase(lines.begin() + workspaceSwipeGesture.start,
+                    lines.begin() + workspaceSwipeGesture.end + 1);
+    }
 
     QSaveFile destination(m_configPath);
     if (!destination.open(QIODevice::WriteOnly | QIODevice::Text))
