@@ -277,7 +277,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Border color gradient")
+                label1.text: i18n("Border Color Gradient")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Set the start and end colors used by the active border gradient.")
                 label2.wrapMode: Text.Wrap
@@ -817,7 +817,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: borderGradientDialog
-        title: i18n("Border color gradient")
+        title: i18n("Border Color Gradient")
         persistent: true
 
         property string pendingStartColor: root.rgbaToHex(root.info ? root.info.activeBorderColorStart : "rgba(33ccffee)")
@@ -846,7 +846,7 @@ Maui.ScrollColumn
 
         Maui.SectionGroup
         {
-            title: i18n("Start color")
+            title: i18n("Start Color")
             description: i18n("Choose a preset or enter a hex color.")
             Layout.fillWidth: true
 
@@ -883,7 +883,7 @@ Maui.ScrollColumn
 
         Maui.SectionGroup
         {
-            title: i18n("End color")
+            title: i18n("End Color")
             description: i18n("Choose a preset or enter a hex color.")
             Layout.fillWidth: true
 
@@ -919,7 +919,7 @@ Maui.ScrollColumn
         }
         Maui.SectionGroup
         {
-            title: i18n("Inactive border color")
+            title: i18n("Inactive Border Color")
             description: i18n("Choose a preset or enter a hex color.")
             Layout.fillWidth: true
 

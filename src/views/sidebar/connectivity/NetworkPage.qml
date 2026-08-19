@@ -12,6 +12,38 @@ Maui.ScrollColumn
     property string selectedAccessPointPath: ""
     property string selectedSsid: ""
     property bool selectedAutoConnect: false
+    property string selectedConnectionUuid: ""
+    property bool selectedIsWired: false
+
+    function saveSelectedConnection()
+    {
+        if (!root.controller || root.selectedConnectionUuid.length === 0)
+            return
+        const values = {
+            id: _profileName.text,
+            autoconnect: _autoConnectSwitch.checked,
+            ipv4Method: _ipv4Method.currentText.toLowerCase() === "manual" ? "manual" : "auto",
+            ipv4Addresses: _ipv4Addresses.text,
+            ipv4Gateway: _ipv4Gateway.text,
+            ipv4Dns: _ipv4Dns.text,
+            ipv4SearchDomains: _ipv4SearchDomains.text,
+            ipv6Method: _ipv6Method.currentText === i18n("Disabled") ? "disabled" : (_ipv6Method.currentText.toLowerCase() === "manual" ? "manual" : "auto"),
+            ipv6Addresses: _ipv6Addresses.text,
+            ipv6Gateway: _ipv6Gateway.text,
+            ipv6Dns: _ipv6Dns.text,
+            ipv6SearchDomains: _ipv6SearchDomains.text
+        }
+        if (_ipv4Addresses.text.length === 0) delete values.ipv4Addresses
+        if (_ipv4Gateway.text.length === 0) delete values.ipv4Gateway
+        if (_ipv4Dns.text.length === 0) delete values.ipv4Dns
+        if (_ipv4SearchDomains.text.length === 0) delete values.ipv4SearchDomains
+        if (_ipv6Addresses.text.length === 0) delete values.ipv6Addresses
+        if (_ipv6Gateway.text.length === 0) delete values.ipv6Gateway
+        if (_ipv6Dns.text.length === 0) delete values.ipv6Dns
+        if (_ipv6SearchDomains.text.length === 0) delete values.ipv6SearchDomains
+        root.controller.updateConnection(root.selectedConnectionUuid, values)
+        _networkEditor.close()
+    }
 
     function connectSelectedNetwork()
     {
@@ -119,6 +151,18 @@ Maui.ScrollColumn
             Layout.fillWidth: true
             spacing: Maui.Style.space.small
 
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Profile name"); label2.text: i18n("The name shown for this saved NetworkManager connection."); TextField { id: _profileName; Layout.fillWidth: true; placeholderText: i18n("Profile name") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 configuration"); label2.text: i18n("Choose automatic addressing or enter a fixed IPv4 address below."); ComboBox { id: _ipv4Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Manual")]; displayText: currentText } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 addresses"); label2.text: i18n("Enter one or more addresses using address/prefix notation, such as 192.168.1.20/24."); TextField { id: _ipv4Addresses; Layout.fillWidth: true; placeholderText: i18n("IPv4 addresses (address/prefix)") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 gateway"); label2.text: i18n("The router used to reach other networks."); TextField { id: _ipv4Gateway; Layout.fillWidth: true; placeholderText: i18n("IPv4 gateway") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 DNS servers"); label2.text: i18n("Optional name servers, separated by spaces or commas."); TextField { id: _ipv4Dns; Layout.fillWidth: true; placeholderText: i18n("IPv4 DNS servers") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 search domains"); label2.text: i18n("Optional domains used when resolving short host names."); TextField { id: _ipv4SearchDomains; Layout.fillWidth: true; placeholderText: i18n("IPv4 search domains") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 configuration"); label2.text: i18n("Choose automatic, manual, or disabled IPv6 addressing."); ComboBox { id: _ipv6Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Manual"), i18n("Disabled")]; displayText: currentText } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 addresses"); label2.text: i18n("Enter IPv6 addresses using address/prefix notation, such as 2001:db8::20/64."); TextField { id: _ipv6Addresses; Layout.fillWidth: true; placeholderText: i18n("IPv6 addresses (address/prefix)") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 gateway"); label2.text: i18n("The IPv6 router used to reach other networks."); TextField { id: _ipv6Gateway; Layout.fillWidth: true; placeholderText: i18n("IPv6 gateway") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 DNS servers"); label2.text: i18n("Optional IPv6 name servers, separated by spaces or commas."); TextField { id: _ipv6Dns; Layout.fillWidth: true; placeholderText: i18n("IPv6 DNS servers") } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 search domains"); label2.text: i18n("Optional IPv6 domains used when resolving short host names."); TextField { id: _ipv6SearchDomains; Layout.fillWidth: true; placeholderText: i18n("IPv6 search domains") } }
+
             Maui.SectionItem
             {
                 Layout.fillWidth: true
@@ -155,17 +199,17 @@ Maui.ScrollColumn
                     onClicked:
                     {
                         root.selectedAutoConnect = checked
-                        if (root.controller)
-                            root.controller.updateSavedNetwork(root.selectedDevicePath, root.selectedSsid, checked)
                     }
                 }
             }
         }
 
         actions: [
+            Action { text: i18n("Save"); onTriggered: root.saveSelectedConnection() },
             Action
             {
                 text: i18n("Forget")
+                enabled: !root.selectedIsWired
                 Maui.Controls.status: Maui.Controls.Negative
                 onTriggered:
                 {
@@ -232,6 +276,12 @@ Maui.ScrollColumn
                     label2.wrapMode: Text.Wrap
                     template.iconSource: "network-wired"
                     template.iconSizeHint: Maui.Style.iconSizes.small
+                    template.content: RowLayout {
+                        spacing: Maui.Style.space.small
+                        Button { text: modelData.connected ? i18n("Disconnect") : i18n("Connect"); onClicked: modelData.connected ? root.controller.disconnectNetwork(modelData.devicePath) : root.controller.connectWired(modelData.devicePath, modelData.connectionUuid) }
+                        ToolSeparator { topPadding: 10; bottomPadding: 10 }
+                        ToolButton { icon.name: "configure"; enabled: modelData.hasProfile; onClicked: { root.selectedConnectionUuid = modelData.connectionUuid; root.selectedIsWired = true; root.selectedSsid = modelData.connectionName; root.selectedAutoConnect = modelData.autoConnect; _profileName.text = modelData.connectionName; _networkEditor.open() } }
+                    }
                 }
             }
 
@@ -354,6 +404,69 @@ Maui.ScrollColumn
                     onClicked: root.controller.requestScan()
                 }
             }
+
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        visible: !!(root.controller && root.controller.connectedWirelessConnection && root.controller.connectedWirelessConnection.ssid && root.controller.connectedWirelessConnection.ssid.length > 0)
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _currentWifiLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _currentWifiLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Current WiFi Network")
+                text2: i18n("The wireless network currently connected to this device.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                id: _currentWifiItem
+                property var connection: root.controller ? root.controller.connectedWirelessConnection : ({})
+                Layout.fillWidth: true
+                visible: !!(_currentWifiItem.connection && _currentWifiItem.connection.ssid && _currentWifiItem.connection.ssid.length > 0)
+                flat: true
+                label1.text: _currentWifiItem.connection.ssid || ""
+                label1.elide: Text.ElideRight
+                label2.text: _currentWifiItem.connection.ssid ? i18n("Connected · %1 · %2% signal", _currentWifiItem.connection.security, _currentWifiItem.connection.signalStrength) : ""
+                label2.wrapMode: Text.Wrap
+                template.iconSource: _currentWifiItem.connection.security && _currentWifiItem.connection.security !== i18n("Open") ? "lock" : "unlock"
+                template.content: RowLayout
+                {
+                    spacing: Maui.Style.space.small
+                    Button { text: i18n("Disconnect"); onClicked: root.controller.disconnectNetwork(_currentWifiItem.connection.devicePath) }
+                    ToolSeparator { topPadding: 10; bottomPadding: 10 }
+                    ToolButton
+                    {
+                        icon.name: "configure"
+                        enabled: _currentWifiItem.connection.saved
+                        onClicked:
+                        {
+                            root.selectedConnectionUuid = _currentWifiItem.connection.connectionUuid
+                            root.selectedIsWired = false
+                            root.selectedDevicePath = _currentWifiItem.connection.devicePath
+                            root.selectedSsid = _currentWifiItem.connection.ssid
+                            root.selectedAutoConnect = _currentWifiItem.connection.autoConnect
+                            _profileName.text = _currentWifiItem.connection.ssid
+                            _networkEditor.open()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -449,6 +562,7 @@ Maui.ScrollColumn
                     required property bool autoConnect
                     required property string devicePath
                     required property string accessPointPath
+                    required property string connectionUuid
 
                     Layout.fillWidth: true
                     flat: true
@@ -523,6 +637,9 @@ Maui.ScrollColumn
                                 root.selectedDevicePath = devicePath
                                 root.selectedSsid = ssid
                                 root.selectedAutoConnect = autoConnect
+                                root.selectedConnectionUuid = connectionUuid
+                                root.selectedIsWired = false
+                                _profileName.text = ssid
                                 _networkEditor.open()
                             }
                             ToolTip.visible: hovered && !saved

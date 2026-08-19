@@ -182,7 +182,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _deviceEditor
-        title: i18n("Edit Bluetooth device")
+        title: i18n("Edit Bluetooth Device")
         persistent: true
 
         ColumnLayout

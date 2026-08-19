@@ -3,6 +3,7 @@
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
 #include <QTimer>
+#include <QProcess>
 
 #include <algorithm>
 
@@ -30,6 +31,7 @@ struct NetworkEntry {
     bool connected = false;
     bool saved = false;
     bool autoConnect = false;
+    QString connectionUuid;
     QString devicePath;
     QString accessPointPath;
 };
@@ -91,6 +93,7 @@ public:
     int scanRequests = 0;
     QString errorMessage;
     QVariantList wiredConnections;
+    QVariantMap connectedWirelessConnection;
     QTimer *rebuildTimer = nullptr;
 };
 
@@ -163,6 +166,8 @@ QVariant NetworkController::data(const QModelIndex &index, int role) const
         return entry.devicePath;
     case AccessPointPathRole:
         return entry.accessPointPath;
+    case ConnectionUuidRole:
+        return entry.connectionUuid;
     default:
         return {};
     }
@@ -181,6 +186,7 @@ QHash<int, QByteArray> NetworkController::roleNames() const
         {AutoConnectRole, "autoConnect"},
         {DevicePathRole, "devicePath"},
         {AccessPointPathRole, "accessPointPath"},
+        {ConnectionUuidRole, "connectionUuid"},
     };
 }
 
@@ -220,6 +226,11 @@ QString NetworkController::errorMessage() const
 QVariantList NetworkController::wiredConnections() const
 {
     return d->wiredConnections;
+}
+
+QVariantMap NetworkController::connectedWirelessConnection() const
+{
+    return d->connectedWirelessConnection;
 }
 
 void NetworkController::requestScan()
@@ -365,6 +376,20 @@ void NetworkController::connectToNetwork(const QString &devicePath,
     });
 }
 
+void NetworkController::connectWired(const QString &devicePath, const QString &connectionUuid)
+{
+    clearError();
+    const auto connection = NetworkManager::findConnection(connectionUuid);
+    if (!connection) { setErrorMessage(tr("The wired connection profile is no longer available.")); return; }
+    auto *watcher = new QDBusPendingCallWatcher(NetworkManager::activateConnection(connection->path(), devicePath, QString()), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher] {
+        const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
+        if (reply.isError()) setErrorMessage(reply.error().message());
+        watcher->deleteLater();
+        QTimer::singleShot(300, this, &NetworkController::rebuild);
+    });
+}
+
 void NetworkController::disconnectNetwork(const QString &devicePath)
 {
     clearError();
@@ -430,6 +455,46 @@ void NetworkController::forgetNetwork(const QString &devicePath, const QString &
     });
 }
 
+void NetworkController::updateConnection(const QString &connectionUuid, const QVariantMap &values)
+{
+    clearError();
+    if (connectionUuid.isEmpty()) {
+        setErrorMessage(tr("The connection profile is no longer available."));
+        return;
+    }
+
+    QStringList args{QStringLiteral("connection"), QStringLiteral("modify"), QStringLiteral("uuid"), connectionUuid};
+    const auto add = [&args, &values](const QString &key, const QString &nmKey) {
+        if (values.contains(key)) {
+            args << nmKey << values.value(key).toString();
+        }
+    };
+    add(QStringLiteral("id"), QStringLiteral("connection.id"));
+    if (values.contains(QStringLiteral("autoconnect")))
+        args << QStringLiteral("connection.autoconnect") << (values.value(QStringLiteral("autoconnect")).toBool() ? QStringLiteral("yes") : QStringLiteral("no"));
+    add(QStringLiteral("ipv4Method"), QStringLiteral("ipv4.method"));
+    add(QStringLiteral("ipv4Addresses"), QStringLiteral("ipv4.addresses"));
+    add(QStringLiteral("ipv4Gateway"), QStringLiteral("ipv4.gateway"));
+    add(QStringLiteral("ipv4Dns"), QStringLiteral("ipv4.dns"));
+    add(QStringLiteral("ipv4SearchDomains"), QStringLiteral("ipv4.dns-search"));
+    add(QStringLiteral("ipv6Method"), QStringLiteral("ipv6.method"));
+    add(QStringLiteral("ipv6Addresses"), QStringLiteral("ipv6.addresses"));
+    add(QStringLiteral("ipv6Gateway"), QStringLiteral("ipv6.gateway"));
+    add(QStringLiteral("ipv6Dns"), QStringLiteral("ipv6.dns"));
+    add(QStringLiteral("ipv6SearchDomains"), QStringLiteral("ipv6.dns-search"));
+
+    if (args.size() == 4)
+        return;
+    QProcess process;
+    process.start(QStringLiteral("nmcli"), args);
+    process.waitForFinished(5000);
+    if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
+        setErrorMessage(QString::fromLocal8Bit(process.readAllStandardError()).trimmed());
+        return;
+    }
+    QTimer::singleShot(300, this, &NetworkController::rebuild);
+}
+
 void NetworkController::clearError()
 {
     setErrorMessage({});
@@ -439,6 +504,7 @@ void NetworkController::rebuild()
 {
     QList<NetworkEntry> entries;
     QVariantList wiredConnections;
+    QVariantMap connectedWirelessConnection;
     bool hasWirelessDevice = false;
 
     for (const auto &baseDevice : NetworkManager::networkInterfaces()) {
@@ -477,17 +543,21 @@ void NetworkController::rebuild()
                 const bool profileConnecting = activeProfile && activeProfile->path() == connection->path() && connecting;
                 wiredConnections.append(QVariantMap{
                     {QStringLiteral("interfaceName"), baseDevice->interfaceName()},
+                    {QStringLiteral("devicePath"), baseDevice->uni()},
                     {QStringLiteral("connectionName"), connection->name()},
                     {QStringLiteral("connected"), connected},
                     {QStringLiteral("connecting"), profileConnecting},
                     {QStringLiteral("ipAddress"), connected ? ipAddress : QString()},
                     {QStringLiteral("hasProfile"), true},
+                    {QStringLiteral("connectionUuid"), connection->settings() ? connection->settings()->uuid() : QString()},
+                    {QStringLiteral("autoConnect"), connection->settings() && connection->settings()->autoconnect()},
                 });
             }
 
             if (!hasWiredProfile) {
                 wiredConnections.append(QVariantMap{
                     {QStringLiteral("interfaceName"), baseDevice->interfaceName()},
+                    {QStringLiteral("devicePath"), baseDevice->uni()},
                     {QStringLiteral("connectionName"), QString()},
                     {QStringLiteral("connected"), baseDevice->state() == NetworkManager::Device::Activated},
                     {QStringLiteral("connecting"), connecting},
@@ -544,13 +614,28 @@ void NetworkController::rebuild()
             entry.passwordRequired = type != NetworkManager::NoneSecurity && type != NetworkManager::OWE;
             entry.connected = entry.ssid == activeSsid;
             entry.devicePath = device->uni();
-            entry.accessPointPath = accessPoint->uni();
 
             if (const auto connection = savedWirelessConnection(device, entry.ssid)) {
                 entry.saved = true;
                 entry.autoConnect = connection->settings() && connection->settings()->autoconnect();
+                entry.connectionUuid = connection->settings() ? connection->settings()->uuid() : QString();
             }
-            entries.append(entry);
+            entry.accessPointPath = accessPoint->uni();
+
+            if (entry.connected) {
+                connectedWirelessConnection = QVariantMap{
+                    {QStringLiteral("ssid"), entry.ssid},
+                    {QStringLiteral("security"), entry.security},
+                    {QStringLiteral("signalStrength"), entry.signalStrength},
+                    {QStringLiteral("devicePath"), entry.devicePath},
+                    {QStringLiteral("accessPointPath"), entry.accessPointPath},
+                    {QStringLiteral("connectionUuid"), entry.connectionUuid},
+                    {QStringLiteral("saved"), entry.saved},
+                    {QStringLiteral("autoConnect"), entry.autoConnect},
+                };
+            } else {
+                entries.append(entry);
+            }
         }
     }
 
@@ -610,6 +695,11 @@ void NetworkController::rebuild()
     if (d->wiredConnections != wiredConnections) {
         d->wiredConnections = wiredConnections;
         Q_EMIT wiredConnectionsChanged();
+    }
+
+    if (d->connectedWirelessConnection != connectedWirelessConnection) {
+        d->connectedWirelessConnection = connectedWirelessConnection;
+        Q_EMIT connectedWirelessConnectionChanged();
     }
 }
 

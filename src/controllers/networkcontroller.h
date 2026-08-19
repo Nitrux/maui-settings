@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QVariantList>
+#include <QVariantMap>
 
 class NetworkController : public QAbstractListModel
 {
@@ -12,6 +13,7 @@ class NetworkController : public QAbstractListModel
     Q_PROPERTY(bool scanning READ scanning NOTIFY scanningChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QVariantList wiredConnections READ wiredConnections NOTIFY wiredConnectionsChanged)
+    Q_PROPERTY(QVariantMap connectedWirelessConnection READ connectedWirelessConnection NOTIFY connectedWirelessConnectionChanged)
 
 public:
     enum Role {
@@ -25,6 +27,7 @@ public:
         AutoConnectRole,
         DevicePathRole,
         AccessPointPathRole,
+        ConnectionUuidRole,
     };
     Q_ENUM(Role)
 
@@ -42,6 +45,7 @@ public:
     bool scanning() const;
     QString errorMessage() const;
     QVariantList wiredConnections() const;
+    QVariantMap connectedWirelessConnection() const;
 
     Q_INVOKABLE void requestScan();
     Q_INVOKABLE void connectToNetwork(const QString &devicePath,
@@ -49,10 +53,12 @@ public:
                                       const QString &ssid,
                                       const QString &password);
     Q_INVOKABLE void disconnectNetwork(const QString &devicePath);
+    Q_INVOKABLE void connectWired(const QString &devicePath, const QString &connectionUuid);
     Q_INVOKABLE void updateSavedNetwork(const QString &devicePath,
                                         const QString &ssid,
                                         bool autoConnect);
     Q_INVOKABLE void forgetNetwork(const QString &devicePath, const QString &ssid);
+    Q_INVOKABLE void updateConnection(const QString &connectionUuid, const QVariantMap &values);
     Q_INVOKABLE void clearError();
 
 Q_SIGNALS:
@@ -62,6 +68,7 @@ Q_SIGNALS:
     void scanningChanged();
     void errorMessageChanged();
     void wiredConnectionsChanged();
+    void connectedWirelessConnectionChanged();
 
 private:
     class Private;

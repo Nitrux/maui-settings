@@ -2191,7 +2191,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _gtkThemePreviewDialog
-        title: i18n("GTK theme preview")
+        title: i18n("GTK Theme Preview")
         persistent: true
 
         property string previewName
@@ -2248,7 +2248,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _widgetStylePreviewDialog
-        title: i18n("Widget style preview")
+        title: i18n("Widget Style Preview")
         persistent: true
 
         property string previewName
@@ -2286,7 +2286,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _cursorThemePreviewDialog
-        title: i18n("Cursor theme preview")
+        title: i18n("Cursor Theme Preview")
         persistent: true
 
         property string previewTheme
@@ -2331,7 +2331,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _iconThemePreviewDialog
-        title: i18n("Icon theme preview")
+        title: i18n("Icon Theme Preview")
         persistent: true
 
         property string previewTheme
@@ -2376,7 +2376,7 @@ Maui.ScrollColumn
     Maui.SettingsDialog
     {
         id: _colorSchemePreviewDialog
-        title: i18n("Color scheme preview")
+        title: i18n("Color Scheme Preview")
         persistent: true
 
         property string previewScheme
