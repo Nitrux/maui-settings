@@ -4,6 +4,10 @@
 #include <QDBusPendingReply>
 #include <QTimer>
 #include <QProcess>
+#include <QSettings>
+#include <QRegularExpression>
+
+#include <QSet>
 
 #include <algorithm>
 
@@ -95,6 +99,7 @@ public:
     QVariantList wiredConnections;
     QVariantMap connectedWirelessConnection;
     QTimer *rebuildTimer = nullptr;
+    bool dnsEncryptionEnabled = false;
 };
 
 NetworkController::NetworkController(QObject *parent)
@@ -104,6 +109,7 @@ NetworkController::NetworkController(QObject *parent)
     d->rebuildTimer = new QTimer(this);
     d->rebuildTimer->setSingleShot(true);
     d->rebuildTimer->setInterval(250);
+    d->dnsEncryptionEnabled = QSettings().value(QStringLiteral("Network/dnsEncryptionEnabled"), false).toBool();
     connect(d->rebuildTimer, &QTimer::timeout, this, &NetworkController::rebuild);
 
     auto *notifier = NetworkManager::notifier();
@@ -231,6 +237,104 @@ QVariantList NetworkController::wiredConnections() const
 QVariantMap NetworkController::connectedWirelessConnection() const
 {
     return d->connectedWirelessConnection;
+}
+
+bool NetworkController::dnsEncryptionEnabled() const
+{
+    return d->dnsEncryptionEnabled;
+}
+
+void NetworkController::setDnsEncryptionEnabled(bool enabled)
+{
+    if (d->dnsEncryptionEnabled == enabled)
+        return;
+
+    QProcess listProcess;
+    listProcess.start(QStringLiteral("nmcli"), {QStringLiteral("-t"), QStringLiteral("-f"), QStringLiteral("UUID"), QStringLiteral("connection"), QStringLiteral("show")});
+    listProcess.waitForFinished(5000);
+    if (listProcess.exitStatus() != QProcess::NormalExit || listProcess.exitCode() != 0) {
+        setErrorMessage(QString::fromLocal8Bit(listProcess.readAllStandardError()).trimmed());
+        return;
+    }
+
+    QSet<QString> profiles;
+    const auto profileLines = QString::fromLocal8Bit(listProcess.readAllStandardOutput()).split(QRegularExpression(QStringLiteral("[\r\n]+")), Qt::SkipEmptyParts);
+    for (const auto &line : profileLines) {
+        const auto uuid = line.trimmed();
+        if (!uuid.isEmpty() && uuid != QStringLiteral("--"))
+            profiles.insert(uuid);
+    }
+
+    QSettings settings;
+    const auto runNmcli = [](const QStringList &arguments, QString *output = nullptr) {
+        QProcess process;
+        process.start(QStringLiteral("nmcli"), arguments);
+        process.waitForFinished(5000);
+        if (output)
+            *output = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
+        return process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0;
+    };
+
+    for (const auto &uuid : profiles) {
+        const QString groupName = QStringLiteral("Network/DnsEncryption/") + uuid;
+        if (enabled) {
+            QString ipv4Dns;
+            QString ipv6Dns;
+            QString ipv4Ignore;
+            QString ipv6Ignore;
+            if (!runNmcli({QStringLiteral("-g"), QStringLiteral("ipv4.dns"), QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("uuid"), uuid}, &ipv4Dns)
+                || !runNmcli({QStringLiteral("-g"), QStringLiteral("ipv6.dns"), QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("uuid"), uuid}, &ipv6Dns)
+                || !runNmcli({QStringLiteral("-g"), QStringLiteral("ipv4.ignore-auto-dns"), QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("uuid"), uuid}, &ipv4Ignore)
+                || !runNmcli({QStringLiteral("-g"), QStringLiteral("ipv6.ignore-auto-dns"), QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("uuid"), uuid}, &ipv6Ignore)) {
+                setErrorMessage(tr("Could not read a NetworkManager connection profile."));
+                return;
+            }
+            settings.setValue(groupName + QStringLiteral("/ipv4Dns"), ipv4Dns);
+            settings.setValue(groupName + QStringLiteral("/ipv6Dns"), ipv6Dns);
+            settings.setValue(groupName + QStringLiteral("/ipv4IgnoreAutoDns"), ipv4Ignore);
+            settings.setValue(groupName + QStringLiteral("/ipv6IgnoreAutoDns"), ipv6Ignore);
+
+            if (!runNmcli({QStringLiteral("connection"), QStringLiteral("modify"), QStringLiteral("uuid"), uuid, QStringLiteral("ipv4.dns"), QStringLiteral("127.0.0.1"), QStringLiteral("ipv4.ignore-auto-dns"), QStringLiteral("yes"), QStringLiteral("ipv6.dns"), QStringLiteral("::1"), QStringLiteral("ipv6.ignore-auto-dns"), QStringLiteral("yes")})) {
+                setErrorMessage(tr("Could not enable DNS encryption for a NetworkManager connection."));
+                return;
+            }
+        } else {
+            settings.beginGroup(groupName);
+            const QString ipv4Dns = settings.value(QStringLiteral("ipv4Dns")).toString();
+            const QString ipv6Dns = settings.value(QStringLiteral("ipv6Dns")).toString();
+            const QString ipv4Ignore = settings.value(QStringLiteral("ipv4IgnoreAutoDns"), QStringLiteral("no")).toString();
+            const QString ipv6Ignore = settings.value(QStringLiteral("ipv6IgnoreAutoDns"), QStringLiteral("no")).toString();
+            settings.endGroup();
+            if (!runNmcli({QStringLiteral("connection"), QStringLiteral("modify"), QStringLiteral("uuid"), uuid, QStringLiteral("ipv4.dns"), ipv4Dns, QStringLiteral("ipv4.ignore-auto-dns"), ipv4Ignore, QStringLiteral("ipv6.dns"), ipv6Dns, QStringLiteral("ipv6.ignore-auto-dns"), ipv6Ignore})) {
+                setErrorMessage(tr("Could not restore a NetworkManager connection profile."));
+                return;
+            }
+            settings.remove(groupName);
+        }
+    }
+
+    d->dnsEncryptionEnabled = enabled;
+    settings.setValue(QStringLiteral("Network/dnsEncryptionEnabled"), enabled);
+    Q_EMIT dnsEncryptionEnabledChanged();
+    QTimer::singleShot(300, this, &NetworkController::rebuild);
+}
+
+void NetworkController::importOpenVpnConnection(const QString &filePath)
+{
+    clearError();
+    if (filePath.trimmed().isEmpty()) {
+        setErrorMessage(tr("Choose an OpenVPN configuration file."));
+        return;
+    }
+
+    QProcess process;
+    process.start(QStringLiteral("nmcli"), {QStringLiteral("connection"), QStringLiteral("import"), QStringLiteral("type"), QStringLiteral("openvpn"), QStringLiteral("file"), filePath});
+    process.waitForFinished(10000);
+    if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
+        setErrorMessage(QString::fromLocal8Bit(process.readAllStandardError()).trimmed());
+        return;
+    }
+    QTimer::singleShot(300, this, &NetworkController::rebuild);
 }
 
 void NetworkController::requestScan()

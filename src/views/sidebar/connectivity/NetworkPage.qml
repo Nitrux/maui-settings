@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import org.mauikit.filebrowsing as FB
+
 import org.mauikit.controls as Maui
 
 Maui.ScrollColumn
@@ -56,6 +58,20 @@ Maui.ScrollColumn
 
     anchors.fill: parent
     spacing: Maui.Style.space.big
+
+    FB.FileDialog
+    {
+        id: _openVpnDialog
+        singleSelection: true
+        searchBar: true
+        mode: FB.FileDialog.Modes.Open
+        currentPath: FB.FM.homePath()
+        callback: (paths) =>
+        {
+            if (paths && paths.length && root.controller)
+                root.controller.importOpenVpnConnection(paths[0])
+        }
+    }
 
     onVisibleChanged:
     {
@@ -358,7 +374,7 @@ Maui.ScrollColumn
                         updateResponsiveParent()
                     }
                     checked: root.controller ? root.controller.wirelessEnabled : false
-                    enabled: root.controller && root.controller.available && root.controller.hardwareEnabled
+                    enabled: !!(root.controller && root.controller.available && root.controller.hardwareEnabled)
                     onToggled: if (root.controller) root.controller.wirelessEnabled = checked
                 }
             }
@@ -400,11 +416,69 @@ Maui.ScrollColumn
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: i18n("Scan")
-                    enabled: root.controller && root.controller.wirelessEnabled && !root.controller.scanning
+                    enabled: !!(root.controller && root.controller.wirelessEnabled && !root.controller.scanning)
                     onClicked: root.controller.requestScan()
                 }
             }
 
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _networkSecurityLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _networkSecurityLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Network Security")
+                text2: i18n("Protect DNS queries and import VPN connections.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("DNS encryption")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Send DNS queries through the local dnscrypt-proxy resolver for all saved connections.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    checked: !!(root.controller && root.controller.dnsEncryptionEnabled)
+                    enabled: root.controller !== null
+                    onToggled: if (root.controller) root.controller.dnsEncryptionEnabled = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Import OpenVPN connection")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Create a NetworkManager VPN profile from an OpenVPN configuration file.")
+                label2.wrapMode: Text.Wrap
+                template.content: Button
+                {
+                    text: i18n("Import")
+                    enabled: root.controller !== null
+                    onClicked: _openVpnDialog.open()
+                }
+            }
         }
     }
 
@@ -453,7 +527,7 @@ Maui.ScrollColumn
                     ToolButton
                     {
                         icon.name: "configure"
-                        enabled: _currentWifiItem.connection.saved
+                        enabled: !!(_currentWifiItem.connection && _currentWifiItem.connection.saved)
                         onClicked:
                         {
                             root.selectedConnectionUuid = _currentWifiItem.connection.connectionUuid
@@ -473,7 +547,7 @@ Maui.ScrollColumn
     Rectangle
     {
         Layout.fillWidth: true
-        visible: root.controller && root.controller.errorMessage.length > 0
+        visible: !!(root.controller && root.controller.errorMessage && root.controller.errorMessage.length > 0)
         color: Maui.Theme.alternateBackgroundColor
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.negativeTextColor
@@ -652,7 +726,7 @@ Maui.ScrollColumn
             Maui.SectionItem
             {
                 Layout.fillWidth: true
-                visible: root.controller && root.controller.wirelessEnabled && _networksRepeater.count === 0
+                visible: !!(root.controller && root.controller.wirelessEnabled && _networksRepeater.count === 0)
                 flat: true
                 label1.text: i18n("No networks found")
                 label1.elide: Text.ElideRight

@@ -14,6 +14,7 @@ class NetworkController : public QAbstractListModel
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QVariantList wiredConnections READ wiredConnections NOTIFY wiredConnectionsChanged)
     Q_PROPERTY(QVariantMap connectedWirelessConnection READ connectedWirelessConnection NOTIFY connectedWirelessConnectionChanged)
+    Q_PROPERTY(bool dnsEncryptionEnabled READ dnsEncryptionEnabled WRITE setDnsEncryptionEnabled NOTIFY dnsEncryptionEnabledChanged)
 
 public:
     enum Role {
@@ -46,6 +47,8 @@ public:
     QString errorMessage() const;
     QVariantList wiredConnections() const;
     QVariantMap connectedWirelessConnection() const;
+    bool dnsEncryptionEnabled() const;
+    void setDnsEncryptionEnabled(bool enabled);
 
     Q_INVOKABLE void requestScan();
     Q_INVOKABLE void connectToNetwork(const QString &devicePath,
@@ -59,6 +62,7 @@ public:
                                         bool autoConnect);
     Q_INVOKABLE void forgetNetwork(const QString &devicePath, const QString &ssid);
     Q_INVOKABLE void updateConnection(const QString &connectionUuid, const QVariantMap &values);
+    Q_INVOKABLE void importOpenVpnConnection(const QString &filePath);
     Q_INVOKABLE void clearError();
 
 Q_SIGNALS:
@@ -69,6 +73,7 @@ Q_SIGNALS:
     void errorMessageChanged();
     void wiredConnectionsChanged();
     void connectedWirelessConnectionChanged();
+    void dnsEncryptionEnabledChanged();
 
 private:
     class Private;
