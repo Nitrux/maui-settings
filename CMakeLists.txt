@@ -84,6 +84,8 @@ set(settings_SRCS
     src/controllers/nudgeosdinfo.cpp
     src/controllers/networkcontroller.cpp
     src/controllers/valenzinfo.cpp
+    src/controllers/tomainfo.cpp
+    src/controllers/tomainfo.h
     src/controllers/powerinfo.cpp
     src/controllers/powerinfo.h
     src/controllers/batterycontroller.cpp

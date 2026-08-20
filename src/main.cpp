@@ -34,6 +34,7 @@
 #include "controllers/networkcontroller.h"
 #include "controllers/qmlgreetcontroller.h"
 #include "controllers/valenzinfo.h"
+#include "controllers/tomainfo.h"
 #include "controllers/powerinfo.h"
 #include "controllers/batterycontroller.h"
 #include "controllers/hyprsunsetinfo.h"
@@ -148,6 +149,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("qmlGreetController"), &qmlGreetController);
 
     ValenzInfo valenzInfo;
+    TomaInfo tomaInfo;
     PowerInfo powerInfo;
     BatteryController batteryController;
     HyprsunsetInfo hyprsunsetInfo;
@@ -163,6 +165,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("environmentController"), &environmentController);
     engine.rootContext()->setContextProperty(QStringLiteral("displaysController"), &displaysController);
     engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);
+    engine.rootContext()->setContextProperty(QStringLiteral("tomaInfo"), &tomaInfo);
 
     const QUrl url(QStringLiteral("qrc:/app/maui/settings/src/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url](QObject *obj, const QUrl &objUrl) {
