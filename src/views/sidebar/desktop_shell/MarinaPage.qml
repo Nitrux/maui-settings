@@ -115,9 +115,9 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Edge margin")
+                label1.text: i18n("Bottom spacing")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Distance between the dock and the screen edge in pixels.")
+                label2.text: i18n("Bottom layer-shell margin in pixels")
                 label2.wrapMode: Text.Wrap
                 template.content: SpinBox
                 {
