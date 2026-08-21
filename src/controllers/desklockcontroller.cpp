@@ -16,7 +16,7 @@
 
 namespace
 {
-constexpr auto defaultWallpaper = "/usr/share/wallpapers/Aqua/contents/images/2560x1440.png";
+constexpr auto defaultWallpaper = "/usr/share/wallpapers/Blossom/contents/images/4096x2304.png";
 
 QString desklockConfigPath()
 {
