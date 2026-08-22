@@ -115,7 +115,7 @@ void ValenzInfo::setDarkColorScheme(const QString &value)
 
 void ValenzInfo::setControlCenterPowerCommand(const QString &value)
 {
-    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("wlogout") : value.trimmed();
+    const QString normalized = value.trimmed().isEmpty() ? QStringLiteral("qmlogout") : value.trimmed();
     if (m_controlCenterPowerCommand == normalized)
         return;
     m_controlCenterPowerCommand = normalized;
@@ -231,7 +231,7 @@ void ValenzInfo::load()
     if (m_lightColorScheme.isEmpty()) m_lightColorScheme = QStringLiteral("CatppuccinLatteNitrux");
     m_darkColorScheme = value(QStringLiteral("ColorScheme/darkColors"), QStringLiteral("CatppuccinMochaNitrux")).toString().trimmed();
     if (m_darkColorScheme.isEmpty()) m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
-    m_controlCenterPowerCommand = value(QStringLiteral("ControlCenter/powerCommand"), QStringLiteral("wlogout")).toString().trimmed();
+    m_controlCenterPowerCommand = value(QStringLiteral("ControlCenter/powerCommand"), QStringLiteral("qmlogout")).toString().trimmed();
     m_controlCenterSettingsCommand = value(QStringLiteral("ControlCenter/settingsCommand"), QStringLiteral("systemsettings")).toString().trimmed();
     m_launcherCommand = value(QStringLiteral("Actions/launcherCommand"), QStringLiteral("vicinae toggle")).toString().trimmed();
     m_clipboardCommand = value(QStringLiteral("Actions/clipboardCommand"), QStringLiteral("vicinae vicinae://launch/clipboard/history")).toString().trimmed();
@@ -243,7 +243,7 @@ void ValenzInfo::load()
     m_weatherRefreshMinutes = qBound(5, value(QStringLiteral("Weather/refreshMinutes"), 20).toInt(), 180);
 
     if (m_controlCenterPowerCommand.isEmpty())
-        m_controlCenterPowerCommand = QStringLiteral("wlogout");
+        m_controlCenterPowerCommand = QStringLiteral("qmlogout");
     if (m_controlCenterSettingsCommand.isEmpty())
         m_controlCenterSettingsCommand = QStringLiteral("systemsettings");
     if (m_launcherCommand.isEmpty()) m_launcherCommand = QStringLiteral("vicinae toggle");

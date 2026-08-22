@@ -590,7 +590,7 @@ Maui.ScrollColumn
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 13
-                    text: info ? info.controlCenterPowerCommand : "wlogout"
+                    text: info ? info.controlCenterPowerCommand : "qmlogout"
                     onEditingFinished: if (info) info.controlCenterPowerCommand = text
                 }
             }

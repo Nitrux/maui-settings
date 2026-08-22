@@ -94,7 +94,7 @@ private:
     QString m_controlCenterIconMode = QStringLiteral("system16");
     QString m_lightColorScheme = QStringLiteral("CatppuccinLatteNitrux");
     QString m_darkColorScheme = QStringLiteral("CatppuccinMochaNitrux");
-    QString m_controlCenterPowerCommand = QStringLiteral("wlogout");
+    QString m_controlCenterPowerCommand = QStringLiteral("qmlogout");
     QString m_controlCenterSettingsCommand = QStringLiteral("systemsettings");
     QString m_launcherCommand = QStringLiteral("vicinae toggle");
     QString m_clipboardCommand = QStringLiteral("vicinae vicinae://launch/clipboard/history");
