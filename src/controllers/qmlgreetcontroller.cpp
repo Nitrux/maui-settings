@@ -31,7 +31,7 @@ QVariantMap readSettings(QSettings &settings)
     return {
         {QStringLiteral("wallpaperPath"), settings.value(
             QStringLiteral("Appearance/BackgroundImage"),
-            QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"))},
+            QStringLiteral("/usr/share/wallpapers/Blossom/contents/images/4096x2304.png"))},
         {QStringLiteral("iconMode"), settings.value(
             QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
         {QStringLiteral("avatarPath"), settings.value(
@@ -227,7 +227,7 @@ void QmlGreetController::applyValues(const QVariantMap &values)
 {
     m_wallpaperPath = normalizeLocalPath(userVisiblePath(values.value(
         QStringLiteral("wallpaperPath"),
-        QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png")).toString()));
+        QStringLiteral("/usr/share/wallpapers/Blossom/contents/images/4096x2304.png")).toString()));
     m_iconMode = values.value(QStringLiteral("iconMode"), QStringLiteral("system")).toString().trimmed().toLower() == QStringLiteral("nerd")
         ? QStringLiteral("nerd") : QStringLiteral("system");
     m_avatarPath = normalizeLocalPath(userVisiblePath(

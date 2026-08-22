@@ -28,7 +28,7 @@ QVariantMap readSettings()
     return {
         {QStringLiteral("wallpaperPath"), settings.value(
             QStringLiteral("Appearance/BackgroundImage"),
-            QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"))},
+            QStringLiteral("/usr/share/wallpapers/Blossom/contents/images/4096x2304.png"))},
         {QStringLiteral("iconMode"), settings.value(
             QStringLiteral("Appearance/IconMode"), QStringLiteral("system"))},
         {QStringLiteral("avatarPath"), settings.value(
@@ -398,7 +398,7 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     else if (!validateChangedFile(
                    QStringLiteral("wallpaperPath"), QStringLiteral("Appearance/BackgroundImage"),
                    QStringLiteral("Wallpaper"), true, true,
-                   QStringLiteral("/usr/share/wallpapers/Aqua/contents/images/3840x2160.png"), &wallpaperPath))
+                   QStringLiteral("/usr/share/wallpapers/Blossom/contents/images/4096x2304.png"), &wallpaperPath))
     {
         return helperError(validationError, 1003);
     }
