@@ -98,12 +98,6 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 spacing: Maui.Style.space.medium
 
-                Maui.IconItem
-                {
-                    iconSource: "network-wireless-locked"
-                    iconSizeHint: Maui.Style.iconSizes.huge
-                }
-
                 ColumnLayout
                 {
                     Layout.fillWidth: true
@@ -294,7 +288,7 @@ Maui.ScrollColumn
                     template.iconSizeHint: Maui.Style.iconSizes.small
                     template.content: RowLayout {
                         spacing: Maui.Style.space.small
-                        Button { text: modelData.connected ? i18n("Disconnect") : i18n("Connect"); onClicked: modelData.connected ? root.controller.disconnectNetwork(modelData.devicePath) : root.controller.connectWired(modelData.devicePath, modelData.connectionUuid) }
+                        Button { text: modelData.connected ? i18n("Disconnect") : i18n("Connect"); onClicked: modelData.connected ? root.controller.disconnectNetwork(modelData.devicePath) : root.controller.connectWired(modelData.devicePath, modelData.connectionPath) }
                         ToolSeparator { topPadding: 10; bottomPadding: 10 }
                         ToolButton { icon.name: "configure"; enabled: modelData.hasProfile; onClicked: { root.selectedConnectionUuid = modelData.connectionUuid; root.selectedIsWired = true; root.selectedSsid = modelData.connectionName; root.selectedAutoConnect = modelData.autoConnect; _profileName.text = modelData.connectionName; _networkEditor.open() } }
                     }
@@ -544,52 +538,17 @@ Maui.ScrollColumn
         }
     }
 
-    Rectangle
+    Connections
     {
-        Layout.fillWidth: true
-        visible: !!(root.controller && root.controller.errorMessage && root.controller.errorMessage.length > 0)
-        color: Maui.Theme.alternateBackgroundColor
-        radius: Maui.Style.radiusV
-        border.color: Maui.Theme.negativeTextColor
-        border.width: 1
-        implicitHeight: _errorItem.implicitHeight + Maui.Style.contentMargins * 2
+        target: root.controller
 
-        Maui.SectionItem
+        function onErrorMessageChanged()
         {
-            id: _errorItem
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
-            flat: true
-            label1.text: i18n("Network error")
-            label1.elide: Text.ElideRight
-            label2.text: root.controller ? root.controller.errorMessage : ""
-            label2.wrapMode: Text.Wrap
-            template.content: ToolButton
-            {
-                property Item wideParent
-                property Item responsiveSectionItem
-                readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+            if (!root.controller || root.controller.errorMessage.length === 0)
+                return
 
-                function updateResponsiveParent()
-                {
-                    if (!wideParent || !responsiveSectionItem)
-                        return
-
-                    parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                }
-
-                onResponsiveNarrowChanged: updateResponsiveParent()
-
-                Component.onCompleted:
-                {
-                    const originalParent = parent
-                    responsiveSectionItem = originalParent.parent.parent.parent
-                    wideParent = originalParent
-                    updateResponsiveParent()
-                }
-                icon.name: "dialog-close"
-                onClicked: if (root.controller) root.controller.clearError()
-            }
+            Maui.App.rootComponent.notify("dialog-error", i18n("Network error"), root.controller.errorMessage)
+            root.controller.clearError()
         }
     }
 

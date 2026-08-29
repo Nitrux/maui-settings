@@ -6,10 +6,12 @@
 #include <QProcess>
 #include <QSettings>
 #include <QRegularExpression>
+#include <QStandardPaths>
 
 #include <QSet>
 
 #include <algorithm>
+#include <memory>
 
 #include <NetworkManagerQt/AccessPoint>
 #include <NetworkManagerQt/ActiveConnection>
@@ -85,6 +87,20 @@ NetworkManager::Connection::Ptr savedWirelessConnection(const NetworkManager::Wi
         }
     }
     return {};
+}
+
+void sendNotification(const QString &title, const QString &message, const QString &iconName)
+{
+    const QString notifySend = QStandardPaths::findExecutable(QStringLiteral("notify-send"));
+    if (notifySend.isEmpty()) {
+        return;
+    }
+
+    QProcess::startDetached(notifySend,
+                            {QStringLiteral("--app-name=System Message"),
+                             QStringLiteral("--icon=%1").arg(iconName),
+                             title,
+                             message});
 }
 }
 
@@ -385,6 +401,16 @@ void NetworkController::connectToNetwork(const QString &devicePath,
                                          const QString &password)
 {
     clearError();
+    const auto setConnectionError = [this, ssid](const QString &message) {
+        if (message.contains(QStringLiteral("secret"), Qt::CaseInsensitive)
+            || message.contains(QStringLiteral("password"), Qt::CaseInsensitive)
+            || message.contains(QStringLiteral("auth"), Qt::CaseInsensitive)) {
+            setErrorMessage(tr("The password for %1 is incorrect. Check it and try again.").arg(ssid));
+        } else {
+            setErrorMessage(message.isEmpty() ? tr("Could not connect to %1.").arg(ssid) : message);
+        }
+    };
+
     const auto device = NetworkManager::findNetworkInterface(devicePath).objectCast<NetworkManager::WirelessDevice>();
     if (!device) {
         setErrorMessage(tr("The Wi-Fi adapter is no longer available."));
@@ -408,10 +434,12 @@ void NetworkController::connectToNetwork(const QString &devicePath,
         if (wirelessSetting && QString::fromUtf8(wirelessSetting->ssid()) == ssid) {
             auto *watcher =
                 new QDBusPendingCallWatcher(NetworkManager::activateConnection(connection->path(), devicePath, accessPointPath), this);
-            connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher] {
+            connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, ssid, setConnectionError] {
                 const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
                 if (reply.isError()) {
-                    setErrorMessage(reply.error().message());
+                    setConnectionError(reply.error().message());
+                } else {
+                    watchActivation(reply.value().path(), ssid, QStringLiteral("network-wireless"));
                 }
                 watcher->deleteLater();
                 QTimer::singleShot(300, this, &NetworkController::rebuild);
@@ -470,25 +498,35 @@ void NetworkController::connectToNetwork(const QString &devicePath,
 
     auto *watcher =
         new QDBusPendingCallWatcher(NetworkManager::addAndActivateConnection(settings->toMap(), devicePath, accessPointPath), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher] {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, ssid, setConnectionError] {
         const QDBusPendingReply<QDBusObjectPath, QDBusObjectPath> reply = *watcher;
         if (reply.isError()) {
-            setErrorMessage(reply.error().message());
+            setConnectionError(reply.error().message());
+        } else {
+            watchActivation(reply.argumentAt(1).value<QDBusObjectPath>().path(),
+                            ssid,
+                            QStringLiteral("network-wireless"),
+                            reply.argumentAt(0).value<QDBusObjectPath>().path());
         }
         watcher->deleteLater();
         QTimer::singleShot(300, this, &NetworkController::rebuild);
     });
 }
 
-void NetworkController::connectWired(const QString &devicePath, const QString &connectionUuid)
+void NetworkController::connectWired(const QString &devicePath, const QString &connectionPath)
 {
     clearError();
-    const auto connection = NetworkManager::findConnection(connectionUuid);
+    const auto connection = NetworkManager::findConnection(connectionPath);
     if (!connection) { setErrorMessage(tr("The wired connection profile is no longer available.")); return; }
-    auto *watcher = new QDBusPendingCallWatcher(NetworkManager::activateConnection(connection->path(), devicePath, QString()), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher] {
+    auto *watcher = new QDBusPendingCallWatcher(NetworkManager::activateConnection(connection->path(), devicePath, QStringLiteral("/")), this);
+    const QString connectionName = connection->name();
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, connectionName] {
         const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
-        if (reply.isError()) setErrorMessage(reply.error().message());
+        if (reply.isError()) {
+            setErrorMessage(reply.error().message());
+        } else {
+            watchActivation(reply.value().path(), connectionName, QStringLiteral("network-wired"));
+        }
         watcher->deleteLater();
         QTimer::singleShot(300, this, &NetworkController::rebuild);
     });
@@ -653,6 +691,7 @@ void NetworkController::rebuild()
                     {QStringLiteral("connecting"), profileConnecting},
                     {QStringLiteral("ipAddress"), connected ? ipAddress : QString()},
                     {QStringLiteral("hasProfile"), true},
+                    {QStringLiteral("connectionPath"), connection->path()},
                     {QStringLiteral("connectionUuid"), connection->settings() ? connection->settings()->uuid() : QString()},
                     {QStringLiteral("autoConnect"), connection->settings() && connection->settings()->autoconnect()},
                 });
@@ -805,6 +844,63 @@ void NetworkController::rebuild()
         d->connectedWirelessConnection = connectedWirelessConnection;
         Q_EMIT connectedWirelessConnectionChanged();
     }
+}
+
+void NetworkController::watchActivation(const QString &activeConnectionPath,
+                                         const QString &networkName,
+                                         const QString &iconName,
+                                         const QString &connectionPath,
+                                         int attempt)
+{
+    const auto activeConnection = NetworkManager::findActiveConnection(activeConnectionPath);
+    if (!activeConnection) {
+        if (attempt < 10) {
+            QTimer::singleShot(100, this, [this, activeConnectionPath, networkName, iconName, connectionPath, attempt] {
+                watchActivation(activeConnectionPath, networkName, iconName, connectionPath, attempt + 1);
+            });
+        }
+        return;
+    }
+
+    const auto removeConnection = [this, connectionPath, activeConnection] {
+        if (connectionPath.isEmpty()) {
+            return;
+        }
+
+        if (const auto connection = activeConnection->connection(); connection && connection->path() == connectionPath) {
+            auto *watcher = new QDBusPendingCallWatcher(connection->remove(), this);
+            connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher] {
+                watcher->deleteLater();
+                QTimer::singleShot(300, this, &NetworkController::rebuild);
+            });
+        }
+    };
+
+    const auto handled = std::make_shared<bool>(false);
+    const auto handleState = [this, networkName, iconName, removeConnection, handled](NetworkManager::ActiveConnection::State state) {
+        if (*handled) {
+            return;
+        }
+
+        if (state == NetworkManager::ActiveConnection::Activated) {
+            *handled = true;
+            sendNotification(tr("Connection Successful"), tr("Connected to %1.").arg(networkName), iconName);
+        } else if (state == NetworkManager::ActiveConnection::Deactivated) {
+            *handled = true;
+            removeConnection();
+            if (iconName == QStringLiteral("network-wireless")) {
+                setErrorMessage(tr("The password for %1 is incorrect. Check it and try again.").arg(networkName));
+            } else {
+                setErrorMessage(tr("Could not connect to %1.").arg(networkName));
+            }
+        }
+    };
+
+    connect(activeConnection.data(),
+            &NetworkManager::ActiveConnection::stateChanged,
+            this,
+            handleState);
+    handleState(activeConnection->state());
 }
 
 void NetworkController::scheduleRebuild()

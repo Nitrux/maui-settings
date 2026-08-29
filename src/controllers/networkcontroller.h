@@ -56,7 +56,7 @@ public:
                                       const QString &ssid,
                                       const QString &password);
     Q_INVOKABLE void disconnectNetwork(const QString &devicePath);
-    Q_INVOKABLE void connectWired(const QString &devicePath, const QString &connectionUuid);
+    Q_INVOKABLE void connectWired(const QString &devicePath, const QString &connectionPath);
     Q_INVOKABLE void updateSavedNetwork(const QString &devicePath,
                                         const QString &ssid,
                                         bool autoConnect);
@@ -82,5 +82,10 @@ private:
     void rebuild();
     void scheduleRebuild();
     void setScanning(bool scanning);
+    void watchActivation(const QString &activeConnectionPath,
+                         const QString &networkName,
+                         const QString &iconName,
+                         const QString &connectionPath = QString(),
+                         int attempt = 0);
     void setErrorMessage(const QString &message);
 };
