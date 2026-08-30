@@ -79,6 +79,8 @@ set(settings_SRCS
     src/controllers/kdeglobalsinfo.cpp
     src/controllers/gtksettingsinfo.cpp
     src/controllers/qmlgreetcontroller.cpp
+    src/controllers/qmllogoutcontroller.cpp
+    src/controllers/qmllogoutcontroller.h
     src/controllers/marinainfo.cpp
     src/controllers/mimecontroller.cpp
     src/controllers/nudgeosdinfo.cpp
@@ -228,6 +230,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/security_login/GreeterPage.qml
     src/views/sidebar/security_login/LockScreenItem.qml
     src/views/sidebar/security_login/LockScreenPage.qml
+    src/views/sidebar/security_login/LogoutMenuItem.qml
+    src/views/sidebar/security_login/LogoutMenuPage.qml
     src/views/sidebar/security_login/AutostartItem.qml
     src/views/sidebar/security_login/AutostartPage.qml
     src/views/sidebar/security_login/EnvironmentVariablesItem.qml

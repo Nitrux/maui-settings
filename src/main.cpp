@@ -33,6 +33,7 @@
 #include "controllers/nudgeosdinfo.h"
 #include "controllers/networkcontroller.h"
 #include "controllers/qmlgreetcontroller.h"
+#include "controllers/qmllogoutcontroller.h"
 #include "controllers/valenzinfo.h"
 #include "controllers/tomainfo.h"
 #include "controllers/powerinfo.h"
@@ -147,6 +148,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     QmlGreetController qmlGreetController;
     engine.rootContext()->setContextProperty(QStringLiteral("qmlGreetController"), &qmlGreetController);
+
+    QmlLogoutController qmlLogoutController;
+    engine.rootContext()->setContextProperty(QStringLiteral("qmlLogoutController"), &qmlLogoutController);
 
     ValenzInfo valenzInfo;
     TomaInfo tomaInfo;

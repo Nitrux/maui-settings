@@ -22,6 +22,12 @@ Item
 
     Component
     {
+        id: logoutMenuComponent
+        LogoutMenuItem {}
+    }
+
+    Component
+    {
         id: autostartComponent
         AutostartItem {}
     }
@@ -37,6 +43,7 @@ Item
         items = [
             greeterComponent.createObject(this),
             lockScreenComponent.createObject(this),
+            logoutMenuComponent.createObject(this),
             autostartComponent.createObject(this),
             environmentVariablesComponent.createObject(this)
         ]

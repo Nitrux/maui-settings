@@ -57,6 +57,8 @@ Maui.ApplicationWindow
             return _displaysPageLoader.item
         case "security-login-lock-screen":
             return _lockScreenPageLoader.item
+        case "security-login-logout-menu":
+            return _logoutMenuPageLoader.item
         case "security-login-autostart":
             return _autostartPageLoader.item
         case "security-login-environment-variables":
@@ -140,6 +142,8 @@ Maui.ApplicationWindow
             return i18n("Greeter")
         case "security-login-lock-screen":
             return i18n("Lock Screen")
+        case "security-login-logout-menu":
+            return i18n("Logout Menu")
         case "security-login-autostart":
             return i18n("Autostart")
         case "security-login-environment-variables":
@@ -651,6 +655,15 @@ Maui.ApplicationWindow
 
                     Loader
                     {
+                        id: _logoutMenuPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-logout-menu"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/LogoutMenuPage.qml" : ""
+                    }
+
+                    Loader
+                    {
                         id: _autostartPageLoader
                         anchors.fill: parent
                         active: root.currentSection === "security-login-autostart"
@@ -671,7 +684,7 @@ Maui.ApplicationWindow
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "desktop-window-compositor" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "applications-default-apps" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "hardware-sound-input" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen" && root.currentSection !== "security-login-autostart" && root.currentSection !== "security-login-environment-variables"
+                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "desktop-window-compositor" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "applications-default-apps" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "hardware-sound-input" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen" && root.currentSection !== "security-login-logout-menu" && root.currentSection !== "security-login-autostart" && root.currentSection !== "security-login-environment-variables"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

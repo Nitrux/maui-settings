@@ -56,6 +56,14 @@ Maui.ScrollColumn
         return path.replace(/^file:\/\//, "")
     }
 
+    function previewSource(path)
+    {
+        if (!path || !path.length)
+            return ""
+
+        return path.startsWith("file:") ? path : "file://" + path
+    }
+
     function pickWallpaper()
     {
         _fileDialog.currentPath = info && info.wallpaperDirectory ? info.wallpaperDirectory : FB.FM.homePath()
@@ -90,6 +98,67 @@ Maui.ScrollColumn
         searchBar: true
         mode: FB.FileDialog.Modes.Open
         currentPath: info && info.wallpaperDirectory ? info.wallpaperDirectory : FB.FM.homePath()
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        enabled: root.info ? root.info.available : false
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        clip: true
+        implicitHeight: _previewLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _previewLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Wallpaper Preview")
+                text2: root.info ? root.displayPath(root.info.wallpaperPath) : i18n("No wallpaper selected")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Rectangle
+            {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Maui.Style.units.gridUnit * 12
+                color: Maui.Theme.backgroundColor
+                radius: Maui.Style.radiusV
+                clip: true
+
+                Image
+                {
+                    id: wallpaperPreviewImage
+                    anchors.fill: parent
+                    asynchronous: true
+                    fillMode: Image.PreserveAspectCrop
+                    source: root.previewSource(root.info ? root.info.wallpaperPath : "")
+                }
+
+                Label
+                {
+                    anchors.centerIn: parent
+                    width: parent.width - Maui.Style.contentMargins * 2
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    visible: wallpaperPreviewImage.status !== Image.Ready
+                    text: wallpaperPreviewImage.status === Image.Loading
+                        ? i18n("Loading preview...")
+                        : (root.info && root.info.wallpaperPath && root.info.wallpaperPath.length
+                            ? i18n("No wallpaper preview available.")
+                            : i18n("No wallpaper selected."))
+                    opacity: 0.7
+                }
+            }
+        }
     }
 
     Rectangle
