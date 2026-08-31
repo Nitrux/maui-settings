@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -11,6 +12,50 @@ Maui.ScrollColumn
 
     readonly property var controller: (typeof desklockController !== "undefined"
                                         && desklockController) ? desklockController : null
+    readonly property var displayController: (typeof displaysController !== "undefined" && displaysController) ? displaysController : null
+    readonly property var previewDisplay: {
+        const monitors = displayController ? displayController.monitors : []
+        return monitors.length ? monitors[0] : null
+    }
+    readonly property real displayAspectRatio: {
+        const monitors = displayController ? displayController.monitors : []
+        const display = monitors.length ? monitors[0] : null
+        const width = display ? Number(display.width) : 0
+        const height = display ? Number(display.height) : 0
+        return width > 0 && height > 0 ? width / height : 16 / 9
+    }
+    readonly property real previewPadding: 18
+    readonly property real previewSpacing: Maui.Style.space.small
+    readonly property real layoutMinX: {
+        let value = 0
+        if (displayController)
+            for (const monitor of displayController.monitors)
+                value = Math.min(value, Number(monitor.x) || 0)
+        return value
+    }
+    readonly property real layoutMinY: {
+        let value = 0
+        if (displayController)
+            for (const monitor of displayController.monitors)
+                value = Math.min(value, Number(monitor.y) || 0)
+        return value
+    }
+    readonly property real layoutMaxX: {
+        let value = 1
+        if (displayController)
+            for (const monitor of displayController.monitors)
+                value = Math.max(value, (Number(monitor.x) || 0) + Math.max(1, Number(monitor.width) || 1))
+        return value
+    }
+    readonly property real layoutMaxY: {
+        let value = 1
+        if (displayController)
+            for (const monitor of displayController.monitors)
+                value = Math.max(value, (Number(monitor.y) || 0) + Math.max(1, Number(monitor.height) || 1))
+        return value
+    }
+    readonly property real layoutWidth: Math.max(1, layoutMaxX - layoutMinX)
+    readonly property real layoutHeight: Math.max(1, layoutMaxY - layoutMinY)
     property var indicatorIconModeLabels: [i18n("System icons"), i18n("Nerd Font symbols")]
     property var indicatorIconModeValues: ["system", "nerd"]
 
@@ -130,18 +175,30 @@ Maui.ScrollColumn
         border.color: Maui.Theme.backgroundColor
         border.width: 1
         clip: true
-        implicitHeight: _previewLayout.implicitHeight + Maui.Style.contentMargins * 2
+        id: wallpaperPreviewCard
+        implicitHeight: 230
+        readonly property real previewContentTop: wallpaperPreviewHeader.y + wallpaperPreviewHeader.height + root.previewSpacing + Maui.Style.contentMargins
+        readonly property real previewContentHeight: Math.max(1, height - previewContentTop - root.previewPadding)
+        readonly property real previewScale: Math.min(
+            (width - root.previewPadding * 2) / root.layoutWidth,
+            previewContentHeight / root.layoutHeight)
 
         ColumnLayout
         {
             id: _previewLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Maui.Style.contentMargins
+            anchors.leftMargin: Maui.Style.contentMargins
+            anchors.rightMargin: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
 
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
+                id: wallpaperPreviewHeader
                 text1: i18n("Wallpaper Preview")
                 text2: i18n("A preview of the selected wallpaper.")
                 label2.wrapMode: Text.Wrap
@@ -150,22 +207,47 @@ Maui.ScrollColumn
             Rectangle
             {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Math.min(Maui.Style.units.gridUnit * 16, parent.width)
+                readonly property real displayWidth: root.previewDisplay && Number(root.previewDisplay.width) > 0
+                    ? Number(root.previewDisplay.width) : root.displayAspectRatio
+                readonly property real displayHeight: root.previewDisplay && Number(root.previewDisplay.height) > 0
+                    ? Number(root.previewDisplay.height) : 1
+                readonly property real previewWidth: Math.max(1, displayWidth * wallpaperPreviewCard.previewScale)
+                readonly property real previewHeight: Math.max(1, displayHeight * wallpaperPreviewCard.previewScale)
+                readonly property real previewSlack: Math.max(0, wallpaperPreviewCard.previewContentHeight - previewHeight)
+                Layout.preferredWidth: previewWidth
                 Layout.maximumWidth: parent.width
-                Layout.preferredHeight: Math.min(Maui.Style.units.gridUnit * 10, parent.width * 0.625)
-                Layout.bottomMargin: Maui.Style.space.small
+                Layout.preferredHeight: previewHeight
+                Layout.topMargin: previewSlack / 2
+                Layout.bottomMargin: root.previewPadding + previewSlack / 2
                 color: Maui.Theme.backgroundColor
                 radius: Maui.Style.radiusV
                 border.color: Maui.Theme.textColor
                 border.width: 1
-                clip: true
-
                 Image
                 {
                     id: wallpaperPreviewImage
                     anchors.fill: parent
                     asynchronous: true
                     fillMode: Image.PreserveAspectCrop
+                    layer.enabled: true
+                    layer.effect: MultiEffect
+                    {
+                        maskEnabled: true
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin: 1.0
+                        maskSpreadAtMax: 0.0
+                        maskThresholdMax: 1.0
+                        maskSource: ShaderEffectSource
+                        {
+                            sourceItem: Rectangle
+                            {
+                                width: wallpaperPreviewImage.width
+                                height: wallpaperPreviewImage.height
+                                radius: Maui.Style.radiusV
+                                color: "white"
+                            }
+                        }
+                    }
                     source: root.previewSource(root.controller ? root.controller.wallpaperPath : "")
                 }
 
@@ -200,8 +282,13 @@ Maui.ScrollColumn
         ColumnLayout
         {
             id: _appearanceLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Maui.Style.contentMargins
+            anchors.leftMargin: Maui.Style.contentMargins
+            anchors.rightMargin: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
 
             Maui.SectionHeader
@@ -543,8 +630,13 @@ Maui.ScrollColumn
         ColumnLayout
         {
             id: _sessionLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Maui.Style.contentMargins
+            anchors.leftMargin: Maui.Style.contentMargins
+            anchors.rightMargin: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
 
             Maui.SectionHeader
@@ -611,8 +703,13 @@ Maui.ScrollColumn
         ColumnLayout
         {
             id: _indicatorsLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Maui.Style.contentMargins
+            anchors.leftMargin: Maui.Style.contentMargins
+            anchors.rightMargin: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
 
             Maui.SectionHeader
@@ -845,8 +942,13 @@ Maui.ScrollColumn
         ColumnLayout
         {
             id: _behaviorLayout
-            anchors.fill: parent
-            anchors.margins: Maui.Style.contentMargins
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Maui.Style.contentMargins
+            anchors.leftMargin: Maui.Style.contentMargins
+            anchors.rightMargin: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
 
             Maui.SectionHeader
