@@ -127,18 +127,21 @@ Maui.SettingsPage
             {
                 Layout.fillWidth: true
                 text1: i18n("Wallpaper Preview")
-                text2: root.controller
-                    ? root.displayPath(root.controller.wallpaperPath, i18n("No wallpaper selected"))
-                    : i18n("No wallpaper selected")
+                text2: i18n("A preview of the selected wallpaper.")
                 label2.wrapMode: Text.Wrap
             }
 
             Rectangle
             {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Maui.Style.units.gridUnit * 12
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: Math.min(Maui.Style.units.gridUnit * 16, parent.width)
+                Layout.maximumWidth: parent.width
+                Layout.preferredHeight: Math.min(Maui.Style.units.gridUnit * 10, parent.width * 0.625)
+                Layout.bottomMargin: Maui.Style.space.small
                 color: Maui.Theme.backgroundColor
                 radius: Maui.Style.radiusV
+                border.color: Maui.Theme.textColor
+                border.width: 1
                 clip: true
 
                 Image
