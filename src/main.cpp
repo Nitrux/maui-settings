@@ -24,6 +24,7 @@
 #include "controllers/audiocontroller.h"
 #include "controllers/systemmanager.h"
 #include "controllers/backgroundinfo.h"
+#include "controllers/wallpapercolorscontroller.h"
 #include "controllers/bluetoothcontroller.h"
 #include "controllers/desklockcontroller.h"
 #include "controllers/kdeglobalsinfo.h"
@@ -130,6 +131,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KdeGlobalsInfo kdeGlobalsInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("kdeGlobalsInfo"), &kdeGlobalsInfo);
+
+    WallpaperColorsController wallpaperColorsController(&themeInfo, &backgroundInfo, &kdeGlobalsInfo);
+    engine.rootContext()->setContextProperty(QStringLiteral("wallpaperColorsController"), &wallpaperColorsController);
 
     GtkSettingsInfo gtkSettingsInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("gtkSettingsInfo"), &gtkSettingsInfo);

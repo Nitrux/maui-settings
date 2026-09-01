@@ -78,6 +78,7 @@ public:
 
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
+    Q_INVOKABLE bool applyColorSchemeFile(const QString &path, const QString &scheme);
 
     Q_INVOKABLE QFont fontFromString(const QString &value) const;
     Q_INVOKABLE QString fontToString(const QFont &font) const;

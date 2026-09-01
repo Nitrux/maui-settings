@@ -74,6 +74,8 @@ set(settings_SRCS
     src/controllers/audiocontroller.h
     src/controllers/systemmanager.cpp
     src/controllers/backgroundinfo.cpp
+    src/controllers/wallpapercolorscontroller.cpp
+    src/controllers/wallpapercolorscontroller.h
     src/controllers/bluetoothcontroller.cpp
     src/controllers/desklockcontroller.cpp
     src/controllers/kdeglobalsinfo.cpp

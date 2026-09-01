@@ -681,6 +681,26 @@ void KdeGlobalsInfo::reload()
     load();
 }
 
+bool KdeGlobalsInfo::applyColorSchemeFile(const QString &path, const QString &scheme)
+{
+    if (path.trimmed().isEmpty() || QFileInfo(path).isFile() == false || scheme.trimmed().isEmpty())
+        return false;
+
+    const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
+    KConfigGroup generalGroup(settings, QStringLiteral("General"));
+    generalGroup.writeEntry(QStringLiteral("ColorScheme"), scheme.trimmed());
+    if (applyColorScheme(settings.data(), path) == false)
+        return false;
+
+    settings->sync();
+    if (settings->isDirty())
+        return false;
+
+    load();
+    notifyKcmChange(0);
+    return true;
+}
+
 bool KdeGlobalsInfo::save()
 {
     const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);

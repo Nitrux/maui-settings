@@ -268,6 +268,7 @@ void BackgroundInfo::setIpcEnabled(bool value)
 void BackgroundInfo::reload()
 {
     load();
+    Q_EMIT wallpaperSourceChanged(m_wallpaperPath);
 }
 
 void BackgroundInfo::load()
@@ -384,6 +385,7 @@ bool BackgroundInfo::save()
         return false;
 
     restartHyprpaper();
+    Q_EMIT wallpaperSourceChanged(m_wallpaperPath);
 
     return true;
 }

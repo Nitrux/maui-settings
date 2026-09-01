@@ -10,11 +10,14 @@ Maui.ScrollColumn
     readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
     readonly property var gtk: (typeof gtkSettingsInfo !== "undefined" && gtkSettingsInfo) ? gtkSettingsInfo : null
+    readonly property var wallpaperColors: (typeof wallpaperColorsController !== "undefined" && wallpaperColorsController) ? wallpaperColorsController : null
 
     property int stagedStyleType: 0
     property string stagedAccentColor: "#26c6da"
     property string stagedWindowControlsTheme: "Nitrux"
     property bool stagedEnableCSD: false
+    property bool stagedAdaptiveColorSchemeEnabled: false
+    property bool stagedKdeSynchronizationEnabled: false
     property bool stagedEnableEffects: false
     property bool stagedAllowCustomStyling: false
     property int stagedBorderRadius: 0
@@ -61,6 +64,7 @@ Maui.ScrollColumn
             stagedAccentColor = String(theme.accentColor)
             stagedWindowControlsTheme = theme.windowControlsTheme
             stagedEnableCSD = theme.enableCSD
+            stagedAdaptiveColorSchemeEnabled = theme.adaptiveColorSchemeEnabled
             stagedEnableEffects = theme.enableEffects
             stagedAllowCustomStyling = theme.allowCustomStyling
             stagedBorderRadius = theme.borderRadius
@@ -69,6 +73,9 @@ Maui.ScrollColumn
             stagedMarginSize = theme.marginSize
             stagedSpacingSize = theme.spacingSize
         }
+
+        if (wallpaperColors)
+            stagedKdeSynchronizationEnabled = wallpaperColors.kdeSynchronizationEnabled
 
         if (kde)
         {
@@ -113,6 +120,7 @@ Maui.ScrollColumn
             theme.accentColor = stagedAccentColor
             theme.windowControlsTheme = stagedWindowControlsTheme
             theme.enableCSD = stagedEnableCSD
+            theme.adaptiveColorSchemeEnabled = stagedAdaptiveColorSchemeEnabled
             theme.enableEffects = stagedEnableEffects
             theme.allowCustomStyling = stagedAllowCustomStyling
             theme.borderRadius = stagedBorderRadius
@@ -138,6 +146,12 @@ Maui.ScrollColumn
             kde.smallFont = stagedSmallFont
             kde.monospaceFont = stagedMonospaceFont
             kde.save()
+        }
+
+        if (wallpaperColors)
+        {
+            wallpaperColors.kdeSynchronizationEnabled = stagedKdeSynchronizationEnabled
+            wallpaperColors.synchronize()
         }
 
         if (gtk)
@@ -390,6 +404,23 @@ Maui.ScrollColumn
                     {
                         root.stagedStyleType = styleTypeValues[currentIndex]
                     }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Use wallpaper colors")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Derive the full MauiKit palette from the selected wallpaper.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    checked: stagedAdaptiveColorSchemeEnabled
+                    enabled: theme !== null
+                    onToggled: root.stagedAdaptiveColorSchemeEnabled = checked
                 }
             }
 
@@ -1078,6 +1109,23 @@ Maui.ScrollColumn
                             _colorSchemePreviewDialog.open()
                         }
                     }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Synchronize wallpaper colors with KDE applications")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Generate and apply the Maui Wallpaper KDE color scheme.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    checked: stagedKdeSynchronizationEnabled
+                    enabled: wallpaperColors !== null
+                    onToggled: root.stagedKdeSynchronizationEnabled = checked
                 }
             }
 

@@ -53,6 +53,7 @@ public:
 
 Q_SIGNALS:
     void settingsChanged();
+    void wallpaperSourceChanged(QString path);
 
 private:
     void load();
