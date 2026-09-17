@@ -83,15 +83,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KLocalizedString::setApplicationDomain("maui-settings");
 
-    const QString version = QStringLiteral("0.0.1 %1/%2")
-        .arg(QStringLiteral(GIT_BRANCH), QStringLiteral(GIT_COMMIT_HASH));
-
     KAboutData about(QStringLiteral("maui-settings"),
                      i18n("Workspace Settings"),
-                     version,
+                     QStringLiteral("0.0.1"),
                      i18n("A simple settings shell built with MauiKit."),
                      KAboutLicense::GPL_V3,
-                     i18n("© %1 Made by Nitrux | Built with MauiKit", QString::number(QDate::currentDate().year())));
+                     i18n("© %1 Made by Nitrux | Built with MauiKit", QString::number(QDate::currentDate().year())),
+                     QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
 
     about.addAuthor(QStringLiteral("Uri Herrera"), i18n("Developer"), QStringLiteral("uri_herrera@nxos.org"));
     about.setHomepage(QStringLiteral("https://nxos.org"));

@@ -11,34 +11,43 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(CheckCXXCompilerFlag)
+include(ECMSourceVersionControl)
 
 find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Network Qml Quick Widgets)
 find_package(X11 REQUIRED COMPONENTS Xcursor)
 
-find_package(Git QUIET)
-if(Git_FOUND)
+if(ECM_SOURCE_UNDER_VERSION_CONTROL)
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+        COMMAND git rev-parse --abbrev-ref HEAD
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_BRANCH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        COMMAND git log -1 --format=%h
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    add_definitions(-DGIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
-    add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
+    if(NOT "$ENV{GITHUB_HEAD_REF}" STREQUAL "")
+        set(GIT_BRANCH "$ENV{GITHUB_HEAD_REF}")
+    elseif(NOT "$ENV{GITHUB_REF_NAME}" STREQUAL "")
+        set(GIT_BRANCH "$ENV{GITHUB_REF_NAME}")
+    endif()
+elseif(NOT "$ENV{GITHUB_REF_NAME}" STREQUAL "" AND NOT "$ENV{GITHUB_SHA}" STREQUAL "")
+    if(NOT "$ENV{GITHUB_HEAD_REF}" STREQUAL "")
+        set(GIT_BRANCH "$ENV{GITHUB_HEAD_REF}")
+    else()
+        set(GIT_BRANCH "$ENV{GITHUB_REF_NAME}")
+    endif()
+    string(SUBSTRING "$ENV{GITHUB_SHA}" 0 7 GIT_COMMIT_HASH)
 else()
-    add_definitions(-DGIT_COMMIT_HASH="${PROJECT_VERSION}")
-    add_definitions(-DGIT_BRANCH="Stable")
+    set(GIT_BRANCH "Stable")
+    set(GIT_COMMIT_HASH "0.0.1")
 endif()
+
+add_definitions(-DGIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
 
 if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
