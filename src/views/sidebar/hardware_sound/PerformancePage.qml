@@ -17,7 +17,6 @@ Maui.ScrollColumn {
         control.updateResponsiveParent()
     }
     Component.onCompleted: reloadSettings()
-    Timer { interval: 5000; repeat: true; running: true; onTriggered: root.reloadSettings() }
 
     Maui.SectionHeader {
         Layout.fillWidth: true
@@ -68,7 +67,14 @@ Maui.ScrollColumn {
                     Layout.fillWidth: responsiveNarrow
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : implicitWidth
                     checked: info ? info.enabled : true
-                    onToggled: if (info) info.enabled = checked
+                    onToggled:
+                    {
+                        if (!info)
+                            return
+
+                        info.enabled = checked
+                        info.save()
+                    }
                 }
             }
 
