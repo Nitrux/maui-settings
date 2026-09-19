@@ -228,8 +228,7 @@ Maui.ScrollColumn
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.controlWidth
                     Layout.preferredWidth: root.controlWidth
-                    model: root.controller ? root.controller.monitors : []
-                    textRole: "display"
+                    model: root.controller ? root.controller.monitors.map(monitor => monitor.display) : []
                     currentIndex: root.controller ? root.controller.selectedMonitorIndex : 0
                     onActivated: if (root.controller) root.controller.selectMonitor(currentIndex)
                 }

@@ -17,7 +17,6 @@ Maui.ScrollColumn
     property string stagedWindowControlsTheme: "Nitrux"
     property bool stagedEnableCSD: false
     property bool stagedAdaptiveColorSchemeEnabled: false
-    property bool stagedKdeSynchronizationEnabled: false
     property bool stagedEnableEffects: false
     property bool stagedAllowCustomStyling: false
     property int stagedBorderRadius: 0
@@ -74,9 +73,6 @@ Maui.ScrollColumn
             stagedSpacingSize = theme.spacingSize
         }
 
-        if (wallpaperColors)
-            stagedKdeSynchronizationEnabled = wallpaperColors.kdeSynchronizationEnabled
-
         if (kde)
         {
             stagedWidgetStyle = kde.widgetStyle
@@ -114,6 +110,8 @@ Maui.ScrollColumn
 
     function saveSettings()
     {
+        let kdeSaved = true
+
         if (theme)
         {
             theme.styleType = stagedStyleType
@@ -145,14 +143,19 @@ Maui.ScrollColumn
             kde.toolBarFont = stagedToolBarFont
             kde.smallFont = stagedSmallFont
             kde.monospaceFont = stagedMonospaceFont
-            kde.save()
+            kdeSaved = kde.save()
         }
 
         if (wallpaperColors)
         {
-            wallpaperColors.kdeSynchronizationEnabled = stagedKdeSynchronizationEnabled
-            wallpaperColors.synchronize()
+            wallpaperColors.kdeSynchronizationEnabled = stagedAdaptiveColorSchemeEnabled
+            if (stagedAdaptiveColorSchemeEnabled)
+                wallpaperColors.synchronize()
+            else if (kde && kdeSaved)
+                kde.synchronizeGreeter()
         }
+        else if (kde && kdeSaved)
+            kde.synchronizeGreeter()
 
         if (gtk)
         {
@@ -285,6 +288,19 @@ Maui.ScrollColumn
     function kdeString(propertyName, fallback)
     {
         return propertyName === "widgetStyle" ? stagedWidgetStyle : propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "menuFont" ? stagedMenuFont : propertyName === "toolBarFont" ? stagedToolBarFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
+    }
+
+    function colorSchemeModel()
+    {
+        const schemes = kde ? kde.colorSchemes.slice() : []
+        if (stagedAdaptiveColorSchemeEnabled && schemes.indexOf("Maui Wallpaper") === -1)
+            schemes.push("Maui Wallpaper")
+        return schemes
+    }
+
+    function colorSchemeSelection()
+    {
+        return stagedAdaptiveColorSchemeEnabled ? "Maui Wallpaper" : kdeString("colorScheme", "")
     }
 
     function setStagedFont(settingName, font)
@@ -1110,9 +1126,9 @@ Maui.ScrollColumn
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
                         Layout.preferredWidth: Maui.Style.units.gridUnit * 16
-                        model: kde ? kde.colorSchemes : []
-                        currentIndex: kde ? indexForString(kde.colorSchemes, kdeString("colorScheme", "")) : -1
-                        enabled: kde !== null
+                        model: root.colorSchemeModel()
+                        currentIndex: kde ? indexForString(root.colorSchemeModel(), root.colorSchemeSelection()) : -1
+                        enabled: kde !== null && !stagedAdaptiveColorSchemeEnabled
                         onActivated:
                         {
                             root.stagedColorScheme = currentText.trim()
@@ -1137,9 +1153,10 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                visible: stagedAdaptiveColorSchemeEnabled
                 label1.text: i18n("Synchronize wallpaper colors with KDE applications")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Generate and apply the Maui Wallpaper KDE color scheme.")
+                label2.text: i18n("Automatically applies wallpaper colors to KDE applications.")
                 label2.wrapMode: Text.Wrap
 
                 template.content: Switch
@@ -1165,9 +1182,8 @@ Maui.ScrollColumn
                         wideParent = originalParent
                         updateResponsiveParent()
                     }
-                    checked: stagedKdeSynchronizationEnabled
-                    enabled: wallpaperColors !== null
-                    onToggled: root.stagedKdeSynchronizationEnabled = checked
+                    checked: true
+                    enabled: false
                 }
             }
 

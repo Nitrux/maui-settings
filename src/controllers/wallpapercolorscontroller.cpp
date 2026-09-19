@@ -88,15 +88,26 @@ WallpaperColorsController::WallpaperColorsController(MauiMan::ThemeManager *them
     connect(m_sourceSyncTimer, &QTimer::timeout, this, &WallpaperColorsController::refreshWallpaperSource);
     QSettings settings;
     settings.beginGroup(QStringLiteral("WallpaperColors"));
-    m_kdeSynchronizationEnabled = settings.value(QStringLiteral("SynchronizeKde"), false).toBool();
+    const bool legacySynchronizationEnabled = settings.value(QStringLiteral("SynchronizeKde"), false).toBool();
+    m_kdeSynchronizationEnabled = m_theme->adaptiveColorSchemeEnabled();
     m_previousKdeScheme = settings.value(QStringLiteral("PreviousKdeScheme")).toString();
     m_hasPreviousKdeScheme = settings.value(QStringLiteral("PreviousKdeSchemeSet"), settings.contains(QStringLiteral("PreviousKdeScheme"))).toBool();
     settings.endGroup();
 
+    if (legacySynchronizationEnabled && !m_kdeSynchronizationEnabled)
+    {
+        m_kdeSynchronizationEnabled = true;
+        restorePreviousScheme();
+        m_kde->synchronizeGreeter();
+        m_kdeSynchronizationEnabled = false;
+        persistSettings();
+    }
+
     connect(m_background, &BackgroundInfo::wallpaperSourceChanged, this, &WallpaperColorsController::publishWallpaperSource);
+    connect(m_background, &BackgroundInfo::wallpaperSourceSaved, this, &WallpaperColorsController::synchronizeWallpaperSource);
     connect(m_theme, &MauiMan::ThemeManager::adaptiveColorSchemeSourceChanged, this, &WallpaperColorsController::onThemeSourceChanged);
 
-    publishWallpaperSource(m_background->wallpaperPath());
+    updateWallpaperSource(m_background->wallpaperPath(), false);
 }
 
 bool WallpaperColorsController::kdeSynchronizationEnabled() const
@@ -118,7 +129,6 @@ void WallpaperColorsController::setKdeSynchronizationEnabled(bool enabled)
         }
         m_kdeSynchronizationEnabled = true;
         persistSettings();
-        synchronizeKde(m_currentSource);
     }
     else
     {
@@ -132,7 +142,7 @@ void WallpaperColorsController::setKdeSynchronizationEnabled(bool enabled)
 
 void WallpaperColorsController::synchronize()
 {
-    synchronizeKde(m_currentSource);
+    synchronizeKde(m_currentSource, true);
 }
 
 QString WallpaperColorsController::canonicalImagePath(const QString &path)
@@ -155,6 +165,16 @@ QString WallpaperColorsController::canonicalImagePath(const QString &path)
 
 void WallpaperColorsController::publishWallpaperSource(const QString &path)
 {
+    updateWallpaperSource(path, false);
+}
+
+void WallpaperColorsController::synchronizeWallpaperSource(const QString &path)
+{
+    updateWallpaperSource(path, true);
+}
+
+void WallpaperColorsController::updateWallpaperSource(const QString &path, bool synchronizeGreeter)
+{
     m_watchedSourcePath = path.trimmed();
     QString source = canonicalImagePath(m_watchedSourcePath);
     if (m_background->wallpaperTimeout() > 0
@@ -169,7 +189,7 @@ void WallpaperColorsController::publishWallpaperSource(const QString &path)
     watchSourceFile(m_watchedSourcePath);
     if (m_theme->adaptiveColorSchemeSource() != source)
         m_theme->setAdaptiveColorSchemeSource(source);
-    synchronizeKde(source);
+    synchronizeKde(source, synchronizeGreeter);
 }
 
 void WallpaperColorsController::refreshWallpaperSource()
@@ -177,7 +197,7 @@ void WallpaperColorsController::refreshWallpaperSource()
     if (m_watchedSourcePath.isEmpty())
         return;
 
-    publishWallpaperSource(m_watchedSourcePath);
+    synchronizeWallpaperSource(m_watchedSourcePath);
 }
 
 void WallpaperColorsController::watchSourceFile(const QString &path)
@@ -224,10 +244,10 @@ void WallpaperColorsController::onThemeSourceChanged(const QString &source)
     m_watchedSourcePath = source.trimmed();
     m_currentSource = normalized;
     watchSourceFile(m_watchedSourcePath);
-    synchronizeKde(m_currentSource);
+    synchronizeKde(m_currentSource, true);
 }
 
-void WallpaperColorsController::synchronizeKde(const QString &source)
+void WallpaperColorsController::synchronizeKde(const QString &source, bool synchronizeGreeter)
 {
     if (m_kdeSynchronizationEnabled == false)
         return;
@@ -235,6 +255,8 @@ void WallpaperColorsController::synchronizeKde(const QString &source)
     if (source.isEmpty())
     {
         restorePreviousScheme();
+        if (synchronizeGreeter)
+            m_kde->synchronizeGreeter();
         return;
     }
 
@@ -245,8 +267,10 @@ void WallpaperColorsController::synchronizeKde(const QString &source)
         persistSettings();
     }
 
-    if (writeGeneratedScheme(source))
-        m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName));
+    if (writeGeneratedScheme(source)
+        && m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName))
+        && synchronizeGreeter)
+        m_kde->synchronizeGreeter();
 }
 
 bool WallpaperColorsController::writeGeneratedScheme(const QString &source)
@@ -332,7 +356,7 @@ void WallpaperColorsController::persistSettings() const
 {
     QSettings settings;
     settings.beginGroup(QStringLiteral("WallpaperColors"));
-    settings.setValue(QStringLiteral("SynchronizeKde"), m_kdeSynchronizationEnabled);
+    settings.remove(QStringLiteral("SynchronizeKde"));
     settings.setValue(QStringLiteral("PreviousKdeScheme"), m_previousKdeScheme);
     settings.setValue(QStringLiteral("PreviousKdeSchemeSet"), m_hasPreviousKdeScheme);
     settings.endGroup();

@@ -33,11 +33,13 @@ Q_SIGNALS:
 
 private:
     void publishWallpaperSource(const QString &path);
+    void synchronizeWallpaperSource(const QString &path);
+    void updateWallpaperSource(const QString &path, bool synchronizeGreeter);
     void refreshWallpaperSource();
     void watchSourceFile(const QString &path);
     void clearSourceWatcher();
     void onThemeSourceChanged(const QString &source);
-    void synchronizeKde(const QString &source);
+    void synchronizeKde(const QString &source, bool synchronizeGreeter);
     bool writeGeneratedScheme(const QString &source);
     void restorePreviousScheme();
     void persistSettings() const;

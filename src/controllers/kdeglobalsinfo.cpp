@@ -701,6 +701,31 @@ bool KdeGlobalsInfo::applyColorSchemeFile(const QString &path, const QString &sc
     return true;
 }
 
+void KdeGlobalsInfo::synchronizeGreeter()
+{
+    if (!authHelperAvailable(QString::fromLatin1(greeterHelperId)))
+        return;
+
+    KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
+    action.setHelperId(QString::fromLatin1(greeterHelperId));
+    action.setArguments({{QStringLiteral("sourcePath"), m_configPath}});
+    if (QWindow *window = QGuiApplication::focusWindow())
+        action.setParentWindow(window);
+
+    if (!action.isValid())
+        return;
+
+    if (KAuth::ExecuteJob *job = action.execute())
+    {
+        connect(job, &KJob::result, this, [](KJob *completedJob)
+        {
+            if (completedJob->error() != 0)
+                qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
+        });
+        job->start();
+    }
+}
+
 bool KdeGlobalsInfo::save()
 {
     const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
@@ -770,28 +795,6 @@ bool KdeGlobalsInfo::save()
             notifyKcmChange(2); // StyleChanged
         if (cursorThemeChanged || cursorSizeChanged)
             notifyKcmChange(5); // CursorChanged
-    }
-
-    if (settingsSaved && inputSettingsSaved && authHelperAvailable(QString::fromLatin1(greeterHelperId)))
-    {
-        KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
-        action.setHelperId(QString::fromLatin1(greeterHelperId));
-        action.setArguments({{QStringLiteral("sourcePath"), m_configPath}});
-        if (QWindow *window = QGuiApplication::focusWindow())
-            action.setParentWindow(window);
-
-        if (action.isValid())
-        {
-            if (KAuth::ExecuteJob *job = action.execute())
-            {
-                connect(job, &KJob::result, this, [](KJob *completedJob)
-                {
-                    if (completedJob->error() != 0)
-                        qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
-                });
-                job->start();
-            }
-        }
     }
 
     return settingsSaved && inputSettingsSaved;

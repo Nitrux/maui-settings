@@ -49,6 +49,8 @@ Maui.ScrollColumn
         {
             kde.singleClick = stagedSingleClick
             saved = kde.save()
+            if (saved)
+                kde.synchronizeGreeter()
         } else {
             saved = false
         }

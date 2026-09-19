@@ -386,6 +386,7 @@ bool BackgroundInfo::save()
 
     restartHyprpaper();
     Q_EMIT wallpaperSourceChanged(m_wallpaperPath);
+    Q_EMIT wallpaperSourceSaved(m_wallpaperPath);
 
     return true;
 }

@@ -78,6 +78,7 @@ public:
 
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
+    Q_INVOKABLE void synchronizeGreeter();
     Q_INVOKABLE bool applyColorSchemeFile(const QString &path, const QString &scheme);
 
     Q_INVOKABLE QFont fontFromString(const QString &value) const;
