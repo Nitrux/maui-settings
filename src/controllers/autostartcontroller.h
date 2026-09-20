@@ -38,5 +38,6 @@ private:
     QString m_configPath;
     bool m_available = false;
     QStringList m_commands;
+    QStringList m_serviceNames;
     QString m_errorMessage;
 };

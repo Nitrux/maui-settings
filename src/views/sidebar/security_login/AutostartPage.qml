@@ -67,7 +67,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Command")
-                text2: i18n("Enter one command or command chain to run when Hyprland starts.")
+                text2: i18n("Enter one command or command chain to run as a user service during the desktop session.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -106,8 +106,8 @@ Maui.ScrollColumn
         Layout.fillWidth: true
         text1: i18n("Autostart")
         text2: !root.controller || !root.controller.available
-            ? i18n("The Hyprland Lua configuration is not available.")
-            : i18n("Manage autostart commands in Hyprland.")
+            ? i18n("OpenRC user-service management is not available.")
+            : i18n("Manage commands as OpenRC user services in the desktop runlevel.")
         label2.wrapMode: Text.Wrap
     }
 
@@ -187,7 +187,7 @@ Maui.ScrollColumn
                 visible: !root.controller || root.controller.commands.length === 0
                 flat: true
                 label1.text: i18n("No autostart commands")
-                label2.text: i18n("Add a command to run it when the Hyprland session starts.")
+                label2.text: i18n("Add a command to run it when the desktop session starts.")
                 template.iconSource: "system-run"
             }
         }
@@ -213,7 +213,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Could Not Update Autostart")
+                text1: i18n("Autostart Status")
                 text2: root.controller ? root.controller.errorMessage : ""
                 template.iconSource: "dialog-error"
                 label2.wrapMode: Text.Wrap

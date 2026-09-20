@@ -1,12 +1,15 @@
 #include "autostartcontroller.h"
 
+#include <QByteArray>
+#include <QDir>
 #include <QFile>
+#include <QFileDevice>
 #include <QFileInfo>
+#include <QProcess>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
-#include <QTextStream>
-#include <QProcess>
+#include <QUuid>
 
 namespace
 {
@@ -16,10 +19,62 @@ struct AutostartRange
     int end = -1;
 };
 
-QString autostartConfigPath()
+struct ManagedServices
 {
-    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-        + QStringLiteral("/hypr/hyprland.lua");
+    QStringList names;
+    QStringList commands;
+    bool found = false;
+    bool valid = true;
+};
+
+QString configLocation()
+{
+    QString location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if (location.isEmpty())
+        location = QDir::homePath() + QStringLiteral("/.config");
+    return location;
+}
+
+QString autostartServiceDirectory()
+{
+    return configLocation() + QStringLiteral("/rc/init.d");
+}
+
+QString autostartRunnerDirectory()
+{
+    return configLocation() + QStringLiteral("/maui-settings/autostart");
+}
+
+QString legacyConfigPath()
+{
+    return configLocation() + QStringLiteral("/hypr/hyprland.lua");
+}
+
+QString shellQuote(const QString &value)
+{
+    const QString quote(QChar(39));
+    const QString escapedQuote = quote + QString(QChar(92)) + quote + quote;
+    QString result = value;
+    result.replace(quote, escapedQuote);
+    return quote + result + quote;
+}
+
+QString newServiceName()
+{
+    return QStringLiteral("maui-autostart-")
+        + QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+bool writeOwnedFile(const QString &path, const QByteArray &content, QFileDevice::Permissions permissions)
+{
+    QSaveFile destination(path);
+    if (!destination.open(QIODevice::WriteOnly))
+        return false;
+
+    if (destination.write(content) != content.size() || !destination.commit())
+        return false;
+
+    return QFile::setPermissions(path, permissions);
 }
 
 AutostartRange findAutostartBlock(const QStringList &lines)
@@ -74,27 +129,16 @@ QString decodeLuaString(const QString &value)
     return result;
 }
 
-QString encodeLuaString(const QString &value)
-{
-    QString result = value;
-    result.replace(QChar(92), QStringLiteral("\\\\"));
-    result.replace(QChar(34), QStringLiteral("\\\""));
-    return result;
-}
-
 QRegularExpression execExpression()
 {
     return QRegularExpression(
         QStringLiteral("^\\s*hl\\.exec_cmd\\(\\s*\"((?:\\\\.|[^\"\\\\])*)\"\\s*\\).*"));
 }
 
-QStringList commandLines(const QStringList &lines, const AutostartRange range, QList<int> *lineNumbers)
+QStringList commandLines(const QStringList &lines, const AutostartRange range)
 {
     QStringList commands;
     const QRegularExpression expression = execExpression();
-
-    if (lineNumbers)
-        lineNumbers->clear();
 
     if (range.start < 0 || range.end <= range.start)
         return commands;
@@ -102,50 +146,113 @@ QStringList commandLines(const QStringList &lines, const AutostartRange range, Q
     for (int line = range.start + 1; line < range.end; ++line)
     {
         const auto match = expression.match(lines.at(line));
-        if (!match.hasMatch())
-            continue;
-
-        commands.append(decodeLuaString(match.captured(1)));
-        if (lineNumbers)
-            lineNumbers->append(line);
+        if (match.hasMatch())
+            commands.append(decodeLuaString(match.captured(1)));
     }
 
     return commands;
 }
 
-bool replaceAutostartBlock(QStringList &lines, const QStringList &commands)
+ManagedServices readManagedServices(const QString &directory)
 {
-    AutostartRange range = findAutostartBlock(lines);
-    if (range.start < 0)
-    {
-        if (!lines.isEmpty() && !lines.constLast().isEmpty())
-            lines.append(QString());
+    ManagedServices result;
+    const QDir serviceDirectory(directory);
+    const QFileInfoList files = serviceDirectory.entryInfoList(
+        {QStringLiteral("maui-autostart-*")},
+        QDir::Files | QDir::NoDotAndDotDot | QDir::Readable,
+        QDir::Name);
 
-        lines.append(QStringLiteral("hl.on(\"hyprland.start\", function()"));
-        for (const QString &command : commands)
-            lines.append(QStringLiteral("    hl.exec_cmd(\"%1\")").arg(encodeLuaString(command)));
-        lines.append(QStringLiteral("end)"));
-        return true;
+    for (const QFileInfo &fileInfo : files)
+    {
+        result.found = true;
+
+        QFile file(fileInfo.absoluteFilePath());
+        if (!file.open(QIODevice::ReadOnly)) {
+            result.valid = false;
+            continue;
+        }
+
+        const QByteArray data = file.readAll();
+        const QByteArray headerPrefix = QByteArrayLiteral("# Command-Base64: ");
+        QByteArray header;
+        for (const QByteArray &line : data.split(static_cast<char>(10)))
+        {
+            if (line.startsWith(headerPrefix)) {
+                header = line;
+                break;
+            }
+        }
+        if (header.isEmpty()) {
+            result.valid = false;
+            continue;
+        }
+
+        const QByteArray encoded = header.mid(headerPrefix.size()).trimmed();
+        const QByteArray decoded = QByteArray::fromBase64(encoded);
+        const QString command = QString::fromUtf8(decoded);
+        if (command.isEmpty() || command.contains(QChar(10)) || command.contains(QChar(13))) {
+            result.valid = false;
+            continue;
+        }
+
+        result.names.append(fileInfo.fileName());
+        result.commands.append(command);
     }
 
-    QList<int> lineNumbers;
-    commandLines(lines, range, &lineNumbers);
+    return result;
+}
 
-    const int insertionLine = lineNumbers.isEmpty() ? range.end : lineNumbers.first();
-    for (auto line = lineNumbers.crbegin(); line != lineNumbers.crend(); ++line)
-        lines.removeAt(*line);
+bool removeLegacyBlock(const QString &path, QByteArray *backup, QString *error)
+{
+    if (!QFileInfo::exists(path))
+        return true;
 
-    for (int i = 0; i < commands.size(); ++i)
-        lines.insert(insertionLine + i, QStringLiteral("    hl.exec_cmd(\"%1\")").arg(encodeLuaString(commands.at(i))));
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        *error = QObject::tr("Could not open %1: %2").arg(path, file.errorString());
+        return false;
+    }
 
+    const QByteArray original = file.readAll();
+    const QStringList lines = QString::fromUtf8(original).split(QChar(10));
+    const AutostartRange range = findAutostartBlock(lines);
+    if (range.start < 0)
+        return true;
+
+    QStringList updated = lines;
+    updated.remove(range.start, range.end - range.start + 1);
+
+    QSaveFile destination(path);
+    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        *error = QObject::tr("Could not update %1: %2").arg(path, destination.errorString());
+        return false;
+    }
+
+    const QByteArray replacement = updated.join(QChar(10)).toUtf8();
+    if (destination.write(replacement) != replacement.size() || !destination.commit()) {
+        *error = QObject::tr("Could not update %1: %2").arg(path, destination.errorString());
+        return false;
+    }
+
+    *backup = original;
     return true;
+}
+
+bool restoreFile(const QString &path, const QByteArray &content)
+{
+    QSaveFile destination(path);
+    return destination.open(QIODevice::WriteOnly)
+        && destination.write(content) == content.size()
+        && destination.commit();
 }
 } // namespace
 
 AutostartController::AutostartController(QObject *parent)
     : QObject(parent)
-    , m_configPath(autostartConfigPath())
-    , m_available(QFileInfo::exists(m_configPath))
+    , m_configPath(autostartServiceDirectory())
+    , m_available(!QStandardPaths::findExecutable(QStringLiteral("nwsm")).isEmpty()
+        && !QStandardPaths::findExecutable(QStringLiteral("rc-update")).isEmpty()
+        && QDir().mkpath(m_configPath))
 {
     reload();
 }
@@ -172,59 +279,131 @@ QString AutostartController::errorMessage() const
 
 void AutostartController::reload()
 {
-    QFile file(m_configPath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        setErrorMessage(tr("Could not open %1: %2").arg(m_configPath, file.errorString()));
+    if (!m_available) {
+        setErrorMessage({});
         return;
     }
 
-    const QStringList lines = QString::fromUtf8(file.readAll()).split(QChar(10));
-    const QStringList commands = commandLines(lines, findAutostartBlock(lines), nullptr);
-    if (commands != m_commands)
-    {
-        m_commands = commands;
-        Q_EMIT commandsChanged();
+    const ManagedServices managed = readManagedServices(m_configPath);
+    if (!managed.valid) {
+        setErrorMessage(tr("One or more Maui Settings autostart services are invalid."));
+        return;
     }
+
+    QStringList commands;
+    QStringList names;
+    if (managed.found) {
+        commands = managed.commands;
+        names = managed.names;
+    }
+    else
+    {
+        QFile file(legacyConfigPath());
+        if (file.exists()) {
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                setErrorMessage(tr("Could not open %1: %2").arg(file.fileName(), file.errorString()));
+                return;
+            }
+
+            const QStringList lines = QString::fromUtf8(file.readAll()).split(QChar(10));
+            commands = commandLines(lines, findAutostartBlock(lines));
+        }
+    }
+
+    const bool changed = commands != m_commands;
+    m_commands = commands;
+    m_serviceNames = names;
+    if (changed)
+        Q_EMIT commandsChanged();
 
     setErrorMessage({});
 }
 
 bool AutostartController::save()
 {
-    QFile file(m_configPath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        setErrorMessage(tr("Could not open %1: %2").arg(m_configPath, file.errorString()));
+    if (!m_available) {
+        setErrorMessage(tr("OpenRC user-service management is unavailable."));
         return false;
     }
 
-    QStringList lines = QString::fromUtf8(file.readAll()).split(QChar(10));
-    if (!replaceAutostartBlock(lines, m_commands))
-    {
-        setErrorMessage(tr("Could not locate the Hyprland autostart block."));
+    while (m_serviceNames.size() < m_commands.size())
+        m_serviceNames.append(newServiceName());
+    while (m_serviceNames.size() > m_commands.size())
+        m_serviceNames.removeLast();
+
+    QByteArray legacyBackup;
+    QString error;
+    if (!removeLegacyBlock(legacyConfigPath(), &legacyBackup, &error)) {
+        setErrorMessage(error);
         return false;
     }
 
-    QSaveFile destination(m_configPath);
-    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        setErrorMessage(tr("Could not write %1: %2").arg(m_configPath, destination.errorString()));
+    const QString runnerDirectory = autostartRunnerDirectory();
+    if (!QDir().mkpath(runnerDirectory)) {
+        if (!legacyBackup.isEmpty())
+            restoreFile(legacyConfigPath(), legacyBackup);
+        setErrorMessage(tr("Could not create the Maui Settings autostart directory."));
         return false;
     }
 
-    QTextStream stream(&destination);
-    stream << lines.join(QChar(10));
-    stream.flush();
-    if (!destination.commit())
+    const QFileDevice::Permissions permissions = QFileDevice::ReadOwner
+        | QFileDevice::WriteOwner
+        | QFileDevice::ExeOwner;
+
+    for (int index = 0; index < m_commands.size(); ++index)
     {
-        setErrorMessage(tr("Could not replace %1: %2").arg(m_configPath, destination.errorString()));
-        return false;
+        const QString &serviceName = m_serviceNames.at(index);
+        const QString runnerPath = runnerDirectory + QLatin1Char('/') + serviceName;
+        const QString runner = QStringLiteral("#!/bin/sh\nexec /bin/sh -c %1\n")
+            .arg(shellQuote(m_commands.at(index)));
+
+        if (!writeOwnedFile(runnerPath, runner.toUtf8(), permissions)) {
+            if (!legacyBackup.isEmpty())
+                restoreFile(legacyConfigPath(), legacyBackup);
+            setErrorMessage(tr("Could not write the Maui Settings autostart runner."));
+            return false;
+        }
+
+        const QString servicePath = m_configPath + QLatin1Char('/') + serviceName;
+        const QString service = QStringLiteral(
+            "#!/sbin/openrc-run\n"
+            "# Managed by Maui Settings.\n"
+            "# Command-Base64: %1\n"
+            "command=%2\n"
+            "command_background=true\n"
+            "pidfile=\"${XDG_RUNTIME_DIR}/maui-settings/${RC_SVCNAME}.pid\"\n"
+            "start_pre() {\n"
+            "    mkdir -p \"${XDG_RUNTIME_DIR}/maui-settings\"\n"
+            "}\n")
+            .arg(QString::fromLatin1(m_commands.at(index).toUtf8().toBase64()),
+                shellQuote(runnerPath));
+
+        if (!writeOwnedFile(servicePath, service.toUtf8(), permissions)) {
+            if (!legacyBackup.isEmpty())
+                restoreFile(legacyConfigPath(), legacyBackup);
+            setErrorMessage(tr("Could not write the Maui Settings OpenRC service."));
+            return false;
+        }
     }
 
-    const QString hyprctl = QStandardPaths::findExecutable(QStringLiteral("hyprctl"));
-    if (!hyprctl.isEmpty())
-        QProcess::startDetached(hyprctl, {QStringLiteral("reload")});
+    const ManagedServices previous = readManagedServices(m_configPath);
+    const QString rcUpdate = QStandardPaths::findExecutable(QStringLiteral("rc-update"));
+    for (const QString &name : previous.names)
+    {
+        if (!m_serviceNames.contains(name))
+        {
+            QProcess::execute(rcUpdate, {QStringLiteral("-U"), QStringLiteral("delete"),
+                name, QStringLiteral("desktop")});
+            QFile::remove(m_configPath + QLatin1Char('/') + name);
+            QFile::remove(runnerDirectory + QLatin1Char('/') + name);
+        }
+    }
+
+    const QString nwsm = QStandardPaths::findExecutable(QStringLiteral("nwsm"));
+    if (QProcess::execute(nwsm, {QStringLiteral("reconcile")}) != 0) {
+        setErrorMessage(tr("Autostart was saved, but NWSM could not apply it until the next session."));
+        return true;
+    }
 
     setErrorMessage({});
     return true;
@@ -240,28 +419,35 @@ bool AutostartController::validCommand(const QString &command) const
 
 bool AutostartController::addCommand(const QString &command)
 {
-    if (!validCommand(command))
-    {
+    if (!validCommand(command)) {
         setErrorMessage(tr("Enter an autostart command."));
         return false;
     }
 
+    const QStringList previousCommands = m_commands;
+    const QStringList previousNames = m_serviceNames;
     m_commands.append(command.trimmed());
+    m_serviceNames.append(newServiceName());
+
+    if (!save()) {
+        m_commands = previousCommands;
+        m_serviceNames = previousNames;
+        Q_EMIT commandsChanged();
+        return false;
+    }
+
     Q_EMIT commandsChanged();
-    setErrorMessage({});
     return true;
 }
 
 bool AutostartController::updateCommand(int index, const QString &command)
 {
-    if (index < 0 || index >= m_commands.size())
-    {
+    if (index < 0 || index >= m_commands.size()) {
         setErrorMessage(tr("The selected autostart command is no longer available."));
         return false;
     }
 
-    if (!validCommand(command))
-    {
+    if (!validCommand(command)) {
         setErrorMessage(tr("Enter an autostart command."));
         return false;
     }
@@ -270,23 +456,41 @@ bool AutostartController::updateCommand(int index, const QString &command)
     if (m_commands.at(index) == normalized)
         return true;
 
+    const QStringList previousCommands = m_commands;
+    const QStringList previousNames = m_serviceNames;
     m_commands[index] = normalized;
+
+    if (!save()) {
+        m_commands = previousCommands;
+        m_serviceNames = previousNames;
+        Q_EMIT commandsChanged();
+        return false;
+    }
+
     Q_EMIT commandsChanged();
-    setErrorMessage({});
     return true;
 }
 
 bool AutostartController::removeCommand(int index)
 {
-    if (index < 0 || index >= m_commands.size())
-    {
+    if (index < 0 || index >= m_commands.size()) {
         setErrorMessage(tr("The selected autostart command is no longer available."));
         return false;
     }
 
+    const QStringList previousCommands = m_commands;
+    const QStringList previousNames = m_serviceNames;
     m_commands.removeAt(index);
+    m_serviceNames.removeAt(index);
+
+    if (!save()) {
+        m_commands = previousCommands;
+        m_serviceNames = previousNames;
+        Q_EMIT commandsChanged();
+        return false;
+    }
+
     Q_EMIT commandsChanged();
-    setErrorMessage({});
     return true;
 }
 
