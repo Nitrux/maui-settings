@@ -43,6 +43,7 @@
 #include "controllers/hyprlandinfo.h"
 #include "controllers/autostartcontroller.h"
 #include "controllers/environmentcontroller.h"
+#include "controllers/flatpakpermissionscontroller.h"
 #include "controllers/displayscontroller.h"
 
 static constexpr auto SETTINGS_URI = "org.maui.settings";
@@ -162,6 +163,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     HyprlandInfo hyprlandInfo;
     AutostartController autostartController;
     EnvironmentController environmentController;
+    FlatpakPermissionsController flatpakPermissionsController;
     DisplaysController displaysController;
     engine.rootContext()->setContextProperty(QStringLiteral("powerInfo"), &powerInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("batteryController"), &batteryController);
@@ -169,6 +171,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("hyprlandInfo"), &hyprlandInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("autostartController"), &autostartController);
     engine.rootContext()->setContextProperty(QStringLiteral("environmentController"), &environmentController);
+    engine.rootContext()->setContextProperty(QStringLiteral("flatpakPermissionsController"), &flatpakPermissionsController);
     engine.rootContext()->setContextProperty(QStringLiteral("displaysController"), &displaysController);
     engine.rootContext()->setContextProperty(QStringLiteral("valenzInfo"), &valenzInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("tomaInfo"), &tomaInfo);

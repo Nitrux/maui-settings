@@ -63,6 +63,8 @@ Maui.ApplicationWindow
             return _autostartPageLoader.item
         case "security-login-environment-variables":
             return _environmentVariablesPageLoader.item
+        case "security-login-flatpak-permissions":
+            return _flatpakPermissionsPageLoader.item
         case "security-login-greeter":
             return _greeterPageLoader.item
         default:
@@ -148,6 +150,8 @@ Maui.ApplicationWindow
             return i18n("Autostart")
         case "security-login-environment-variables":
             return i18n("Environment Variables")
+        case "security-login-flatpak-permissions":
+            return i18n("Flatpak Permissions")
         default:
             return i18n("General")
         }
@@ -283,7 +287,7 @@ Maui.ApplicationWindow
                 {
                     id: _settingsActionsLoader
                     asynchronous: true
-                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "desktop-window-compositor" || root.currentSection === "applications-default-apps" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "security-login-autostart" || root.currentSection === "security-login-environment-variables" || root.currentSection === "hardware-sound-displays" || root.currentSection === "hardware-sound-input" || root.currentSection === "hardware-sound-performance"
+                    active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "desktop-window-compositor" || root.currentSection === "applications-default-apps" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "security-login-autostart" || root.currentSection === "security-login-environment-variables" || root.currentSection === "security-login-flatpak-permissions" || root.currentSection === "hardware-sound-displays" || root.currentSection === "hardware-sound-input" || root.currentSection === "hardware-sound-performance"
                     visible: active
 
                     sourceComponent: RowLayout
@@ -311,6 +315,26 @@ Maui.ApplicationWindow
                             ToolTip.visible: hovered
                             ToolTip.text: i18n("Save settings")
                             onClicked: root.saveCurrentSettings()
+                        }
+
+                        ToolSeparator
+                        {
+                            visible: root.currentSection === "security-login-flatpak-permissions"
+                            topPadding: Maui.Style.space.small
+                            bottomPadding: Maui.Style.space.small
+                        }
+
+                        ToolButton
+                        {
+                            visible: root.currentSection === "security-login-flatpak-permissions"
+                            enabled: _flatpakPermissionsPageLoader.item && _flatpakPermissionsPageLoader.item.resetAvailable
+                            icon.name: "edit-undo"
+                            display: ToolButton.IconOnly
+                            ToolTip.delay: 1000
+                            ToolTip.timeout: 5000
+                            ToolTip.visible: hovered
+                            ToolTip.text: i18n("Reset permissions")
+                            onClicked: if (_flatpakPermissionsPageLoader.item) _flatpakPermissionsPageLoader.item.resetSettings()
                         }
 
                         ToolSeparator
@@ -680,11 +704,20 @@ Maui.ApplicationWindow
                         source: active ? "views/sidebar/security_login/EnvironmentVariablesPage.qml" : ""
                     }
 
+                    Loader
+                    {
+                        id: _flatpakPermissionsPageLoader
+                        anchors.fill: parent
+                        active: root.currentSection === "security-login-flatpak-permissions"
+                        visible: active
+                        source: active ? "views/sidebar/security_login/FlatpakPermissionsPage.qml" : ""
+                    }
+
                     Maui.Holder
                     {
                         anchors.centerIn: parent
                         width: Math.min(parent.width - Maui.Style.contentMargins * 2, 520)
-                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "desktop-window-compositor" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "applications-default-apps" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "hardware-sound-input" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen" && root.currentSection !== "security-login-logout-menu" && root.currentSection !== "security-login-autostart" && root.currentSection !== "security-login-environment-variables"
+                        visible: root.currentSection !== "hardware-sound-performance" && root.currentSection !== "general-about" && root.currentSection !== "general-system" && root.currentSection !== "appearance-background" && root.currentSection !== "appearance-theme" && root.currentSection !== "desktop-valenz" && root.currentSection !== "desktop-nudge-osd" && root.currentSection !== "desktop-marina" && root.currentSection !== "desktop-window-compositor" && root.currentSection !== "general-accessibility" && root.currentSection !== "applications-defaults" && root.currentSection !== "applications-default-apps" && root.currentSection !== "connectivity-network" && root.currentSection !== "connectivity-bluetooth" && root.currentSection !== "hardware-sound-audio" && root.currentSection !== "hardware-sound-battery" && root.currentSection !== "hardware-sound-displays" && root.currentSection !== "hardware-sound-input" && root.currentSection !== "security-login-greeter" && root.currentSection !== "security-login-lock-screen" && root.currentSection !== "security-login-logout-menu" && root.currentSection !== "security-login-autostart" && root.currentSection !== "security-login-environment-variables" && root.currentSection !== "security-login-flatpak-permissions"
                         emoji: "documentinfo"
                         title: root.sectionTitle(root.currentSection)
                         body: i18n("This settings section is not implemented yet.")

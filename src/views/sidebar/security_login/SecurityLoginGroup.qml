@@ -38,6 +38,12 @@ Item
         EnvironmentVariablesItem {}
     }
 
+    Component
+    {
+        id: flatpakPermissionsComponent
+        FlatpakPermissionsItem {}
+    }
+
     Component.onCompleted:
     {
         items = [
@@ -45,7 +51,8 @@ Item
             lockScreenComponent.createObject(this),
             logoutMenuComponent.createObject(this),
             autostartComponent.createObject(this),
-            environmentVariablesComponent.createObject(this)
+            environmentVariablesComponent.createObject(this),
+            flatpakPermissionsComponent.createObject(this)
         ]
     }
 }

@@ -121,6 +121,8 @@ set(settings_SRCS
     src/controllers/autostartcontroller.h
     src/controllers/environmentcontroller.cpp
     src/controllers/environmentcontroller.h
+    src/controllers/flatpakpermissionscontroller.cpp
+    src/controllers/flatpakpermissionscontroller.h
     src/controllers/displayscontroller.cpp
     src/controllers/displayscontroller.h
 )
@@ -251,6 +253,8 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/security_login/AutostartPage.qml
     src/views/sidebar/security_login/EnvironmentVariablesItem.qml
     src/views/sidebar/security_login/EnvironmentVariablesPage.qml
+    src/views/sidebar/security_login/FlatpakPermissionsItem.qml
+    src/views/sidebar/security_login/FlatpakPermissionsPage.qml
 )
 
 target_link_libraries(${APP_NAME}
