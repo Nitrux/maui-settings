@@ -27,6 +27,7 @@ class KdeGlobalsInfo : public QObject
     Q_PROPERTY(QString fontAntialiasing READ fontAntialiasing WRITE setFontAntialiasing NOTIFY settingsChanged)
     Q_PROPERTY(QString fontRgbaOrder READ fontRgbaOrder WRITE setFontRgbaOrder NOTIFY settingsChanged)
     Q_PROPERTY(bool singleClick READ singleClick WRITE setSingleClick NOTIFY settingsChanged)
+    Q_PROPERTY(bool showIconsInMenus READ showIconsInMenus WRITE setShowIconsInMenus NOTIFY settingsChanged)
     Q_PROPERTY(QStringList colorSchemes READ colorSchemes NOTIFY settingsChanged)
     Q_PROPERTY(QStringList iconThemes READ iconThemes NOTIFY settingsChanged)
     Q_PROPERTY(QStringList iconThemeIds READ iconThemeIds NOTIFY settingsChanged)
@@ -53,6 +54,7 @@ public:
     QString fontAntialiasing() const;
     QString fontRgbaOrder() const;
     bool singleClick() const;
+    bool showIconsInMenus() const;
     QStringList colorSchemes() const;
     QStringList iconThemes() const;
     QStringList iconThemeIds() const;
@@ -75,9 +77,11 @@ public:
     void setFontAntialiasing(const QString &value);
     void setFontRgbaOrder(const QString &value);
     void setSingleClick(bool value);
+    void setShowIconsInMenus(bool value);
 
     Q_INVOKABLE void reload();
     Q_INVOKABLE bool save();
+    Q_INVOKABLE QVariantMap defaultSettings() const;
     Q_INVOKABLE void synchronizeGreeter();
     Q_INVOKABLE bool applyColorSchemeFile(const QString &path, const QString &scheme);
 
@@ -118,6 +122,7 @@ private:
     QString m_fontAntialiasing = QStringLiteral("grayscale");
     QString m_fontRgbaOrder = QStringLiteral("rgb");
     bool m_singleClick = true;
+    bool m_showIconsInMenus = true;
     QStringList m_colorSchemes;
     QStringList m_iconThemes;
     QStringList m_iconThemeIds;

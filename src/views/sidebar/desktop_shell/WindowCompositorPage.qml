@@ -10,6 +10,16 @@ Maui.ScrollColumn
     readonly property var info: (typeof hyprlandInfo !== "undefined" && hyprlandInfo) ? hyprlandInfo : null
     readonly property int controlWidth: Maui.Style.units.gridUnit * 13
     readonly property int spinBoxWidth: Maui.Style.units.gridUnit * 7
+    readonly property bool resetAvailable: root.info !== null && root.info.available && (
+        root.info.layout !== "dwindle"
+        || root.info.gapsIn !== 4
+        || root.info.gapsOut !== 8
+        || root.info.activeOpacity !== 100
+        || root.info.inactiveOpacity !== 80
+        || !root.info.blurEnabled
+        || root.info.blurSize !== 6
+        || root.info.blurPasses !== 3
+        || !root.info.animationsEnabled)
 
     property var layoutLabels: [i18n("Dwindle"), i18n("Master")]
     property var layoutValues: ["dwindle", "master"]
@@ -106,6 +116,22 @@ Maui.ScrollColumn
     function saveSettings()
     {
         return info ? info.save() : false
+    }
+
+    function resetSettings()
+    {
+        if (!root.info)
+            return
+
+        root.info.layout = "dwindle"
+        root.info.gapsIn = 4
+        root.info.gapsOut = 8
+        root.info.activeOpacity = 100
+        root.info.inactiveOpacity = 80
+        root.info.blurEnabled = true
+        root.info.blurSize = 6
+        root.info.blurPasses = 3
+        root.info.animationsEnabled = true
     }
 
     anchors.fill: parent
@@ -549,6 +575,7 @@ Maui.ScrollColumn
         id: _removeWindowRuleDialog
         title: i18n("Remove Window Rule")
         persistent: true
+        maxWidth: Maui.Style.units.gridUnit * 24
 
         Label
         {

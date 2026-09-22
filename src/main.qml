@@ -16,6 +16,7 @@ Maui.ApplicationWindow
 
     property string currentSection: "general-about"
     property string filterQuery: ""
+    property var pendingResetPage: null
 
     function currentSettingsPage()
     {
@@ -96,6 +97,35 @@ Maui.ApplicationWindow
             if (!saved)
                 return
         }
+    }
+
+    function currentSettingsResetSupported()
+    {
+        const settingsPage = currentSettingsPage()
+        return settingsPage
+            && typeof settingsPage.resetAvailable !== "undefined"
+            && typeof settingsPage.resetSettings === "function"
+    }
+
+    function currentSettingsResetAvailable()
+    {
+        const settingsPage = currentSettingsPage()
+        return currentSettingsResetSupported() && settingsPage.resetAvailable
+    }
+
+    function requestResetCurrentSettings()
+    {
+        root.pendingResetPage = currentSettingsPage()
+        if (root.pendingResetPage)
+            _resetSettingsDialog.open()
+    }
+
+    function resetCurrentSettings()
+    {
+        if (root.pendingResetPage && typeof root.pendingResetPage.resetSettings === "function")
+            root.pendingResetPage.resetSettings()
+
+        root.pendingResetPage = null
     }
 
     function sectionTitle(section)
@@ -317,24 +347,17 @@ Maui.ApplicationWindow
                             onClicked: root.saveCurrentSettings()
                         }
 
-                        ToolSeparator
-                        {
-                            visible: root.currentSection === "security-login-flatpak-permissions"
-                            topPadding: Maui.Style.space.small
-                            bottomPadding: Maui.Style.space.small
-                        }
-
                         ToolButton
                         {
-                            visible: root.currentSection === "security-login-flatpak-permissions"
-                            enabled: _flatpakPermissionsPageLoader.item && _flatpakPermissionsPageLoader.item.resetAvailable
+                            visible: root.currentSettingsResetSupported()
+                            enabled: root.currentSettingsResetAvailable()
                             icon.name: "edit-undo"
                             display: ToolButton.IconOnly
                             ToolTip.delay: 1000
                             ToolTip.timeout: 5000
                             ToolTip.visible: hovered
-                            ToolTip.text: i18n("Reset permissions")
-                            onClicked: if (_flatpakPermissionsPageLoader.item) _flatpakPermissionsPageLoader.item.resetSettings()
+                            ToolTip.text: i18n("Reset settings to defaults")
+                            onClicked: root.requestResetCurrentSettings()
                         }
 
                         ToolSeparator
@@ -725,5 +748,15 @@ Maui.ApplicationWindow
                 }
             }
         }
+    }
+
+    Maui.InfoDialog
+    {
+        id: _resetSettingsDialog
+        title: i18n("Reset settings")
+        message: i18n("Restore this module's default settings? The changes will be staged until you save them.")
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        onAccepted: root.resetCurrentSettings()
+        onRejected: root.pendingResetPage = null
     }
 }

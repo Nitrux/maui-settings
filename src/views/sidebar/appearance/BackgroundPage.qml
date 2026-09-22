@@ -61,6 +61,18 @@ Maui.ScrollColumn
     readonly property real layoutHeight: Math.max(1, layoutMaxY - layoutMinY)
     property var monitorOptions: []
 
+    readonly property bool resetAvailable: root.info !== null && (
+        root.info.wallpaperMonitor !== ""
+        || root.info.wallpaperPath !== ""
+        || root.info.wallpaperFitMode !== "cover"
+        || root.info.wallpaperTimeout !== 0
+        || root.info.wallpaperOrder !== "default"
+        || root.info.wallpaperRecursive
+        || root.info.splashEnabled
+        || root.info.splashOffset !== 20
+        || Math.abs(root.info.splashOpacity - 0.8) > 0.0001
+        || !root.info.ipcEnabled)
+
     property var fitModeLabels: [
         i18n("Cover"),
         i18n("Contain"),
@@ -107,6 +119,23 @@ Maui.ScrollColumn
     {
         if (info)
             info.save()
+    }
+
+    function resetSettings()
+    {
+        if (!root.info)
+            return
+
+        root.info.wallpaperMonitor = ""
+        root.info.wallpaperPath = ""
+        root.info.wallpaperFitMode = "cover"
+        root.info.wallpaperTimeout = 0
+        root.info.wallpaperOrder = "default"
+        root.info.wallpaperRecursive = false
+        root.info.splashEnabled = false
+        root.info.splashOffset = 20
+        root.info.splashOpacity = 0.8
+        root.info.ipcEnabled = true
     }
 
     function indexForValue(model, value)

@@ -44,6 +44,7 @@ Maui.ScrollColumn
     property string stagedIconTheme: ""
     property string stagedCursorTheme: ""
     property int stagedKdeCursorSize: 24
+    property bool stagedShowIconsInMenus: true
     property string stagedKdeFontHinting: "slight"
     property string stagedKdeFontAntialiasing: "grayscale"
     property string stagedKdeFontRgbaOrder: "rgb"
@@ -53,6 +54,9 @@ Maui.ScrollColumn
     property string stagedToolBarFont: ""
     property string stagedSmallFont: ""
     property string stagedMonospaceFont: ""
+    readonly property var kdeDefaultValues: root.kde ? root.kde.defaultSettings() : ({})
+    readonly property var gtkDefaultValues: root.gtk ? root.gtk.defaultSettings() : ({})
+    readonly property bool resetAvailable: root.settingsNeedReset()
     property string fontDialogSettingName: ""
     property font fontDialogFont
 
@@ -92,6 +96,7 @@ Maui.ScrollColumn
             stagedIconTheme = kde.iconTheme
             stagedCursorTheme = kde.cursorTheme
             stagedKdeCursorSize = kde.cursorSize
+            stagedShowIconsInMenus = kde.showIconsInMenus
             stagedKdeFontHinting = kde.fontHinting
             stagedKdeFontAntialiasing = kde.fontAntialiasing
             stagedKdeFontRgbaOrder = kde.fontRgbaOrder
@@ -121,6 +126,142 @@ Maui.ScrollColumn
         }
     }
 
+    function defaultString(values, key)
+    {
+        return values[key] === undefined || values[key] === null ? "" : String(values[key])
+    }
+
+    function defaultNumber(values, key, fallback)
+    {
+        const value = Number(values[key])
+        return isNaN(value) ? fallback : value
+    }
+
+    function settingsNeedReset()
+    {
+        if (root.theme && (stagedStyleType !== 3
+            || String(stagedAccentColor).toLowerCase() !== "#26c6da"
+            || stagedWindowControlsTheme !== "Nitrux"
+            || !stagedEnableCSD
+            || stagedAdaptiveColorSchemeEnabled
+            || !stagedEnableEffects
+            || stagedAllowCustomStyling
+            || stagedBorderRadius !== 6
+            || stagedIconSize !== 16
+            || stagedPaddingSize !== 6
+            || stagedMarginSize !== 6
+            || stagedSpacingSize !== 6))
+            return true
+
+        if (root.kde && (stagedWidgetStyle !== root.defaultString(root.kdeDefaultValues, "widgetStyle")
+            || stagedColorScheme !== root.defaultString(root.kdeDefaultValues, "colorScheme")
+            || stagedIconTheme !== root.defaultString(root.kdeDefaultValues, "iconTheme")
+            || stagedCursorTheme !== root.defaultString(root.kdeDefaultValues, "cursorTheme")
+            || stagedKdeCursorSize !== root.defaultNumber(root.kdeDefaultValues, "cursorSize", 24)
+            || stagedShowIconsInMenus !== Boolean(root.kdeDefaultValues.showIconsInMenus)
+            || stagedKdeFontHinting !== root.defaultString(root.kdeDefaultValues, "fontHinting")
+            || stagedKdeFontAntialiasing !== root.defaultString(root.kdeDefaultValues, "fontAntialiasing")
+            || stagedKdeFontRgbaOrder !== root.defaultString(root.kdeDefaultValues, "fontRgbaOrder")
+            || stagedDefaultFont !== root.defaultString(root.kdeDefaultValues, "defaultFont")
+            || stagedMenuFont !== root.defaultString(root.kdeDefaultValues, "menuFont")
+            || stagedToolBarFont !== root.defaultString(root.kdeDefaultValues, "toolBarFont")
+            || stagedSmallFont !== root.defaultString(root.kdeDefaultValues, "smallFont")
+            || stagedMonospaceFont !== root.defaultString(root.kdeDefaultValues, "monospaceFont")))
+            return true
+
+        if (root.gtk && (stagedGtkTheme !== root.defaultString(root.gtkDefaultValues, "theme")
+            || stagedGtkIconTheme !== root.defaultString(root.gtkDefaultValues, "iconTheme")
+            || stagedGtkCursorTheme !== root.defaultString(root.gtkDefaultValues, "cursorTheme")
+            || stagedGtkFont !== root.defaultString(root.gtkDefaultValues, "font")
+            || stagedGtkCursorSize !== root.defaultNumber(root.gtkDefaultValues, "cursorSize", 24)
+            || stagedGtkColorScheme !== root.defaultString(root.gtkDefaultValues, "colorScheme")
+            || stagedGtkEventSounds !== Boolean(root.gtkDefaultValues.eventSounds)
+            || stagedGtkInputFeedbackSounds !== Boolean(root.gtkDefaultValues.inputFeedbackSounds)
+            || stagedGtkFontHinting !== root.defaultString(root.gtkDefaultValues, "fontHinting")
+            || stagedGtkFontAntialiasing !== root.defaultString(root.gtkDefaultValues, "fontAntialiasing")
+            || stagedGtkFontRgbaOrder !== root.defaultString(root.gtkDefaultValues, "fontRgbaOrder")
+            || Math.abs(stagedGtkTextScalingFactor - root.defaultNumber(root.gtkDefaultValues, "textScalingFactor", 1.0)) > 0.0001))
+            return true
+
+        if (root.hypr && root.hypr.available && (root.hypr.borderSize !== 1
+            || root.hypr.borderGradientAngle !== 45
+            || root.hypr.rounding !== root.windowRoundingForBorderRadius(6)
+            || !stagedRoundingFollowsMauiKit
+            || !stagedBorderColorsFollowTheme))
+            return true
+
+        return root.theme !== null || root.kde !== null || root.gtk !== null || root.hypr !== null || root.wallpaperColors !== null
+            ? stagedAdaptiveColorSchemeEnabled
+            : false
+    }
+
+    function resetSettings()
+    {
+        if (root.theme)
+        {
+            stagedStyleType = 3
+            stagedAccentColor = "#26c6da"
+            stagedWindowControlsTheme = "Nitrux"
+            stagedEnableCSD = true
+            stagedAdaptiveColorSchemeEnabled = false
+            stagedEnableEffects = true
+            stagedAllowCustomStyling = false
+            stagedBorderRadius = 6
+            stagedIconSize = 16
+            stagedPaddingSize = 6
+            stagedMarginSize = 6
+            stagedSpacingSize = 6
+        }
+
+        if (root.kde)
+        {
+            stagedWidgetStyle = root.defaultString(root.kdeDefaultValues, "widgetStyle")
+            stagedIconTheme = root.defaultString(root.kdeDefaultValues, "iconTheme")
+            stagedCursorTheme = root.defaultString(root.kdeDefaultValues, "cursorTheme")
+            stagedKdeCursorSize = root.defaultNumber(root.kdeDefaultValues, "cursorSize", 24)
+            stagedShowIconsInMenus = Boolean(root.kdeDefaultValues.showIconsInMenus)
+            stagedKdeFontHinting = root.defaultString(root.kdeDefaultValues, "fontHinting")
+            stagedKdeFontAntialiasing = root.defaultString(root.kdeDefaultValues, "fontAntialiasing")
+            stagedKdeFontRgbaOrder = root.defaultString(root.kdeDefaultValues, "fontRgbaOrder")
+            stagedColorScheme = root.defaultString(root.kdeDefaultValues, "colorScheme")
+            stagedDefaultFont = root.defaultString(root.kdeDefaultValues, "defaultFont")
+            stagedMenuFont = root.defaultString(root.kdeDefaultValues, "menuFont")
+            stagedToolBarFont = root.defaultString(root.kdeDefaultValues, "toolBarFont")
+            stagedSmallFont = root.defaultString(root.kdeDefaultValues, "smallFont")
+            stagedMonospaceFont = root.defaultString(root.kdeDefaultValues, "monospaceFont")
+        }
+
+        if (root.gtk)
+        {
+            stagedGtkTheme = root.defaultString(root.gtkDefaultValues, "theme")
+            stagedGtkIconTheme = root.defaultString(root.gtkDefaultValues, "iconTheme")
+            stagedGtkCursorTheme = root.defaultString(root.gtkDefaultValues, "cursorTheme")
+            stagedGtkFont = root.defaultString(root.gtkDefaultValues, "font")
+            stagedGtkCursorSize = root.defaultNumber(root.gtkDefaultValues, "cursorSize", 24)
+            stagedGtkColorScheme = root.defaultString(root.gtkDefaultValues, "colorScheme")
+            stagedGtkEventSounds = Boolean(root.gtkDefaultValues.eventSounds)
+            stagedGtkInputFeedbackSounds = Boolean(root.gtkDefaultValues.inputFeedbackSounds)
+            stagedGtkFontHinting = root.defaultString(root.gtkDefaultValues, "fontHinting")
+            stagedGtkFontAntialiasing = root.defaultString(root.gtkDefaultValues, "fontAntialiasing")
+            stagedGtkFontRgbaOrder = root.defaultString(root.gtkDefaultValues, "fontRgbaOrder")
+            stagedGtkTextScalingFactor = root.defaultNumber(root.gtkDefaultValues, "textScalingFactor", 1.0)
+        }
+
+        stagedRoundingFollowsMauiKit = true
+        stagedBorderColorsFollowTheme = true
+        stagedWindowRounding = root.windowRoundingForBorderRadius(stagedBorderRadius)
+
+        if (root.hypr)
+        {
+            root.hypr.borderSize = 1
+            root.hypr.borderGradientAngle = 45
+            root.hypr.rounding = stagedWindowRounding
+            root.hypr.activeBorderColorStart = "rgba(33ccffee)"
+            root.hypr.activeBorderColorEnd = "rgba(00ff99ee)"
+            root.hypr.inactiveBorderColor = "rgba(595959aa)"
+        }
+    }
+
     function saveSettings()
     {
         let kdeSaved = true
@@ -147,6 +288,7 @@ Maui.ScrollColumn
             kde.iconTheme = stagedIconTheme
             kde.cursorTheme = stagedCursorTheme
             kde.cursorSize = stagedKdeCursorSize
+            kde.showIconsInMenus = stagedShowIconsInMenus
             kde.fontHinting = stagedKdeFontHinting
             kde.fontAntialiasing = stagedKdeFontAntialiasing
             kde.fontRgbaOrder = stagedKdeFontRgbaOrder
@@ -1427,6 +1569,23 @@ Maui.ScrollColumn
                             _iconThemePreviewDialog.open()
                         }
                     }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                enabled: kde !== null
+                label1.text: i18n("Show icons in menus")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Display icons beside actions in application menus.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    checked: root.stagedShowIconsInMenus
+                    onToggled: root.stagedShowIconsInMenus = checked
                 }
             }
 

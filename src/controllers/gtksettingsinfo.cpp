@@ -367,6 +367,31 @@ void GtkSettingsInfo::setTextScalingFactor(double value) { if (qFuzzyCompare(m_t
 
 void GtkSettingsInfo::reload() { load(); }
 
+QVariantMap GtkSettingsInfo::defaultSettings() const
+{
+    const QString themeFallback = gsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("gtk-theme"), QStringLiteral("Adwaita"));
+    const QString iconFallback = gsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme"), QIcon::themeName());
+    const QString fontFallback = gsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-name"),
+                                                 QApplication::font().family() + QLatin1Char(32) + QString::number(qMax(1, QApplication::font().pointSize())));
+    const QString cursorFallback = gsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("cursor-theme"), QString());
+    const int cursorSizeFallback = gsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("cursor-size"), QStringLiteral("24")).toInt();
+
+    return {
+        {QStringLiteral("theme"), themeFallback},
+        {QStringLiteral("iconTheme"), iconFallback},
+        {QStringLiteral("cursorTheme"), cursorFallback},
+        {QStringLiteral("font"), fontFallback},
+        {QStringLiteral("cursorSize"), cursorSizeFallback > 0 ? cursorSizeFallback : 24},
+        {QStringLiteral("colorScheme"), QStringLiteral("default")},
+        {QStringLiteral("eventSounds"), true},
+        {QStringLiteral("inputFeedbackSounds"), false},
+        {QStringLiteral("fontHinting"), QStringLiteral("medium")},
+        {QStringLiteral("fontAntialiasing"), QStringLiteral("grayscale")},
+        {QStringLiteral("fontRgbaOrder"), QStringLiteral("rgb")},
+        {QStringLiteral("textScalingFactor"), 1.0}
+    };
+}
+
 void GtkSettingsInfo::scanThemes()
 {
     m_themes.clear();

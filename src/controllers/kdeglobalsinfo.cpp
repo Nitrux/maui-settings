@@ -498,6 +498,11 @@ bool KdeGlobalsInfo::singleClick() const
     return m_singleClick;
 }
 
+bool KdeGlobalsInfo::showIconsInMenus() const
+{
+    return m_showIconsInMenus;
+}
+
 QStringList KdeGlobalsInfo::colorSchemes() const
 {
     return m_colorSchemes;
@@ -676,9 +681,40 @@ void KdeGlobalsInfo::setSingleClick(bool value)
     setChanged();
 }
 
+void KdeGlobalsInfo::setShowIconsInMenus(bool value)
+{
+    if (m_showIconsInMenus == value)
+        return;
+
+    m_showIconsInMenus = value;
+    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus, !m_showIconsInMenus);
+    setChanged();
+}
+
 void KdeGlobalsInfo::reload()
 {
     load();
+}
+
+QVariantMap KdeGlobalsInfo::defaultSettings() const
+{
+    const QString defaultFont = QApplication::font().toString();
+    return {
+        {QStringLiteral("widgetStyle"), QApplication::style() ? QApplication::style()->objectName() : QStringLiteral("Fusion")},
+        {QStringLiteral("colorScheme"), QStringLiteral("Nitrux")},
+        {QStringLiteral("iconTheme"), QStringLiteral("Luv")},
+        {QStringLiteral("cursorTheme"), qEnvironmentVariable("XCURSOR_THEME")},
+        {QStringLiteral("cursorSize"), 24},
+        {QStringLiteral("showIconsInMenus"), true},
+        {QStringLiteral("defaultFont"), defaultFont},
+        {QStringLiteral("menuFont"), defaultFont},
+        {QStringLiteral("toolBarFont"), defaultFont},
+        {QStringLiteral("smallFont"), defaultFont},
+        {QStringLiteral("monospaceFont"), QFontDatabase::systemFont(QFontDatabase::FixedFont).toString()},
+        {QStringLiteral("fontHinting"), QStringLiteral("slight")},
+        {QStringLiteral("fontAntialiasing"), QStringLiteral("grayscale")},
+        {QStringLiteral("fontRgbaOrder"), QStringLiteral("rgb")}
+    };
 }
 
 bool KdeGlobalsInfo::applyColorSchemeFile(const QString &path, const QString &scheme)
@@ -769,6 +805,10 @@ bool KdeGlobalsInfo::save()
 
     if (kdeGroup.readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation()) != m_singleClick)
         kdeGroup.writeEntry(QStringLiteral("SingleClick"), m_singleClick);
+
+    if (kdeGroup.readEntry(QStringLiteral("ShowIconsInMenuItems"), true) != m_showIconsInMenus)
+        kdeGroup.writeEntry(QStringLiteral("ShowIconsInMenuItems"), m_showIconsInMenus);
+    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus, !m_showIconsInMenus);
 
     KConfigGroup iconsGroup(settings, QStringLiteral("Icons"));
     if (iconsGroup.readEntry(QStringLiteral("Theme"), QString()) != m_iconTheme)
@@ -1155,6 +1195,7 @@ void KdeGlobalsInfo::load()
     m_fontHinting = QStringLiteral("slight");
     m_fontAntialiasing = QStringLiteral("grayscale");
     m_fontRgbaOrder = QStringLiteral("rgb");
+    m_showIconsInMenus = true;
 
     const KSharedConfigPtr settings = KSharedConfig::openConfig(m_configPath, KConfig::SimpleConfig);
     const KConfigGroup generalGroup(settings, QStringLiteral("General"));
@@ -1176,6 +1217,8 @@ void KdeGlobalsInfo::load()
     const KConfigGroup kdeGroup(settings, QStringLiteral("KDE"));
     m_widgetStyle = kdeGroup.readEntry(QStringLiteral("widgetStyle"), QString());
     m_singleClick = kdeGroup.readEntry(QStringLiteral("SingleClick"), QApplication::styleHints()->singleClickActivation());
+    m_showIconsInMenus = kdeGroup.readEntry(QStringLiteral("ShowIconsInMenuItems"), true);
+    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus, !m_showIconsInMenus);
 
     m_iconTheme = settings->group(QStringLiteral("Icons")).readEntry(QStringLiteral("Theme"), QString());
     const KSharedConfigPtr inputSettings = KSharedConfig::openConfig(m_inputConfigPath, KConfig::SimpleConfig);
