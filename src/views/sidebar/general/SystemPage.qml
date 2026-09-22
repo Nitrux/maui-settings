@@ -203,6 +203,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 label1.text: i18n("Use secure password")
+                enabled: passwordField.text.length > 0
                 label2.text: i18n("Require strong passwords for user accounts.")
                 Switch
                 {

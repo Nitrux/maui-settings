@@ -148,6 +148,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: true
                     flat: true
                     label1.text: modelData.label
+                    enabled: modelData.canBeDisabled
                     label2.text: modelData.explanation
                     label2.wrapMode: Text.Wrap
 

@@ -557,6 +557,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 label1.text: i18n("Input type")
+                enabled: root.editingKeybindIndex < 0 && root.editingDeviceIndex < 0
                 label2.text: i18n("Choose whether to add a keybind or a device override.")
                 ComboBox
                 {

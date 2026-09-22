@@ -358,6 +358,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable Bluetooth")
+                enabled: root.controller && root.controller.available
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Allow this computer to communicate with Bluetooth devices.")
                 label2.wrapMode: Text.Wrap
@@ -395,6 +396,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Device discovery")
+                enabled: root.controller && root.controller.powered
                 label1.elide: Text.ElideRight
                 label2.text: root.controller && root.controller.discovering
                              ? i18n("Searching for nearby Bluetooth devices…")

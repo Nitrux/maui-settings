@@ -10,6 +10,7 @@ Maui.ScrollColumn
 {
     id: root
     readonly property var info: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
+    readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
     readonly property var displayController: (typeof displaysController !== "undefined" && displaysController) ? displaysController : null
     readonly property var previewDisplay: {
         const monitors = displayController ? displayController.monitors : []
@@ -543,6 +544,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Timeout")
+                enabled: !root.theme || !root.theme.adaptiveColorSchemeEnabled
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Seconds before hyprpaper changes to the next image.")
                 label2.wrapMode: Text.Wrap
@@ -574,6 +576,7 @@ Maui.ScrollColumn
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    enabled: !root.theme || !root.theme.adaptiveColorSchemeEnabled
                     from: 0
                     to: 9999
                     value: info ? info.wallpaperTimeout : 0
@@ -704,6 +707,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Splash offset")
+                enabled: info ? info.splashEnabled : false
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Vertical offset in pixels for the splash text.")
                 label2.wrapMode: Text.Wrap
@@ -752,6 +756,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Splash opacity")
+                enabled: info ? info.splashEnabled : false
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Splash text opacity as a percentage.")
                 label2.wrapMode: Text.Wrap

@@ -123,6 +123,7 @@ Maui.ScrollColumn
         {
             Layout.fillWidth: true
             label1.text: i18n("MIME Type")
+            enabled: !root.editing
             label2.text: i18n("For example: text/plain or x-scheme-handler/https.")
 
             TextField

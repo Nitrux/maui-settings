@@ -2,6 +2,7 @@
 
 #include "backgroundinfo.h"
 #include "kdeglobalsinfo.h"
+#include "hyprlandinfo.h"
 
 #include <MauiKit4/Core/colorutils.h>
 #include <MauiMan4/thememanager.h>
@@ -69,11 +70,13 @@ void writeColorGroup(QTextStream &out,
 WallpaperColorsController::WallpaperColorsController(MauiMan::ThemeManager *theme,
                                                        BackgroundInfo *background,
                                                        KdeGlobalsInfo *kde,
+                                                       HyprlandInfo *hyprland,
                                                        QObject *parent)
     : QObject(parent)
     , m_theme(theme)
     , m_background(background)
     , m_kde(kde)
+    , m_hyprland(hyprland)
 {
     m_sourceWatcher = new QFileSystemWatcher(this);
     m_sourceSyncTimer = new QTimer(this);
@@ -267,10 +270,44 @@ void WallpaperColorsController::synchronizeKde(const QString &source, bool synch
         persistSettings();
     }
 
-    if (writeGeneratedScheme(source)
-        && m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName))
-        && synchronizeGreeter)
+    if (!writeGeneratedScheme(source)
+        || !m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName)))
+        return;
+
+    synchronizeHyprlandBorders(source);
+    if (synchronizeGreeter)
         m_kde->synchronizeGreeter();
+}
+
+void WallpaperColorsController::synchronizeHyprlandBorders(const QString &source)
+{
+    if (!m_hyprland || !m_hyprland->available() || !m_hyprland->borderColorsFollowTheme() || source.isEmpty())
+        return;
+
+    const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(QImage(source));
+    if (!palette.valid)
+        return;
+
+    const auto rgba = [](const QColor &color, int alpha) {
+        return QStringLiteral("rgba(%1%2%3%4)")
+            .arg(color.red(), 2, 16, QLatin1Char('0'))
+            .arg(color.green(), 2, 16, QLatin1Char('0'))
+            .arg(color.blue(), 2, 16, QLatin1Char('0'))
+            .arg(alpha, 2, 16, QLatin1Char('0'));
+    };
+
+    const QString startColor = rgba(palette.highlightColor, 0xff);
+    const QString endColor = rgba(palette.highlightColor.lighter(120), 0xff);
+    const QString inactiveColor = rgba(palette.disabledTextColor, 0xaa);
+    if (m_hyprland->activeBorderColorStart() == startColor
+        && m_hyprland->activeBorderColorEnd() == endColor
+        && m_hyprland->inactiveBorderColor() == inactiveColor)
+        return;
+
+    m_hyprland->setActiveBorderColorStart(startColor);
+    m_hyprland->setActiveBorderColorEnd(endColor);
+    m_hyprland->setInactiveBorderColor(inactiveColor);
+    m_hyprland->save();
 }
 
 bool WallpaperColorsController::writeGeneratedScheme(const QString &source)

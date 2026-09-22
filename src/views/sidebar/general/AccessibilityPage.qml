@@ -105,6 +105,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Single-click activation")
+                enabled: root.kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Open files and folders with one click instead of a double-click.")
                 label2.wrapMode: Text.Wrap
@@ -143,6 +144,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Terminal scroll bars placement")
+                enabled: root.scrollBarOnLeftAvailable
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Show vertical scroll bars on the left side instead of the right side on all terminals.")
                 label2.wrapMode: Text.Wrap

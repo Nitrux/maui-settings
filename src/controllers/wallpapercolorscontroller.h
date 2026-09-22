@@ -5,6 +5,7 @@
 
 class BackgroundInfo;
 class KdeGlobalsInfo;
+class HyprlandInfo;
 class QFileSystemWatcher;
 class QTimer;
 
@@ -22,6 +23,7 @@ public:
     explicit WallpaperColorsController(MauiMan::ThemeManager *theme,
                                        BackgroundInfo *background,
                                        KdeGlobalsInfo *kde,
+                                       HyprlandInfo *hyprland,
                                        QObject *parent = nullptr);
 
     bool kdeSynchronizationEnabled() const;
@@ -40,6 +42,7 @@ private:
     void clearSourceWatcher();
     void onThemeSourceChanged(const QString &source);
     void synchronizeKde(const QString &source, bool synchronizeGreeter);
+    void synchronizeHyprlandBorders(const QString &source);
     bool writeGeneratedScheme(const QString &source);
     void restorePreviousScheme();
     void persistSettings() const;
@@ -49,6 +52,7 @@ private:
     MauiMan::ThemeManager *m_theme;
     BackgroundInfo *m_background;
     KdeGlobalsInfo *m_kde;
+    HyprlandInfo *m_hyprland;
     bool m_kdeSynchronizationEnabled = false;
     QString m_previousKdeScheme;
     bool m_hasPreviousKdeScheme = false;

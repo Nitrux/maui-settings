@@ -131,7 +131,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     KdeGlobalsInfo kdeGlobalsInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("kdeGlobalsInfo"), &kdeGlobalsInfo);
 
-    WallpaperColorsController wallpaperColorsController(&themeInfo, &backgroundInfo, &kdeGlobalsInfo);
+    HyprlandInfo hyprlandInfo;
+    WallpaperColorsController wallpaperColorsController(&themeInfo, &backgroundInfo, &kdeGlobalsInfo, &hyprlandInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("wallpaperColorsController"), &wallpaperColorsController);
 
     GtkSettingsInfo gtkSettingsInfo;
@@ -160,7 +161,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     PowerInfo powerInfo;
     BatteryController batteryController;
     HyprsunsetInfo hyprsunsetInfo;
-    HyprlandInfo hyprlandInfo;
     AutostartController autostartController;
     EnvironmentController environmentController;
     FlatpakPermissionsController flatpakPermissionsController;

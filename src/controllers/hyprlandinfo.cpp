@@ -10,6 +10,7 @@
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QProcess>
+#include <QSettings>
 #include <QtGlobal>
 
 namespace
@@ -293,8 +294,10 @@ int HyprlandInfo::borderSize() const { return m_borderSize; }
 QString HyprlandInfo::activeBorderColorStart() const { return m_activeBorderColorStart; }
 QString HyprlandInfo::activeBorderColorEnd() const { return m_activeBorderColorEnd; }
 QString HyprlandInfo::inactiveBorderColor() const { return m_inactiveBorderColor; }
+bool HyprlandInfo::borderColorsFollowTheme() const { return m_borderColorsFollowTheme; }
 int HyprlandInfo::borderGradientAngle() const { return m_borderGradientAngle; }
 int HyprlandInfo::rounding() const { return m_rounding; }
+bool HyprlandInfo::roundingFollowsMauiKit() const { return m_roundingFollowsMauiKit; }
 QString HyprlandInfo::layout() const { return m_layout; }
 int HyprlandInfo::activeOpacity() const { return m_activeOpacity; }
 int HyprlandInfo::inactiveOpacity() const { return m_inactiveOpacity; }
@@ -382,6 +385,14 @@ void HyprlandInfo::setInactiveBorderColor(const QString &value)
     setChanged();
 }
 
+void HyprlandInfo::setBorderColorsFollowTheme(bool value)
+{
+    if (m_borderColorsFollowTheme == value)
+        return;
+    m_borderColorsFollowTheme = value;
+    setChanged();
+}
+
 void HyprlandInfo::setBorderGradientAngle(int value)
 {
     value = qBound(0, value, 360);
@@ -393,10 +404,18 @@ void HyprlandInfo::setBorderGradientAngle(int value)
 
 void HyprlandInfo::setRounding(int value)
 {
-    value = qBound(0, value, 64);
+    value = qBound(0, value, 128);
     if (m_rounding == value)
         return;
     m_rounding = value;
+    setChanged();
+}
+
+void HyprlandInfo::setRoundingFollowsMauiKit(bool value)
+{
+    if (m_roundingFollowsMauiKit == value)
+        return;
+    m_roundingFollowsMauiKit = value;
     setChanged();
 }
 
@@ -823,8 +842,16 @@ void HyprlandInfo::load()
     m_activeBorderColorStart = normalizedGradientColor(borderGradientColor(lines, activeBorder, 0), QStringLiteral("rgba(33ccffee)"));
     m_activeBorderColorEnd = normalizedGradientColor(borderGradientColor(lines, activeBorder, 1), QStringLiteral("rgba(00ff99ee)"));
     m_inactiveBorderColor = normalizedGradientColor(valueInTable(lines, generalColors, QStringLiteral("inactive_border")), QStringLiteral("rgba(595959aa)"));
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("Hyprland"));
+    const bool defaultBorderColors = m_activeBorderColorStart == QStringLiteral("rgba(33ccffee)")
+        && m_activeBorderColorEnd == QStringLiteral("rgba(00ff99ee)")
+        && m_inactiveBorderColor == QStringLiteral("rgba(595959aa)");
+    m_borderColorsFollowTheme = settings.value(QStringLiteral("BorderColorsFollowTheme"), defaultBorderColors).toBool();
+    m_roundingFollowsMauiKit = settings.value(QStringLiteral("RoundingFollowsMauiKit"), true).toBool();
+    settings.endGroup();
     m_borderGradientAngle = integerValue(valueInTable(lines, activeBorder, QStringLiteral("angle")), 45, 0, 360);
-    m_rounding = integerValue(valueInTable(lines, decoration, QStringLiteral("rounding")), 16, 0, 64);
+    m_rounding = integerValue(valueInTable(lines, decoration, QStringLiteral("rounding")), 16, 0, 128);
     m_layout = valueInTable(lines, general, QStringLiteral("layout")).trimmed().toLower();
     if (m_layout != QLatin1String("master"))
         m_layout = QStringLiteral("dwindle");
@@ -1021,6 +1048,12 @@ bool HyprlandInfo::save()
     stream.flush();
     if (!destination.commit())
         return false;
+
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("Hyprland"));
+    settings.setValue(QStringLiteral("BorderColorsFollowTheme"), m_borderColorsFollowTheme);
+    settings.setValue(QStringLiteral("RoundingFollowsMauiKit"), m_roundingFollowsMauiKit);
+    settings.endGroup();
 
     const QString hyprctl = QStandardPaths::findExecutable(QStringLiteral("hyprctl"));
     if (!hyprctl.isEmpty())

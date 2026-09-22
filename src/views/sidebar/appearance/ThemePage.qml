@@ -11,6 +11,7 @@ Maui.ScrollColumn
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
     readonly property var gtk: (typeof gtkSettingsInfo !== "undefined" && gtkSettingsInfo) ? gtkSettingsInfo : null
     readonly property var wallpaperColors: (typeof wallpaperColorsController !== "undefined" && wallpaperColorsController) ? wallpaperColorsController : null
+    readonly property var hypr: (typeof hyprlandInfo !== "undefined" && hyprlandInfo) ? hyprlandInfo : null
 
     property int stagedStyleType: 0
     property string stagedAccentColor: "#26c6da"
@@ -20,6 +21,9 @@ Maui.ScrollColumn
     property bool stagedEnableEffects: false
     property bool stagedAllowCustomStyling: false
     property int stagedBorderRadius: 0
+    property int stagedWindowRounding: 16
+    property bool stagedRoundingFollowsMauiKit: true
+    property bool stagedBorderColorsFollowTheme: true
     property int stagedIconSize: 16
     property int stagedPaddingSize: 0
     property int stagedMarginSize: 0
@@ -57,6 +61,14 @@ Maui.ScrollColumn
         if (kde)
             kde.reload()
 
+        if (hypr)
+        {
+            hypr.reload()
+            stagedBorderColorsFollowTheme = hypr.borderColorsFollowTheme
+            stagedRoundingFollowsMauiKit = hypr.roundingFollowsMauiKit
+            stagedWindowRounding = hypr.rounding
+        }
+
         if (theme)
         {
             stagedStyleType = theme.styleType
@@ -67,6 +79,7 @@ Maui.ScrollColumn
             stagedEnableEffects = theme.enableEffects
             stagedAllowCustomStyling = theme.allowCustomStyling
             stagedBorderRadius = theme.borderRadius
+            stagedWindowRounding = stagedRoundingFollowsMauiKit ? windowRoundingForBorderRadius(stagedBorderRadius) : stagedWindowRounding
             stagedIconSize = theme.iconSize
             stagedPaddingSize = theme.paddingSize
             stagedMarginSize = theme.marginSize
@@ -144,6 +157,20 @@ Maui.ScrollColumn
             kde.smallFont = stagedSmallFont
             kde.monospaceFont = stagedMonospaceFont
             kdeSaved = kde.save()
+        }
+
+        if (hypr)
+        {
+            hypr.roundingFollowsMauiKit = stagedRoundingFollowsMauiKit
+            hypr.rounding = stagedRoundingFollowsMauiKit ? windowRoundingForBorderRadius(stagedBorderRadius) : stagedWindowRounding
+            hypr.borderColorsFollowTheme = stagedBorderColorsFollowTheme
+            if (stagedBorderColorsFollowTheme)
+            {
+                hypr.activeBorderColorStart = themeBorderStartColor()
+                hypr.activeBorderColorEnd = themeBorderEndColor()
+                hypr.inactiveBorderColor = themeInactiveBorderColor()
+            }
+            hypr.save()
         }
 
         if (wallpaperColors)
@@ -285,6 +312,79 @@ Maui.ScrollColumn
         return propertyName === "borderRadius" ? stagedBorderRadius : propertyName === "iconSize" ? stagedIconSize : propertyName === "paddingSize" ? stagedPaddingSize : propertyName === "marginSize" ? stagedMarginSize : propertyName === "spacingSize" ? stagedSpacingSize : fallback
     }
 
+
+    function windowRoundingForBorderRadius(value)
+    {
+        return Math.round(Number(value) * 16 / 12)
+    }
+
+    function colorChannel(value)
+    {
+        const channel = Math.max(0, Math.min(255, Math.round(Number(value) * 255)))
+        const hex = channel.toString(16)
+        return hex.length === 1 ? "0" + hex : hex
+    }
+
+    function colorToRgba(color, alpha)
+    {
+        return "rgba(" + colorChannel(color.r) + colorChannel(color.g) + colorChannel(color.b) + alpha + ")"
+    }
+
+    function themeBorderStartColor()
+    {
+        return colorToRgba(Maui.Theme.highlightColor, "ff")
+    }
+
+    function themeBorderEndColor()
+    {
+        return colorToRgba(Qt.lighter(Maui.Theme.highlightColor, 120), "ff")
+    }
+
+    function themeInactiveBorderColor()
+    {
+        return colorToRgba(Maui.Theme.disabledTextColor, "aa")
+    }
+
+    function rgbaToHex(value, fallback)
+    {
+        const match = String(value).trim().match(/^rgba\(([0-9a-fA-F]{8})\)$/)
+        return match ? "#" + match[1].slice(0, 6) : (fallback || "#26c6da")
+    }
+
+    function rgbaAlpha(value)
+    {
+        const match = String(value).trim().match(/^rgba\(([0-9a-fA-F]{8})\)$/)
+        return match ? match[1].slice(6, 8) : "ff"
+    }
+
+    function hexToRgba(value, source)
+    {
+        const normalized = String(value).trim().replace("#", "")
+        return /^[0-9a-fA-F]{6}$/.test(normalized)
+            ? "rgba(" + normalized + root.rgbaAlpha(source) + ")"
+            : source
+    }
+
+    function borderStartColor()
+    {
+        return stagedBorderColorsFollowTheme ? themeBorderStartColor() : (hypr ? hypr.activeBorderColorStart : themeBorderStartColor())
+    }
+
+    function borderEndColor()
+    {
+        return stagedBorderColorsFollowTheme ? themeBorderEndColor() : (hypr ? hypr.activeBorderColorEnd : themeBorderEndColor())
+    }
+
+    function inactiveBorderColor()
+    {
+        return stagedBorderColorsFollowTheme ? themeInactiveBorderColor() : (hypr ? hypr.inactiveBorderColor : themeInactiveBorderColor())
+    }
+
+    function borderColorsEqual()
+    {
+        return rgbaToHex(borderStartColor()).toLowerCase() === rgbaToHex(borderEndColor()).toLowerCase()
+    }
+
     function kdeString(propertyName, fallback)
     {
         return propertyName === "widgetStyle" ? stagedWidgetStyle : propertyName === "iconTheme" ? stagedIconTheme : propertyName === "colorScheme" ? stagedColorScheme : propertyName === "defaultFont" ? stagedDefaultFont : propertyName === "menuFont" ? stagedMenuFont : propertyName === "toolBarFont" ? stagedToolBarFont : propertyName === "smallFont" ? stagedSmallFont : propertyName === "monospaceFont" ? stagedMonospaceFont : fallback
@@ -373,7 +473,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("MauiKit Theme")
-                text2: i18n("These values only affect MauiKit apps.")
+                text2: i18n("These values affect MauiKit apps and define the window radius below.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -382,6 +482,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Style type")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Light, dark, adaptive, auto, true black, or inverted.")
                 label2.wrapMode: Text.Wrap
@@ -428,6 +529,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Use wallpaper colors")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Derive the full MauiKit palette from the selected wallpaper.")
                 label2.wrapMode: Text.Wrap
@@ -467,6 +569,7 @@ Maui.ScrollColumn
                 flat: true
                 visible: accentColorVisible()
                 label1.text: i18n("MauiKit accent override")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Overrides the MauiKit highlight color in Light and Dark modes only.")
                 label2.wrapMode: Text.Wrap
@@ -530,6 +633,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Window controls theme")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Theme used for MauiKit client-side decoration buttons.")
                 label2.wrapMode: Text.Wrap
@@ -576,6 +680,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable CSD")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Use client-side decorations for applications.")
                 label2.wrapMode: Text.Wrap
@@ -617,6 +722,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable effects")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Allow visual effects such as blur and animations.")
                 label2.wrapMode: Text.Wrap
@@ -658,6 +764,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Allow custom styling")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Permit third-party Qt Quick Controls styles to opt in.")
                 label2.wrapMode: Text.Wrap
@@ -697,7 +804,8 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
-                label1.text: i18n("Border radius")
+                label1.text: i18n("MauiKit border radius")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Corner radius for surfaces and controls.")
                 label2.wrapMode: Text.Wrap
@@ -736,6 +844,8 @@ Maui.ScrollColumn
                     onValueModified:
                     {
                         root.stagedBorderRadius = value
+                        if (root.stagedRoundingFollowsMauiKit)
+                            root.stagedWindowRounding = root.windowRoundingForBorderRadius(value)
                     }
                 }
             }
@@ -745,6 +855,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Icon size")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred icon size in controls and menus.")
                 label2.wrapMode: Text.Wrap
@@ -792,6 +903,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Padding")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Internal padding used by controls.")
                 label2.wrapMode: Text.Wrap
@@ -839,6 +951,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Margin")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Margins used around views and sections.")
                 label2.wrapMode: Text.Wrap
@@ -886,6 +999,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Spacing")
+                enabled: theme !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Spacing used between elements in layouts.")
                 label2.wrapMode: Text.Wrap
@@ -929,6 +1043,237 @@ Maui.ScrollColumn
             }
         }
     }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        enabled: root.hypr ? root.hypr.available : false
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _windowAppearanceLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _windowAppearanceLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Window Appearance")
+                text2: i18n("Configure the appearance of windows in Hyprland.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Border size")
+                enabled: root.hypr !== null
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Width of the border around focused windows in pixels.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    from: 0
+                    to: 16
+                    value: root.hypr ? root.hypr.borderSize : 1
+                    enabled: root.hypr !== null
+                    onValueModified: if (root.hypr) root.hypr.borderSize = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Sync border colors with theme")
+                enabled: root.hypr !== null
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Keep the active border colors synchronized with the current color scheme.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: root.stagedBorderColorsFollowTheme
+                    enabled: root.hypr !== null
+                    onToggled: root.stagedBorderColorsFollowTheme = checked
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Border color")
+                enabled: root.hypr !== null && !root.stagedBorderColorsFollowTheme
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Follow the active theme colors by default, or configure custom colors.")
+                label2.wrapMode: Text.Wrap
+                template.content: Button
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    text: i18n("Configure")
+                    enabled: root.hypr !== null && !root.stagedBorderColorsFollowTheme
+                    onClicked: borderGradientDialog.open()
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Border color direction")
+                enabled: root.hypr !== null && !root.borderColorsEqual()
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Angle of the active border color gradient in degrees.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    from: 0
+                    to: 360
+                    value: root.hypr ? root.hypr.borderGradientAngle : 45
+                    enabled: root.hypr !== null && !root.borderColorsEqual()
+                    onValueModified: if (root.hypr) root.hypr.borderGradientAngle = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Follow MauiKit radius")
+                enabled: root.hypr !== null
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Keep Hyprland window corners proportional to the MauiKit radius at 16:12.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: root.stagedRoundingFollowsMauiKit
+                    enabled: root.hypr !== null
+                    onToggled:
+                    {
+                        root.stagedRoundingFollowsMauiKit = checked
+                        if (checked)
+                            root.stagedWindowRounding = root.windowRoundingForBorderRadius(root.stagedBorderRadius)
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Corner radius")
+                visible: !root.stagedRoundingFollowsMauiKit
+                enabled: root.hypr !== null
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Round window corners by this many pixels.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+                    function updateResponsiveParent() { if (wideParent && responsiveSectionItem) parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent }
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 8
+                    from: 0
+                    to: 128
+                    value: root.stagedWindowRounding
+                    enabled: root.hypr !== null
+                    onValueModified: root.stagedWindowRounding = value
+                }
+            }
+        }
+    }
+
+
     Rectangle
     {
         Layout.fillWidth: true
@@ -958,6 +1303,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Widget style")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Qt Widgets style used by KDE and other Qt applications.")
                 label2.wrapMode: Text.Wrap
@@ -1021,6 +1367,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Icon theme")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred desktop icon theme.")
                 label2.wrapMode: Text.Wrap
@@ -1088,6 +1435,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Color scheme")
+                enabled: kde !== null && !stagedAdaptiveColorSchemeEnabled
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Current KDE-spec color scheme.")
                 label2.wrapMode: Text.Wrap
@@ -1155,6 +1503,7 @@ Maui.ScrollColumn
                 flat: true
                 visible: stagedAdaptiveColorSchemeEnabled
                 label1.text: i18n("Synchronize wallpaper colors with KDE applications")
+                enabled: false
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Automatically applies wallpaper colors to KDE applications.")
                 label2.wrapMode: Text.Wrap
@@ -1192,6 +1541,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Cursor theme")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Preferred desktop pointer theme.")
                 label2.wrapMode: Text.Wrap
@@ -1255,6 +1605,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Cursor size")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Pointer size used by KDE and MauiKit applications.")
                 label2.wrapMode: Text.Wrap
@@ -1323,6 +1674,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Default font")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Primary UI font used by MauiKit and KDE.")
                 label2.wrapMode: Text.Wrap
@@ -1368,6 +1720,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Menu font")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Font used in KDE application menus.")
                 label2.wrapMode: Text.Wrap
@@ -1413,6 +1766,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Toolbar font")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Font used in KDE application toolbars.")
                 label2.wrapMode: Text.Wrap
@@ -1459,6 +1813,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Small font")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Font used by KDE for secondary text.")
                 label2.wrapMode: Text.Wrap
@@ -1504,6 +1859,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Monospaced font")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Font used by KDE for code and fixed-width text.")
                 label2.wrapMode: Text.Wrap
@@ -1549,6 +1905,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Font hinting")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls how glyphs are aligned to the pixel grid.")
                 label2.wrapMode: Text.Wrap
@@ -1587,6 +1944,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Font antialiasing")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls how KDE and MauiKit smooth rendered text.")
                 label2.wrapMode: Text.Wrap
@@ -1625,6 +1983,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Subpixel order")
+                enabled: kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls the RGB order used for subpixel rendering.")
                 label2.wrapMode: Text.Wrap
@@ -1689,6 +2048,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("GTK theme")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Theme used by GTK applications.")
                 label2.wrapMode: Text.Wrap
@@ -1756,6 +2116,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Icon theme")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Icons used by GTK applications.")
                 label2.wrapMode: Text.Wrap
@@ -1820,6 +2181,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Cursor theme")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Pointer theme used by GTK applications.")
                 label2.wrapMode: Text.Wrap
@@ -1884,6 +2246,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Cursor size")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Pointer size used by GTK applications.")
                 label2.wrapMode: Text.Wrap
@@ -1929,6 +2292,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Font")
+                enabled: gtk !== null && kde !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Font used by GTK applications, for example Noto Sans 10.")
                 label2.wrapMode: Text.Wrap
@@ -1969,6 +2333,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Theme preference")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Choose whether GTK applications prefer the default, dark, or light theme.")
                 label2.wrapMode: Text.Wrap
@@ -2038,6 +2403,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Font hinting")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls how glyphs are aligned to the pixel grid.")
                 label2.wrapMode: Text.Wrap
@@ -2081,6 +2447,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Font antialiasing")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls how GTK smooths rendered text.")
                 label2.wrapMode: Text.Wrap
@@ -2124,6 +2491,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Subpixel order")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Controls the RGB order used for subpixel rendering.")
                 label2.wrapMode: Text.Wrap
@@ -2167,6 +2535,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Text scaling")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Scale GTK text from 50% to 300%.")
                 label2.wrapMode: Text.Wrap
@@ -2212,6 +2581,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Event sounds")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Enable sounds for GTK interface events.")
                 label2.wrapMode: Text.Wrap
@@ -2255,6 +2625,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Input feedback sounds")
+                enabled: gtk !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Enable sounds for input feedback.")
                 label2.wrapMode: Text.Wrap
@@ -2711,5 +3082,168 @@ Maui.ScrollColumn
             }
         }
     }
+
+
+    Maui.SettingsDialog
+    {
+        id: borderGradientDialog
+        title: i18n("Border Color Gradient")
+        persistent: true
+
+        property string pendingStartColor: root.rgbaToHex(root.borderStartColor(), "#26c6da")
+        property string pendingEndColor: root.rgbaToHex(root.borderEndColor(), "#2eefff")
+        property string pendingInactiveColor: root.rgbaToHex(root.inactiveBorderColor(), "#595959")
+
+        onOpened:
+        {
+            pendingStartColor = root.rgbaToHex(root.borderStartColor(), "#26c6da")
+            pendingEndColor = root.rgbaToHex(root.borderEndColor(), "#2eefff")
+            pendingInactiveColor = root.rgbaToHex(root.inactiveBorderColor(), "#595959")
+            _startColorField.text = pendingStartColor
+            _endColorField.text = pendingEndColor
+            _inactiveColorField.text = pendingInactiveColor
+        }
+
+        function applyPendingColors()
+        {
+            if (root.hypr)
+            {
+                root.hypr.activeBorderColorStart = root.hexToRgba(pendingStartColor, root.borderStartColor())
+                root.hypr.activeBorderColorEnd = root.hexToRgba(pendingEndColor, root.borderEndColor())
+                root.hypr.inactiveBorderColor = root.hexToRgba(pendingInactiveColor, root.inactiveBorderColor())
+                root.stagedBorderColorsFollowTheme = false
+                root.hypr.borderColorsFollowTheme = false
+            }
+        }
+
+        Maui.SectionGroup
+        {
+            title: i18n("Start Color")
+            description: i18n("Choose a preset or enter a hex color.")
+            Layout.fillWidth: true
+
+            Maui.ColorsRow
+            {
+                Layout.fillWidth: true
+                currentColor: borderGradientDialog.pendingStartColor
+                colors: ["#33ccff", "#00ff99", "#ffcc33", "#ff6699", "#ffffff", "#000000"]
+                onColorPicked: (color) =>
+                {
+                    borderGradientDialog.pendingStartColor = String(color)
+                    _startColorField.text = borderGradientDialog.pendingStartColor
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                label1.text: i18n("Hex")
+                label2.text: i18n("Use #RRGGBB format.")
+                Maui.TextField
+                {
+                    id: _startColorField
+                    Layout.fillWidth: true
+                    placeholderText: "#33ccff"
+                    text: borderGradientDialog.pendingStartColor
+                    onTextEdited:
+                    {
+                        if (/^#[0-9a-fA-F]{6}$/.test(text.trim()))
+                            borderGradientDialog.pendingStartColor = text.trim()
+                    }
+                }
+            }
+        }
+
+        Maui.SectionGroup
+        {
+            title: i18n("End Color")
+            description: i18n("Choose a preset or enter a hex color.")
+            Layout.fillWidth: true
+
+            Maui.ColorsRow
+            {
+                Layout.fillWidth: true
+                currentColor: borderGradientDialog.pendingEndColor
+                colors: ["#33ccff", "#00ff99", "#ffcc33", "#ff6699", "#ffffff", "#000000"]
+                onColorPicked: (color) =>
+                {
+                    borderGradientDialog.pendingEndColor = String(color)
+                    _endColorField.text = borderGradientDialog.pendingEndColor
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                label1.text: i18n("Hex")
+                label2.text: i18n("Use #RRGGBB format.")
+                Maui.TextField
+                {
+                    id: _endColorField
+                    Layout.fillWidth: true
+                    placeholderText: "#00ff99"
+                    text: borderGradientDialog.pendingEndColor
+                    onTextEdited:
+                    {
+                        if (/^#[0-9a-fA-F]{6}$/.test(text.trim()))
+                            borderGradientDialog.pendingEndColor = text.trim()
+                    }
+                }
+            }
+        }
+
+        Maui.SectionGroup
+        {
+            title: i18n("Inactive Border Color")
+            description: i18n("Choose a preset or enter a hex color.")
+            Layout.fillWidth: true
+
+            Maui.ColorsRow
+            {
+                Layout.fillWidth: true
+                currentColor: borderGradientDialog.pendingInactiveColor
+                colors: ["#595959", "#333333", "#777777", "#999999", "#ffffff", "#000000"]
+                onColorPicked: (color) =>
+                {
+                    borderGradientDialog.pendingInactiveColor = String(color)
+                    _inactiveColorField.text = borderGradientDialog.pendingInactiveColor
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                label1.text: i18n("Hex")
+                label2.text: i18n("Use #RRGGBB format.")
+                Maui.TextField
+                {
+                    id: _inactiveColorField
+                    Layout.fillWidth: true
+                    placeholderText: "#595959"
+                    text: borderGradientDialog.pendingInactiveColor
+                    onTextEdited:
+                    {
+                        if (/^#[0-9a-fA-F]{6}$/.test(text.trim()))
+                            borderGradientDialog.pendingInactiveColor = text.trim()
+                    }
+                }
+            }
+        }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered: borderGradientDialog.close()
+            },
+            Action
+            {
+                text: i18n("Accept")
+                onTriggered:
+                {
+                    borderGradientDialog.applyPendingColors()
+                    borderGradientDialog.close()
+                }
+            }
+        ]
+    }
+
 
 }

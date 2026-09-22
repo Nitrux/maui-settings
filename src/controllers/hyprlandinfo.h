@@ -16,8 +16,10 @@ class HyprlandInfo : public QObject
     Q_PROPERTY(QString activeBorderColorStart READ activeBorderColorStart WRITE setActiveBorderColorStart NOTIFY settingsChanged)
     Q_PROPERTY(QString activeBorderColorEnd READ activeBorderColorEnd WRITE setActiveBorderColorEnd NOTIFY settingsChanged)
     Q_PROPERTY(QString inactiveBorderColor READ inactiveBorderColor WRITE setInactiveBorderColor NOTIFY settingsChanged)
+    Q_PROPERTY(bool borderColorsFollowTheme READ borderColorsFollowTheme WRITE setBorderColorsFollowTheme NOTIFY settingsChanged)
     Q_PROPERTY(int borderGradientAngle READ borderGradientAngle WRITE setBorderGradientAngle NOTIFY settingsChanged)
     Q_PROPERTY(int rounding READ rounding WRITE setRounding NOTIFY settingsChanged)
+    Q_PROPERTY(bool roundingFollowsMauiKit READ roundingFollowsMauiKit WRITE setRoundingFollowsMauiKit NOTIFY settingsChanged)
     Q_PROPERTY(QString layout READ layout WRITE setLayout NOTIFY settingsChanged)
     Q_PROPERTY(int activeOpacity READ activeOpacity WRITE setActiveOpacity NOTIFY settingsChanged)
     Q_PROPERTY(int inactiveOpacity READ inactiveOpacity WRITE setInactiveOpacity NOTIFY settingsChanged)
@@ -60,8 +62,10 @@ public:
     QString activeBorderColorStart() const;
     QString activeBorderColorEnd() const;
     QString inactiveBorderColor() const;
+    bool borderColorsFollowTheme() const;
     int borderGradientAngle() const;
     int rounding() const;
+    bool roundingFollowsMauiKit() const;
     QString layout() const;
     int activeOpacity() const;
     int inactiveOpacity() const;
@@ -99,8 +103,10 @@ public:
     void setActiveBorderColorStart(const QString &value);
     void setActiveBorderColorEnd(const QString &value);
     void setInactiveBorderColor(const QString &value);
+    void setBorderColorsFollowTheme(bool value);
     void setBorderGradientAngle(int value);
     void setRounding(int value);
+    void setRoundingFollowsMauiKit(bool value);
     void setLayout(const QString &value);
     void setActiveOpacity(int value);
     void setInactiveOpacity(int value);
@@ -157,8 +163,10 @@ private:
     QString m_activeBorderColorStart = QStringLiteral("rgba(33ccffee)");
     QString m_activeBorderColorEnd = QStringLiteral("rgba(00ff99ee)");
     QString m_inactiveBorderColor = QStringLiteral("rgba(595959aa)");
+    bool m_borderColorsFollowTheme = true;
     int m_borderGradientAngle = 45;
     int m_rounding = 16;
+    bool m_roundingFollowsMauiKit = true;
     QString m_layout = QStringLiteral("dwindle");
     int m_activeOpacity = 100;
     int m_inactiveOpacity = 80;

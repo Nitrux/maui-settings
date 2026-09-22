@@ -339,6 +339,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Enable WiFi")
+                enabled: !!(root.controller && root.controller.available && root.controller.hardwareEnabled)
                 label1.elide: Text.ElideRight
                 label2.text: root.controller && !root.controller.hardwareEnabled
                              ? i18n("Wi-Fi is disabled by a hardware switch.")
@@ -378,6 +379,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Scan for networks")
+                enabled: !!(root.controller && root.controller.wirelessEnabled && !root.controller.scanning)
                 label1.elide: Text.ElideRight
                 label2.text: root.controller && root.controller.scanning
                              ? i18n("Scanning for nearby wireless networks…")
@@ -447,6 +449,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("DNS encryption")
+                enabled: root.controller !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Send DNS queries through the local dnscrypt-proxy resolver for all saved connections.")
                 label2.wrapMode: Text.Wrap
@@ -463,6 +466,7 @@ Maui.ScrollColumn
                 Layout.fillWidth: true
                 flat: true
                 label1.text: i18n("Import OpenVPN connection")
+                enabled: root.controller !== null
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Create a NetworkManager VPN profile from an OpenVPN configuration file.")
                 label2.wrapMode: Text.Wrap
