@@ -9,6 +9,7 @@
 
 #include <QDir>
 #include <QGuiApplication>
+#include <QStyleHints>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QImage>
