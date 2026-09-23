@@ -98,6 +98,7 @@ QString QmlGreetController::wallpaperDirectory() const
 }
 
 QString QmlGreetController::wallpaperPath() const { return m_wallpaperPath; }
+bool QmlGreetController::wallpaperSynchronized() const { return m_wallpaperSynchronized; }
 QString QmlGreetController::iconMode() const { return m_iconMode; }
 
 QString QmlGreetController::avatarDirectory() const
@@ -145,6 +146,21 @@ QString QmlGreetController::normalizeLocalPath(const QString &value)
     }
 
 SET_STRING_SETTING(setWallpaperPath, m_wallpaperPath, wallpaperPathChanged, normalizeLocalPath(value))
+
+void QmlGreetController::setWallpaperSynchronized(bool value)
+{
+    if (m_wallpaperSynchronized == value)
+        return;
+
+    m_wallpaperSynchronized = value;
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("WallpaperSync"));
+    settings.setValue(QStringLiteral("Greeter"), value);
+    settings.endGroup();
+    settings.sync();
+    Q_EMIT wallpaperSynchronizedChanged();
+}
+
 void QmlGreetController::setIconMode(const QString &value)
 {
     const QString normalized = value.trimmed().toLower() == QStringLiteral("nerd")
@@ -383,6 +399,17 @@ void QmlGreetController::reload()
     }
 
     applyValues(readSettings(settings));
+
+    QSettings preferences;
+    preferences.beginGroup(QStringLiteral("WallpaperSync"));
+    const bool wallpaperSynchronized = preferences.value(
+        QStringLiteral("Greeter"), true).toBool();
+    preferences.endGroup();
+    if (m_wallpaperSynchronized != wallpaperSynchronized)
+    {
+        m_wallpaperSynchronized = wallpaperSynchronized;
+        Q_EMIT wallpaperSynchronizedChanged();
+    }
     m_savedValues = stagedValues();
     if (m_dirty)
     {

@@ -200,6 +200,7 @@ QString DesklockController::wallpaperDirectory() const
 }
 
 QString DesklockController::wallpaperPath() const { return m_wallpaperPath; }
+bool DesklockController::wallpaperSynchronized() const { return m_wallpaperSynchronized; }
 
 QString DesklockController::avatarDirectory() const
 {
@@ -257,6 +258,20 @@ void DesklockController::setWallpaperPath(const QString &value)
 
     m_wallpaperPath = normalized;
     Q_EMIT wallpaperPathChanged();
+}
+
+void DesklockController::setWallpaperSynchronized(bool value)
+{
+    if (m_wallpaperSynchronized == value)
+        return;
+
+    m_wallpaperSynchronized = value;
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("WallpaperSync"));
+    settings.setValue(QStringLiteral("LockScreen"), value);
+    settings.endGroup();
+    settings.sync();
+    Q_EMIT wallpaperSynchronizedChanged();
 }
 
 void DesklockController::setAvatarPath(const QString &value)
@@ -433,6 +448,17 @@ bool DesklockController::save()
 void DesklockController::load()
 {
     QSettings settings(m_configPath, QSettings::IniFormat);
+
+    QSettings preferences;
+    preferences.beginGroup(QStringLiteral("WallpaperSync"));
+    const bool wallpaperSynchronized = preferences.value(
+        QStringLiteral("LockScreen"), true).toBool();
+    preferences.endGroup();
+    if (m_wallpaperSynchronized != wallpaperSynchronized)
+    {
+        m_wallpaperSynchronized = wallpaperSynchronized;
+        Q_EMIT wallpaperSynchronizedChanged();
+    }
 
     m_wallpaperPath = normalizeLocalPath(settings.value(
         QStringLiteral("Appearance/BackgroundImage"),

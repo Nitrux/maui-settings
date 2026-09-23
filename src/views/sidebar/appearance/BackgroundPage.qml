@@ -10,6 +10,7 @@ Maui.ScrollColumn
 {
     id: root
     readonly property var info: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
+    readonly property var wallpaperCatalog: (typeof wallpaperController !== "undefined" && wallpaperController) ? wallpaperController : null
     readonly property var theme: (typeof themeInfo !== "undefined" && themeInfo) ? themeInfo : null
     readonly property var displayController: (typeof displaysController !== "undefined" && displaysController) ? displaysController : null
     readonly property var previewDisplay: {
@@ -354,8 +355,58 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Wallpaper")
-                text2: i18n("Choose an image or a folder for hyprpaper to use.")
+                text2: i18n("Choose an installed wallpaper or an image from your Pictures folder. You can also browse for another file.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.GridBrowser
+            {
+                id: wallpaperGrid
+                Layout.fillWidth: true
+                Layout.preferredHeight: Maui.Style.units.gridUnit * 18
+                clip: true
+                model: root.wallpaperCatalog
+                itemSize: Maui.Style.units.gridUnit * 10
+                itemHeight: Maui.Style.units.gridUnit * 13
+                adaptContent: true
+                flickable.interactive: true
+                holder.visible: wallpaperGrid.count === 0
+                holder.title: i18n("No wallpapers found")
+                holder.body: root.wallpaperCatalog
+                    ? i18n("Place wallpapers in %1 or images in %2.",
+                           root.wallpaperCatalog.systemWallpaperPath,
+                           root.wallpaperCatalog.picturesPath)
+                    : i18n("No wallpaper sources are available.")
+
+                delegate: Item
+                {
+                    width: GridView.view.cellWidth
+                    height: GridView.view.cellHeight
+
+                    Maui.GridBrowserDelegate
+                    {
+                        anchors.fill: parent
+                        anchors.margins: Maui.Style.space.small
+                        imageSource: root.previewSource(model.path)
+                        fillMode: Image.PreserveAspectCrop
+                        maskRadius: Maui.Style.radiusV
+                        isCurrentItem: root.info && root.info.wallpaperPath === model.path
+
+                        template.label1.text: model.name
+                        template.label2.text: model.source === "system"
+                            ? i18n("Installed wallpaper")
+                            : i18n("Pictures")
+                        template.label1.elide: Text.ElideRight
+                        template.label2.elide: Text.ElideRight
+
+                        onClicked:
+                        {
+                            wallpaperGrid.currentIndex = index
+                            if (root.info)
+                                root.info.wallpaperPath = model.path
+                        }
+                    }
+                }
             }
 
             Maui.SectionItem

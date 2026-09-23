@@ -4,6 +4,7 @@
 #include <QDate>
 #include <QDir>
 #include <QIcon>
+#include <QLoggingCategory>
 #include <QLockFile>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -24,6 +25,7 @@
 #include "controllers/audiocontroller.h"
 #include "controllers/systemmanager.h"
 #include "controllers/backgroundinfo.h"
+#include "controllers/wallpapercontroller.h"
 #include "controllers/wallpapercolorscontroller.h"
 #include "controllers/bluetoothcontroller.h"
 #include "controllers/desklockcontroller.h"
@@ -55,6 +57,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(format);
 
     QApplication app(argc, argv);
+
+    // libpng can report malformed embedded ICC profiles even when the image decodes correctly.
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
 
     app.setApplicationName(QStringLiteral("maui-settings"));
     app.setOrganizationName(QStringLiteral("Maui"));
@@ -118,6 +123,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     BackgroundInfo backgroundInfo;
     engine.rootContext()->setContextProperty(QStringLiteral("backgroundInfo"), &backgroundInfo);
+
+    WallpaperController wallpaperController;
+    engine.rootContext()->setContextProperty(QStringLiteral("wallpaperController"), &wallpaperController);
 
     BluetoothController bluetoothController;
     engine.rootContext()->setContextProperty(QStringLiteral("bluetoothController"), &bluetoothController);

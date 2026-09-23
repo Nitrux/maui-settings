@@ -11,6 +11,7 @@ Maui.ScrollColumn
     readonly property var kde: (typeof kdeGlobalsInfo !== "undefined" && kdeGlobalsInfo) ? kdeGlobalsInfo : null
     readonly property var gtk: (typeof gtkSettingsInfo !== "undefined" && gtkSettingsInfo) ? gtkSettingsInfo : null
     readonly property var wallpaperColors: (typeof wallpaperColorsController !== "undefined" && wallpaperColorsController) ? wallpaperColorsController : null
+    readonly property bool vicinaeAvailable: root.wallpaperColors !== null && root.wallpaperColors.vicinaeAvailable
     readonly property var hypr: (typeof hyprlandInfo !== "undefined" && hyprlandInfo) ? hyprlandInfo : null
 
     property int stagedStyleType: 0
@@ -18,6 +19,7 @@ Maui.ScrollColumn
     property string stagedWindowControlsTheme: "Nitrux"
     property bool stagedEnableCSD: false
     property bool stagedAdaptiveColorSchemeEnabled: false
+    property bool stagedVicinaeSynchronizationEnabled: false
     property bool stagedEnableEffects: false
     property bool stagedAllowCustomStyling: false
     property int stagedBorderRadius: 0
@@ -89,6 +91,9 @@ Maui.ScrollColumn
             stagedMarginSize = theme.marginSize
             stagedSpacingSize = theme.spacingSize
         }
+
+        if (wallpaperColors)
+            stagedVicinaeSynchronizationEnabled = wallpaperColors.vicinaeSynchronizationEnabled
 
         if (kde)
         {
@@ -191,7 +196,7 @@ Maui.ScrollColumn
             return true
 
         return root.theme !== null || root.kde !== null || root.gtk !== null || root.hypr !== null || root.wallpaperColors !== null
-            ? stagedAdaptiveColorSchemeEnabled
+            ? stagedAdaptiveColorSchemeEnabled || stagedVicinaeSynchronizationEnabled
             : false
     }
 
@@ -246,6 +251,9 @@ Maui.ScrollColumn
             stagedGtkFontRgbaOrder = root.defaultString(root.gtkDefaultValues, "fontRgbaOrder")
             stagedGtkTextScalingFactor = root.defaultNumber(root.gtkDefaultValues, "textScalingFactor", 1.0)
         }
+
+        if (root.wallpaperColors)
+            stagedVicinaeSynchronizationEnabled = false
 
         stagedRoundingFollowsMauiKit = true
         stagedBorderColorsFollowTheme = true
@@ -318,7 +326,8 @@ Maui.ScrollColumn
         if (wallpaperColors)
         {
             wallpaperColors.kdeSynchronizationEnabled = stagedAdaptiveColorSchemeEnabled
-            if (stagedAdaptiveColorSchemeEnabled)
+            wallpaperColors.vicinaeSynchronizationEnabled = stagedVicinaeSynchronizationEnabled
+            if (stagedAdaptiveColorSchemeEnabled || stagedVicinaeSynchronizationEnabled)
                 wallpaperColors.synchronize()
             else if (kde && kdeSaved)
                 kde.synchronizeGreeter()
@@ -1436,7 +1445,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Desktop Integration")
-                text2: i18n("These values affect KDE and MauiKit apps.")
+                text2: i18n("These values affect KDE, MauiKit, and Vicinae apps.")
                 label2.wrapMode: Text.Wrap
             }
 
@@ -1584,6 +1593,27 @@ Maui.ScrollColumn
 
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: root.stagedShowIconsInMenus
                     onToggled: root.stagedShowIconsInMenus = checked
                 }
@@ -1692,6 +1722,47 @@ Maui.ScrollColumn
                     }
                     checked: true
                     enabled: false
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                visible: wallpaperColors !== null
+                enabled: root.vicinaeAvailable
+                label1.text: i18n("Synchronize settings with Vicinae")
+                label1.elide: Text.ElideRight
+                label2.text: root.vicinaeAvailable
+                    ? i18n("Apply the MauiKit theme, font, and icon theme to Vicinae.")
+                    : i18n("Vicinae was not found in the PATH.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: root.stagedVicinaeSynchronizationEnabled
+                    onToggled: root.stagedVicinaeSynchronizationEnabled = checked
                 }
             }
 

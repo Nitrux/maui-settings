@@ -87,6 +87,8 @@ set(settings_SRCS
     src/controllers/audiocontroller.h
     src/controllers/systemmanager.cpp
     src/controllers/backgroundinfo.cpp
+    src/controllers/wallpapercontroller.cpp
+    src/controllers/wallpapercontroller.h
     src/controllers/wallpapercolorscontroller.cpp
     src/controllers/wallpapercolorscontroller.h
     src/controllers/bluetoothcontroller.cpp

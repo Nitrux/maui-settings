@@ -13,6 +13,7 @@ class QmlGreetController : public QObject
     Q_PROPERTY(bool saveAvailable READ saveAvailable NOTIFY saveAvailableChanged)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
+    Q_PROPERTY(bool wallpaperSynchronized READ wallpaperSynchronized WRITE setWallpaperSynchronized NOTIFY wallpaperSynchronizedChanged)
     Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY iconModeChanged)
     Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
     Q_PROPERTY(QString avatarPath READ avatarPath WRITE setAvatarPath NOTIFY avatarPathChanged)
@@ -40,6 +41,7 @@ public:
     bool saveAvailable() const;
     QString wallpaperDirectory() const;
     QString wallpaperPath() const;
+    bool wallpaperSynchronized() const;
     QString iconMode() const;
     QString avatarDirectory() const;
     QString avatarPath() const;
@@ -60,6 +62,7 @@ public:
     QString errorMessage() const;
 
     void setWallpaperPath(const QString &value);
+    void setWallpaperSynchronized(bool value);
     void setIconMode(const QString &value);
     void setAvatarPath(const QString &value);
     void setTimeFormat(const QString &value);
@@ -79,6 +82,7 @@ public:
 Q_SIGNALS:
     void saveAvailableChanged();
     void wallpaperPathChanged();
+    void wallpaperSynchronizedChanged();
     void iconModeChanged();
     void avatarPathChanged();
     void timeFormatChanged();
@@ -117,6 +121,7 @@ private:
     bool m_available = false;
     bool m_saveAvailable = false;
     QString m_wallpaperPath;
+    bool m_wallpaperSynchronized = true;
     QString m_iconMode = QStringLiteral("system");
     QString m_avatarPath;
     QString m_timeFormat = QStringLiteral("hh:mm");

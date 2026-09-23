@@ -238,25 +238,141 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true; flat: true
                 label1.text: i18n("Variant"); label1.elide: Text.ElideRight; label2.text: i18n("Optional XKB variant, for example dvorak."); label2.wrapMode: Text.Wrap
-                template.content: TextField { Layout.fillWidth: true; Layout.maximumWidth: root.textFieldWidth; Layout.preferredWidth: root.textFieldWidth; placeholderText: i18n("Default"); text: root.info ? root.info.keyboardVariant : ""; onEditingFinished: if (root.info) root.info.keyboardVariant = text }
+                template.content: TextField
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.textFieldWidth
+                    Layout.preferredWidth: root.textFieldWidth
+                    placeholderText: i18n("Default"); text: root.info ? root.info.keyboardVariant : ""; onEditingFinished: if (root.info) root.info.keyboardVariant = text
+                }
+
             }
             Maui.SectionItem
             {
                 Layout.fillWidth: true; flat: true
                 label1.text: i18n("Options"); label1.elide: Text.ElideRight; label2.text: i18n("Comma-separated XKB options, if required."); label2.wrapMode: Text.Wrap
-                template.content: TextField { Layout.fillWidth: true; Layout.maximumWidth: root.textFieldWidth; Layout.preferredWidth: root.textFieldWidth; placeholderText: i18n("grp:alt_shift_toggle"); text: root.info ? root.info.keyboardOptions : ""; onEditingFinished: if (root.info) root.info.keyboardOptions = text }
+                template.content: TextField
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.textFieldWidth
+                    Layout.preferredWidth: root.textFieldWidth
+                    placeholderText: i18n("grp:alt_shift_toggle"); text: root.info ? root.info.keyboardOptions : ""; onEditingFinished: if (root.info) root.info.keyboardOptions = text
+                }
+
             }
             Maui.SectionItem
             {
                 Layout.fillWidth: true; flat: true
                 label1.text: i18n("Model"); label1.elide: Text.ElideRight; label2.text: i18n("Optional XKB keyboard model."); label2.wrapMode: Text.Wrap
-                template.content: TextField { Layout.fillWidth: true; Layout.maximumWidth: root.textFieldWidth; Layout.preferredWidth: root.textFieldWidth; placeholderText: i18n("Default"); text: root.info ? root.info.keyboardModel : ""; onEditingFinished: if (root.info) root.info.keyboardModel = text }
+                template.content: TextField
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.textFieldWidth
+                    Layout.preferredWidth: root.textFieldWidth
+                    placeholderText: i18n("Default"); text: root.info ? root.info.keyboardModel : ""; onEditingFinished: if (root.info) root.info.keyboardModel = text
+                }
+
             }
             Maui.SectionItem
             {
                 Layout.fillWidth: true; flat: true
                 label1.text: i18n("Rules"); label1.elide: Text.ElideRight; label2.text: i18n("Optional XKB ruleset name."); label2.wrapMode: Text.Wrap
-                template.content: TextField { Layout.fillWidth: true; Layout.maximumWidth: root.textFieldWidth; Layout.preferredWidth: root.textFieldWidth; placeholderText: i18n("Default"); text: root.info ? root.info.keyboardRules : ""; onEditingFinished: if (root.info) root.info.keyboardRules = text }
+                template.content: TextField
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : root.textFieldWidth
+                    Layout.preferredWidth: root.textFieldWidth
+                    placeholderText: i18n("Default"); text: root.info ? root.info.keyboardRules : ""; onEditingFinished: if (root.info) root.info.keyboardRules = text
+                }
+
             }
         }
     }
@@ -466,6 +582,30 @@ Maui.ScrollColumn
                     label2.text: i18n("Sensitivity: %1", Number(modelData.sensitivity).toFixed(2)); label2.elide: Text.ElideRight
                     template.content: RowLayout
                     {
+                        property Item wideParent
+                        property Item responsiveSectionItem
+                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                        function updateResponsiveParent()
+                        {
+                            if (!wideParent || !responsiveSectionItem)
+                                return
+
+                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        }
+
+                        onResponsiveNarrowChanged: updateResponsiveParent()
+
+                        Component.onCompleted:
+                        {
+                            const originalParent = parent
+                            responsiveSectionItem = originalParent.parent.parent.parent
+                            wideParent = originalParent
+                            updateResponsiveParent()
+                        }
+                        Layout.fillWidth: responsiveNarrow
+                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
                         spacing: Maui.Style.space.tiny
                         ToolButton { icon.name: "document-edit"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Edit device"); onClicked: root.editDevice(index, modelData) }
                         ToolButton { icon.name: "edit-delete"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Remove device"); onClicked: root.removeInputItem(1, index) }
@@ -501,6 +641,30 @@ Maui.ScrollColumn
                     label2.text: modelData.command || modelData.action || i18n("No action"); label2.elide: Text.ElideRight; label2.wrapMode: Text.NoWrap
                     template.content: RowLayout
                     {
+                        property Item wideParent
+                        property Item responsiveSectionItem
+                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                        function updateResponsiveParent()
+                        {
+                            if (!wideParent || !responsiveSectionItem)
+                                return
+
+                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        }
+
+                        onResponsiveNarrowChanged: updateResponsiveParent()
+
+                        Component.onCompleted:
+                        {
+                            const originalParent = parent
+                            responsiveSectionItem = originalParent.parent.parent.parent
+                            wideParent = originalParent
+                            updateResponsiveParent()
+                        }
+                        Layout.fillWidth: responsiveNarrow
+                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
                         spacing: Maui.Style.space.tiny
                         ToolButton { icon.name: "document-edit"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Edit keybind"); onClicked: root.editKeybind(index, modelData) }
                         ToolButton { icon.name: "edit-delete"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Remove keybind"); onClicked: root.removeKeybind(index) }

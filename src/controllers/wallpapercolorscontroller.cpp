@@ -7,18 +7,25 @@
 #include <MauiKit4/Core/colorutils.h>
 #include <MauiMan4/thememanager.h>
 
+#include <QByteArray>
 #include <QDir>
+#include <QFile>
+#include <QFont>
 #include <QGuiApplication>
-#include <QStyleHints>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QImage>
 #include <QImageReader>
-#include <QDebug>
 #include <QProcess>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonParseError>
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QStyleHints>
 #include <QStringConverter>
 #include <QStringList>
 #include <QTextStream>
@@ -30,6 +37,139 @@ constexpr auto generatedSchemeName = "Maui Wallpaper";
 constexpr auto generatedSchemeFileName = "Maui Wallpaper.colors";
 constexpr auto generatedVicinaeDarkThemeId = "maui-wallpaper-dark";
 constexpr auto generatedVicinaeLightThemeId = "maui-wallpaper-light";
+enum class MauiStyleType : int
+{
+    Light = 0,
+    Dark,
+    Adaptive,
+    Auto,
+    TrueBlack,
+    Inverted
+};
+
+QByteArray removeJsonComments(const QByteArray &input)
+{
+    QByteArray output;
+    output.reserve(input.size());
+
+    bool inString = false;
+    bool escaped = false;
+    bool lineComment = false;
+    bool blockComment = false;
+    for (qsizetype i = 0; i < input.size(); ++i)
+    {
+        const char current = input.at(i);
+        const char next = i + 1 < input.size() ? input.at(i + 1) : char(0);
+
+        if (lineComment)
+        {
+            if (current == char(10) || current == char(13))
+            {
+                lineComment = false;
+                output.append(current);
+            }
+            else
+            {
+                output.append(char(32));
+            }
+            continue;
+        }
+
+        if (blockComment)
+        {
+            if (current == char(42) && next == char(47))
+            {
+                blockComment = false;
+                output.append("  ");
+                ++i;
+            }
+            else
+            {
+                output.append(current == char(10) || current == char(13) ? current : char(32));
+            }
+            continue;
+        }
+
+        if (inString)
+        {
+            output.append(current);
+            if (escaped)
+                escaped = false;
+            else if (current == char(92))
+                escaped = true;
+            else if (current == char(34))
+                inString = false;
+            continue;
+        }
+
+        if (current == char(34))
+        {
+            inString = true;
+            output.append(current);
+        }
+        else if (current == char(47) && next == char(47))
+        {
+            lineComment = true;
+            output.append("  ");
+            ++i;
+        }
+        else if (current == char(47) && next == char(42))
+        {
+            blockComment = true;
+            output.append("  ");
+            ++i;
+        }
+        else
+        {
+            output.append(current);
+        }
+    }
+
+    return output;
+}
+
+QByteArray removeTrailingJsonCommas(const QByteArray &input)
+{
+    QByteArray output;
+    output.reserve(input.size());
+    bool inString = false;
+    bool escaped = false;
+    for (qsizetype i = 0; i < input.size(); ++i)
+    {
+        const char current = input.at(i);
+        if (inString)
+        {
+            output.append(current);
+            if (escaped)
+                escaped = false;
+            else if (current == char(92))
+                escaped = true;
+            else if (current == char(34))
+                inString = false;
+            continue;
+        }
+
+        if (current == char(34))
+        {
+            inString = true;
+            output.append(current);
+            continue;
+        }
+
+        if (current == char(44))
+        {
+            qsizetype next = i + 1;
+            while (next < input.size() && (input.at(next) == char(32) || input.at(next) == char(9)
+                                            || input.at(next) == char(10) || input.at(next) == char(13)))
+                ++next;
+            if (next < input.size() && (input.at(next) == char(125) || input.at(next) == char(93)))
+                continue;
+        }
+
+        output.append(current);
+    }
+    return output;
+}
 
 QString colorValue(const QColor &color)
 {
@@ -84,6 +224,7 @@ WallpaperColorsController::WallpaperColorsController(MauiMan::ThemeManager *them
     , m_kde(kde)
     , m_hyprland(hyprland)
 {
+    m_vicinaeAvailable = !QStandardPaths::findExecutable(QStringLiteral("vicinae")).isEmpty();
     m_sourceWatcher = new QFileSystemWatcher(this);
     m_sourceSyncTimer = new QTimer(this);
     m_sourceSyncTimer->setSingleShot(true);
@@ -98,6 +239,8 @@ WallpaperColorsController::WallpaperColorsController(MauiMan::ThemeManager *them
     QSettings settings;
     settings.beginGroup(QStringLiteral("WallpaperColors"));
     const bool legacySynchronizationEnabled = settings.value(QStringLiteral("SynchronizeKde"), false).toBool();
+    m_vicinaeSynchronizationEnabled = m_vicinaeAvailable
+        && settings.value(QStringLiteral("SynchronizeVicinae"), false).toBool();
     m_kdeSynchronizationEnabled = m_theme->adaptiveColorSchemeEnabled();
     m_previousKdeScheme = settings.value(QStringLiteral("PreviousKdeScheme")).toString();
     m_hasPreviousKdeScheme = settings.value(QStringLiteral("PreviousKdeSchemeSet"), settings.contains(QStringLiteral("PreviousKdeScheme"))).toBool();
@@ -152,6 +295,28 @@ void WallpaperColorsController::setKdeSynchronizationEnabled(bool enabled)
 void WallpaperColorsController::synchronize()
 {
     synchronizeKde(m_currentSource, true);
+    synchronizeVicinae(m_currentSource);
+}
+
+bool WallpaperColorsController::vicinaeAvailable() const
+{
+    return m_vicinaeAvailable;
+}
+
+bool WallpaperColorsController::vicinaeSynchronizationEnabled() const
+{
+    return m_vicinaeSynchronizationEnabled;
+}
+
+void WallpaperColorsController::setVicinaeSynchronizationEnabled(bool enabled)
+{
+    enabled = enabled && m_vicinaeAvailable;
+    if (m_vicinaeSynchronizationEnabled == enabled)
+        return;
+
+    m_vicinaeSynchronizationEnabled = enabled;
+    persistSettings();
+    Q_EMIT vicinaeSynchronizationEnabledChanged();
 }
 
 QString WallpaperColorsController::canonicalImagePath(const QString &path)
@@ -199,6 +364,7 @@ void WallpaperColorsController::updateWallpaperSource(const QString &path, bool 
     if (m_theme->adaptiveColorSchemeSource() != source)
         m_theme->setAdaptiveColorSchemeSource(source);
     synchronizeKde(source, synchronizeGreeter);
+    synchronizeVicinae(source);
 }
 
 void WallpaperColorsController::refreshWallpaperSource()
@@ -254,6 +420,7 @@ void WallpaperColorsController::onThemeSourceChanged(const QString &source)
     m_currentSource = normalized;
     watchSourceFile(m_watchedSourcePath);
     synchronizeKde(m_currentSource, true);
+    synchronizeVicinae(m_currentSource);
 }
 
 void WallpaperColorsController::synchronizeKde(const QString &source, bool synchronizeGreeter)
@@ -278,25 +445,60 @@ void WallpaperColorsController::synchronizeKde(const QString &source, bool synch
 
     const QImage image(source);
     const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(image);
-    const MauiKit::AdaptivePalette darkPalette =
-        MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Dark);
-    const MauiKit::AdaptivePalette lightPalette =
-        MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Light);
-    if (!palette.valid || !darkPalette.valid || !lightPalette.valid)
+    if (!palette.valid)
         return;
 
     if (!writeGeneratedScheme(palette)
-        || !writeGeneratedVicinaeTheme(darkPalette, QString::fromLatin1(generatedVicinaeDarkThemeId),
-                                       QStringLiteral("dark"), QStringLiteral("vicinae-dark"))
-        || !writeGeneratedVicinaeTheme(lightPalette, QString::fromLatin1(generatedVicinaeLightThemeId),
-                                       QStringLiteral("light"), QStringLiteral("vicinae-light"))
         || !m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName)))
         return;
 
-    activateVicinaeTheme();
     synchronizeHyprlandBorders(palette);
     if (synchronizeGreeter)
         m_kde->synchronizeGreeter();
+}
+
+void WallpaperColorsController::synchronizeVicinae(const QString &source)
+{
+    if (!m_vicinaeAvailable || !m_vicinaeSynchronizationEnabled)
+        return;
+
+    bool generatedThemes = false;
+    bool useLightTheme = false;
+    if (!source.isEmpty())
+    {
+        const QImage image(source);
+        const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(image);
+        const MauiKit::AdaptivePalette darkPalette =
+            MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Dark);
+        const MauiKit::AdaptivePalette lightPalette =
+            MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Light);
+
+        if (palette.valid && darkPalette.valid && lightPalette.valid
+            && writeGeneratedVicinaeTheme(darkPalette, QString::fromLatin1(generatedVicinaeDarkThemeId),
+                                           QStringLiteral("dark"), QStringLiteral("vicinae-dark"))
+            && writeGeneratedVicinaeTheme(lightPalette, QString::fromLatin1(generatedVicinaeLightThemeId),
+                                          QStringLiteral("light"), QStringLiteral("vicinae-light")))
+        {
+            generatedThemes = true;
+            useLightTheme = useLightVicinaeTheme(palette);
+        }
+    }
+
+    if (!writeVicinaeSettings(generatedThemes, useLightTheme))
+        qWarning() << "Failed to synchronize Vicinae settings";
+    else if (generatedThemes)
+        refreshVicinaeTheme(useLightTheme ? QString::fromLatin1(generatedVicinaeLightThemeId)
+                                          : QString::fromLatin1(generatedVicinaeDarkThemeId));
+}
+
+void WallpaperColorsController::refreshVicinaeTheme(const QString &themeId)
+{
+    const QString executable = QStandardPaths::findExecutable(QStringLiteral("vicinae"));
+    if (executable.isEmpty() || themeId.isEmpty())
+        return;
+
+    if (QProcess::execute(executable, {QStringLiteral("theme"), QStringLiteral("set"), themeId}) != 0)
+        qWarning() << "Failed to refresh Vicinae theme" << themeId;
 }
 
 void WallpaperColorsController::synchronizeHyprlandBorders(const MauiKit::AdaptivePalette &palette)
@@ -514,17 +716,105 @@ bool WallpaperColorsController::writeGeneratedVicinaeTheme(const MauiKit::Adapti
     return file.commit();
 }
 
-void WallpaperColorsController::activateVicinaeTheme()
+bool WallpaperColorsController::writeVicinaeSettings(bool generatedThemes, bool useLightTheme)
 {
-    const QString executable = QStandardPaths::findExecutable(QStringLiteral("vicinae"));
-    if (executable.isEmpty())
-        return;
+    const QString path = vicinaeSettingsPath();
+    if (path.isEmpty() || !QDir().mkpath(QFileInfo(path).absolutePath()))
+        return false;
 
-    const QString themeId = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
-        ? QString::fromLatin1(generatedVicinaeLightThemeId)
-        : QString::fromLatin1(generatedVicinaeDarkThemeId);
-    if (QProcess::execute(executable, {QStringLiteral("theme"), QStringLiteral("set"), themeId}) != 0)
-        qWarning() << "Failed to activate Vicinae theme" << themeId;
+    QJsonObject root;
+    QFile input(path);
+    if (input.exists())
+    {
+        if (!input.open(QIODevice::ReadOnly))
+            return false;
+
+        QJsonParseError error;
+        const QByteArray json = removeTrailingJsonCommas(removeJsonComments(input.readAll()));
+        const QJsonDocument document = QJsonDocument::fromJson(json, &error);
+        if (error.error != QJsonParseError::NoError || !document.isObject())
+        {
+            qWarning() << "Failed to parse Vicinae settings" << path << error.errorString();
+            return false;
+        }
+        root = document.object();
+    }
+
+    const QFont font = m_kde->fontFromString(m_kde->defaultFont());
+    QJsonObject fontConfig = root.value(QStringLiteral("font")).toObject();
+    QJsonObject normalFont = fontConfig.value(QStringLiteral("normal")).toObject();
+    if (!font.family().trimmed().isEmpty())
+        normalFont.insert(QStringLiteral("family"), font.family());
+    const qreal pointSize = font.pointSizeF();
+    if (pointSize > 0)
+        normalFont.insert(QStringLiteral("size"), QJsonValue(pointSize));
+    fontConfig.insert(QStringLiteral("normal"), normalFont);
+    root.insert(QStringLiteral("font"), fontConfig);
+
+    QJsonObject themeConfig = root.value(QStringLiteral("theme")).toObject();
+    QJsonObject lightConfig = themeConfig.value(QStringLiteral("light")).toObject();
+    QJsonObject darkConfig = themeConfig.value(QStringLiteral("dark")).toObject();
+    const QString iconTheme = m_kde->iconTheme().trimmed();
+    if (!iconTheme.isEmpty())
+    {
+        lightConfig.insert(QStringLiteral("icon_theme"), iconTheme);
+        darkConfig.insert(QStringLiteral("icon_theme"), iconTheme);
+    }
+
+    if (generatedThemes)
+    {
+        const QString lightThemeId = QString::fromLatin1(generatedVicinaeLightThemeId);
+        const QString darkThemeId = QString::fromLatin1(generatedVicinaeDarkThemeId);
+        lightConfig.insert(QStringLiteral("name"), lightThemeId);
+        darkConfig.insert(QStringLiteral("name"), darkThemeId);
+
+        QJsonObject activeConfig = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
+            ? lightConfig
+            : darkConfig;
+        activeConfig.insert(QStringLiteral("name"), useLightTheme ? lightThemeId : darkThemeId);
+        if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light)
+            lightConfig = activeConfig;
+        else
+            darkConfig = activeConfig;
+    }
+
+    themeConfig.insert(QStringLiteral("light"), lightConfig);
+    themeConfig.insert(QStringLiteral("dark"), darkConfig);
+    root.insert(QStringLiteral("theme"), themeConfig);
+
+    QSaveFile output(path);
+    if (!output.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+
+    const QByteArray serialized = QJsonDocument(root).toJson(QJsonDocument::Indented);
+    if (output.write(serialized) != serialized.size())
+        return false;
+
+    return output.commit();
+}
+
+bool WallpaperColorsController::useLightVicinaeTheme(const MauiKit::AdaptivePalette &palette) const
+{
+    if (!m_theme)
+        return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
+
+    if (m_theme->adaptiveColorSchemeEnabled())
+        return palette.backgroundColor.lightness() >= 128;
+
+    switch (static_cast<MauiStyleType>(m_theme->styleType()))
+    {
+    case MauiStyleType::Light:
+    case MauiStyleType::Inverted:
+        return true;
+    case MauiStyleType::Dark:
+    case MauiStyleType::TrueBlack:
+        return false;
+    case MauiStyleType::Adaptive:
+        return palette.backgroundColor.lightness() >= 128;
+    case MauiStyleType::Auto:
+    default:
+        return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
+    }
 }
 
 void WallpaperColorsController::restorePreviousScheme()
@@ -546,6 +836,7 @@ void WallpaperColorsController::persistSettings() const
     QSettings settings;
     settings.beginGroup(QStringLiteral("WallpaperColors"));
     settings.remove(QStringLiteral("SynchronizeKde"));
+    settings.setValue(QStringLiteral("SynchronizeVicinae"), m_vicinaeSynchronizationEnabled);
     settings.setValue(QStringLiteral("PreviousKdeScheme"), m_previousKdeScheme);
     settings.setValue(QStringLiteral("PreviousKdeSchemeSet"), m_hasPreviousKdeScheme);
     settings.endGroup();
@@ -562,4 +853,10 @@ QString WallpaperColorsController::generatedVicinaeThemePath(const QString &them
 {
     return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
         + QStringLiteral("/vicinae/themes/") + themeId + QStringLiteral(".toml");
+}
+
+QString WallpaperColorsController::vicinaeSettingsPath() const
+{
+    return QDir(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
+        .filePath(QStringLiteral("vicinae/settings.json"));
 }

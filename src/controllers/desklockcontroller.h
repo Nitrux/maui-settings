@@ -10,6 +10,7 @@ class DesklockController : public QObject
     Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(QString wallpaperDirectory READ wallpaperDirectory NOTIFY wallpaperPathChanged)
     Q_PROPERTY(QString wallpaperPath READ wallpaperPath WRITE setWallpaperPath NOTIFY wallpaperPathChanged)
+    Q_PROPERTY(bool wallpaperSynchronized READ wallpaperSynchronized WRITE setWallpaperSynchronized NOTIFY wallpaperSynchronizedChanged)
     Q_PROPERTY(QString avatarDirectory READ avatarDirectory NOTIFY avatarPathChanged)
     Q_PROPERTY(QString avatarPath READ avatarPath WRITE setAvatarPath NOTIFY avatarPathChanged)
     Q_PROPERTY(QString iconMode READ iconMode WRITE setIconMode NOTIFY iconModeChanged)
@@ -38,6 +39,7 @@ public:
     bool available() const;
     QString wallpaperDirectory() const;
     QString wallpaperPath() const;
+    bool wallpaperSynchronized() const;
     QString avatarDirectory() const;
     QString avatarPath() const;
     QString iconMode() const;
@@ -60,6 +62,7 @@ public:
     int suspendTimeout() const;
 
     void setWallpaperPath(const QString &value);
+    void setWallpaperSynchronized(bool value);
     void setAvatarPath(const QString &value);
     void setIconMode(const QString &value);
     void setBlurEnabled(bool value);
@@ -85,6 +88,7 @@ public:
 
 Q_SIGNALS:
     void wallpaperPathChanged();
+    void wallpaperSynchronizedChanged();
     void avatarPathChanged();
     void iconModeChanged();
     void blurEnabledChanged();
@@ -117,6 +121,7 @@ private:
     bool m_available = false;
     QString m_hypridleConfigPath;
     QString m_wallpaperPath;
+    bool m_wallpaperSynchronized = true;
     QString m_avatarPath;
     QString m_iconMode = QStringLiteral("system");
     bool m_blurEnabled = true;

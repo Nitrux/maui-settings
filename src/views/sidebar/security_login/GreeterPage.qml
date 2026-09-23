@@ -12,6 +12,12 @@ Maui.SettingsPage
 
     readonly property var controller: (typeof qmlGreetController !== "undefined"
                                        && qmlGreetController) ? qmlGreetController : null
+    readonly property var backgroundInfoController: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
+    readonly property var wallpaperCatalog: (typeof wallpaperController !== "undefined" && wallpaperController) ? wallpaperController : null
+    property bool stagedWallpaperSynchronized: controller ? controller.wallpaperSynchronized : true
+    readonly property string effectiveWallpaperPath: stagedWallpaperSynchronized && backgroundInfoController
+        ? backgroundInfoController.wallpaperPath
+        : (controller ? controller.wallpaperPath : "")
     readonly property var displayController: (typeof displaysController !== "undefined" && displaysController) ? displaysController : null
     readonly property var previewDisplay: {
         const monitors = displayController ? displayController.monitors : []
@@ -56,7 +62,10 @@ Maui.SettingsPage
     }
     readonly property real layoutWidth: Math.max(1, layoutMaxX - layoutMinX)
     readonly property real layoutHeight: Math.max(1, layoutMaxY - layoutMinY)
-    readonly property bool saveAvailable: controller ? controller.saveAvailable : false
+    readonly property bool saveAvailable: controller
+        ? (controller.saveAvailable
+            || stagedWallpaperSynchronized !== controller.wallpaperSynchronized)
+        : false
     readonly property bool editable: saveAvailable && !controller.loading && !controller.saving
     property var indicatorIconModeLabels: [i18n("System icons"), i18n("Nerd Font symbols")]
     property var indicatorIconModeValues: ["system", "nerd"]
@@ -67,13 +76,22 @@ Maui.SettingsPage
 
     function reloadSettings()
     {
-        if (controller)
-            controller.reload()
+        if (!controller)
+            return
+
+        controller.reload()
+        stagedWallpaperSynchronized = controller.wallpaperSynchronized
     }
 
     function saveSettings()
     {
-        return saveAvailable ? controller.save() : false
+        if (!controller || !saveAvailable)
+            return false
+
+        controller.wallpaperSynchronized = stagedWallpaperSynchronized
+        if (stagedWallpaperSynchronized && backgroundInfoController)
+            controller.wallpaperPath = backgroundInfoController.wallpaperPath
+        return controller.save()
     }
 
     function displayPath(path, emptyText)
@@ -232,7 +250,7 @@ Maui.SettingsPage
                             }
                         }
                     }
-                    source: root.previewSource(root.controller ? root.controller.wallpaperPath : "")
+                    source: root.previewSource(root.effectiveWallpaperPath)
                 }
 
                 Label
@@ -244,7 +262,7 @@ Maui.SettingsPage
                     visible: wallpaperPreviewImage.status !== Image.Ready
                     text: wallpaperPreviewImage.status === Image.Loading
                         ? i18n("Loading preview...")
-                        : (root.controller && root.controller.wallpaperPath && root.controller.wallpaperPath.length
+                        : (root.effectiveWallpaperPath && root.effectiveWallpaperPath.length
                             ? i18n("No wallpaper preview available.")
                             : i18n("No wallpaper selected."))
                     opacity: 0.7
@@ -325,11 +343,109 @@ Maui.SettingsPage
             {
                 Layout.fillWidth: true
                 flat: true
+                enabled: root.backgroundInfoController && root.controller && root.controller.available
+                label1.text: i18n("Synchronize wallpaper")
+                label1.elide: Text.ElideRight
+                label2.text: root.stagedWallpaperSynchronized
+                    ? i18n("Use the wallpaper selected in Background.")
+                    : i18n("Choose a separate wallpaper below.")
+                label2.wrapMode: Text.Wrap
+
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem
+                        && (Maui.Handy.isMobile
+                            || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow
+                        ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
+                    checked: root.stagedWallpaperSynchronized
+                    enabled: root.backgroundInfoController && root.controller && root.controller.available
+                    onToggled: root.stagedWallpaperSynchronized = checked
+                }
+            }
+
+            Maui.GridBrowser
+            {
+                id: wallpaperGrid
+                Layout.fillWidth: true
+                Layout.preferredHeight: Maui.Style.units.gridUnit * 18
+                visible: !root.stagedWallpaperSynchronized
+                clip: true
+                model: root.wallpaperCatalog
+                itemSize: Maui.Style.units.gridUnit * 10
+                itemHeight: Maui.Style.units.gridUnit * 13
+                adaptContent: true
+                flickable.interactive: true
+                holder.visible: wallpaperGrid.count === 0
+                holder.title: i18n("No wallpapers found")
+                holder.body: root.wallpaperCatalog
+                    ? i18n("Place wallpapers in %1 or images in %2.",
+                           root.wallpaperCatalog.systemWallpaperPath,
+                           root.wallpaperCatalog.picturesPath)
+                    : i18n("No wallpaper sources are available.")
+
+                delegate: Item
+                {
+                    width: GridView.view.cellWidth
+                    height: GridView.view.cellHeight
+
+                    Maui.GridBrowserDelegate
+                    {
+                        anchors.fill: parent
+                        anchors.margins: Maui.Style.space.small
+                        imageSource: root.previewSource(model.path)
+                        fillMode: Image.PreserveAspectCrop
+                        maskRadius: Maui.Style.radiusV
+                        isCurrentItem: !root.stagedWallpaperSynchronized
+                            && root.controller && root.controller.wallpaperPath === model.path
+
+                        template.label1.text: model.name
+                        template.label2.text: model.source === "system"
+                            ? i18n("Installed wallpaper")
+                            : i18n("Pictures")
+                        template.label1.elide: Text.ElideRight
+                        template.label2.elide: Text.ElideRight
+
+                        onClicked:
+                        {
+                            wallpaperGrid.currentIndex = index
+                            if (root.controller)
+                                root.controller.wallpaperPath = model.path
+                        }
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                visible: !root.stagedWallpaperSynchronized
+                flat: true
                 label1.text: i18n("Wallpaper path")
                 label1.elide: Text.ElideRight
-                label2.text: controller
-                    ? root.displayPath(controller.wallpaperPath, i18n("No wallpaper selected"))
-                    : i18n("No wallpaper selected")
+                label2.text: root.displayPath(root.effectiveWallpaperPath, i18n("No wallpaper selected"))
                 label2.wrapMode: Text.Wrap
 
                 template.content: Button
@@ -361,6 +477,7 @@ Maui.SettingsPage
                     Layout.minimumWidth: responsiveNarrow ? 0 : -1
                     Layout.maximumWidth: responsiveNarrow
                         ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    enabled: !root.stagedWallpaperSynchronized
                     text: i18n("Choose")
                     onClicked: root.pickWallpaper()
                 }

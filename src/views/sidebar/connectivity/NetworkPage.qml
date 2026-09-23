@@ -287,6 +287,30 @@ Maui.ScrollColumn
                     template.iconSource: "network-wired"
                     template.iconSizeHint: Maui.Style.iconSizes.small
                     template.content: RowLayout {
+                        property Item wideParent
+                        property Item responsiveSectionItem
+                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                        function updateResponsiveParent()
+                        {
+                            if (!wideParent || !responsiveSectionItem)
+                                return
+
+                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        }
+
+                        onResponsiveNarrowChanged: updateResponsiveParent()
+
+                        Component.onCompleted:
+                        {
+                            const originalParent = parent
+                            responsiveSectionItem = originalParent.parent.parent.parent
+                            wideParent = originalParent
+                            updateResponsiveParent()
+                        }
+                        Layout.fillWidth: responsiveNarrow
+                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                         spacing: Maui.Style.space.small
                         Button { text: modelData.connected ? i18n("Disconnect") : i18n("Connect"); onClicked: modelData.connected ? root.controller.disconnectNetwork(modelData.devicePath) : root.controller.connectWired(modelData.devicePath, modelData.connectionPath) }
                         ToolSeparator { topPadding: 10; bottomPadding: 10 }
@@ -455,6 +479,27 @@ Maui.ScrollColumn
                 label2.wrapMode: Text.Wrap
                 template.content: Switch
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
                     checked: !!(root.controller && root.controller.dnsEncryptionEnabled)
                     enabled: root.controller !== null
                     onToggled: if (root.controller) root.controller.dnsEncryptionEnabled = checked
@@ -472,6 +517,30 @@ Maui.ScrollColumn
                 label2.wrapMode: Text.Wrap
                 template.content: Button
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     text: i18n("Import")
                     enabled: root.controller !== null
                     onClicked: _openVpnDialog.open()
@@ -519,6 +588,30 @@ Maui.ScrollColumn
                 template.iconSource: _currentWifiItem.connection.security && _currentWifiItem.connection.security !== i18n("Open") ? "lock" : "unlock"
                 template.content: RowLayout
                 {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     spacing: Maui.Style.space.small
                     Button { text: i18n("Disconnect"); onClicked: root.controller.disconnectNetwork(_currentWifiItem.connection.devicePath) }
                     ToolSeparator { topPadding: 10; bottomPadding: 10 }
