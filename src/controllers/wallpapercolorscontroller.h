@@ -9,6 +9,11 @@ class HyprlandInfo;
 class QFileSystemWatcher;
 class QTimer;
 
+namespace MauiKit
+{
+class AdaptivePalette;
+}
+
 namespace MauiMan
 {
 class ThemeManager;
@@ -42,11 +47,17 @@ private:
     void clearSourceWatcher();
     void onThemeSourceChanged(const QString &source);
     void synchronizeKde(const QString &source, bool synchronizeGreeter);
-    void synchronizeHyprlandBorders(const QString &source);
-    bool writeGeneratedScheme(const QString &source);
+    void synchronizeHyprlandBorders(const MauiKit::AdaptivePalette &palette);
+    bool writeGeneratedScheme(const MauiKit::AdaptivePalette &palette);
+    bool writeGeneratedVicinaeTheme(const MauiKit::AdaptivePalette &palette,
+                                    const QString &themeId,
+                                    const QString &variant,
+                                    const QString &parentId);
+    void activateVicinaeTheme();
     void restorePreviousScheme();
     void persistSettings() const;
     QString generatedSchemePath() const;
+    QString generatedVicinaeThemePath(const QString &themeId) const;
     static QString canonicalImagePath(const QString &path);
 
     MauiMan::ThemeManager *m_theme;

@@ -8,10 +8,13 @@
 #include <MauiMan4/thememanager.h>
 
 #include <QDir>
+#include <QGuiApplication>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QImage>
 #include <QImageReader>
+#include <QDebug>
+#include <QProcess>
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
@@ -24,6 +27,8 @@ namespace
 {
 constexpr auto generatedSchemeName = "Maui Wallpaper";
 constexpr auto generatedSchemeFileName = "Maui Wallpaper.colors";
+constexpr auto generatedVicinaeDarkThemeId = "maui-wallpaper-dark";
+constexpr auto generatedVicinaeLightThemeId = "maui-wallpaper-light";
 
 QString colorValue(const QColor &color)
 {
@@ -270,21 +275,34 @@ void WallpaperColorsController::synchronizeKde(const QString &source, bool synch
         persistSettings();
     }
 
-    if (!writeGeneratedScheme(source)
+    const QImage image(source);
+    const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(image);
+    const MauiKit::AdaptivePalette darkPalette =
+        MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Dark);
+    const MauiKit::AdaptivePalette lightPalette =
+        MauiKit::AdaptivePalette::fromImage(image, MauiKit::AdaptivePaletteMode::Light);
+    if (!palette.valid || !darkPalette.valid || !lightPalette.valid)
+        return;
+
+    if (!writeGeneratedScheme(palette)
+        || !writeGeneratedVicinaeTheme(darkPalette, QString::fromLatin1(generatedVicinaeDarkThemeId),
+                                       QStringLiteral("dark"), QStringLiteral("vicinae-dark"))
+        || !writeGeneratedVicinaeTheme(lightPalette, QString::fromLatin1(generatedVicinaeLightThemeId),
+                                       QStringLiteral("light"), QStringLiteral("vicinae-light"))
         || !m_kde->applyColorSchemeFile(generatedSchemePath(), QString::fromLatin1(generatedSchemeName)))
         return;
 
-    synchronizeHyprlandBorders(source);
+    activateVicinaeTheme();
+    synchronizeHyprlandBorders(palette);
     if (synchronizeGreeter)
         m_kde->synchronizeGreeter();
 }
 
-void WallpaperColorsController::synchronizeHyprlandBorders(const QString &source)
+void WallpaperColorsController::synchronizeHyprlandBorders(const MauiKit::AdaptivePalette &palette)
 {
-    if (!m_hyprland || !m_hyprland->available() || !m_hyprland->borderColorsFollowTheme() || source.isEmpty())
+    if (!m_hyprland || !m_hyprland->available() || !m_hyprland->borderColorsFollowTheme())
         return;
 
-    const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(QImage(source));
     if (!palette.valid)
         return;
 
@@ -310,9 +328,8 @@ void WallpaperColorsController::synchronizeHyprlandBorders(const QString &source
     m_hyprland->save();
 }
 
-bool WallpaperColorsController::writeGeneratedScheme(const QString &source)
+bool WallpaperColorsController::writeGeneratedScheme(const MauiKit::AdaptivePalette &palette)
 {
-    const MauiKit::AdaptivePalette palette = MauiKit::AdaptivePalette::fromImage(QImage(source));
     if (palette.valid == false)
         return false;
 
@@ -375,6 +392,140 @@ bool WallpaperColorsController::writeGeneratedScheme(const QString &source)
     return file.commit();
 }
 
+bool WallpaperColorsController::writeGeneratedVicinaeTheme(const MauiKit::AdaptivePalette &palette,
+                                                               const QString &themeId,
+                                                               const QString &variant,
+                                                               const QString &parentId)
+{
+    const QString path = generatedVicinaeThemePath(themeId);
+    if (QDir().mkpath(QFileInfo(path).absolutePath()) == false)
+        return false;
+
+    QSaveFile file(path);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text) == false)
+        return false;
+
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+    const auto writeColor = [&out](const QString &key, const QColor &color) {
+        const auto format = color.alpha() == 0xff ? QColor::HexRgb : QColor::HexArgb;
+        out << key << QLatin1String(" = \"") << color.name(format) << QLatin1String("\"\n");
+    };
+    const auto withOpacity = [](QColor color, qreal opacity) {
+        color.setAlphaF(opacity);
+        return color;
+    };
+
+    out << QLatin1String("[meta]\n");
+    out << QLatin1String("name = \"")
+        << (variant == QStringLiteral("dark") ? QStringLiteral("Maui Wallpaper Dark")
+                                                : QStringLiteral("Maui Wallpaper Light"))
+        << QLatin1String("\"\n");
+    out << QLatin1String("description = \"Generated from the current wallpaper\"\n");
+    out << QLatin1String("variant = \"") << variant << QLatin1String("\"\n");
+    out << QLatin1String("inherits = \"") << parentId << QLatin1String("\"\n\n");
+
+    out << QLatin1String("[colors.core]\n");
+    writeColor(QStringLiteral("accent"), palette.highlightColor);
+    writeColor(QStringLiteral("accent_foreground"), palette.highlightedTextColor);
+    writeColor(QStringLiteral("background"), palette.backgroundColor);
+    writeColor(QStringLiteral("foreground"), palette.textColor);
+    writeColor(QStringLiteral("secondary_background"), palette.viewBackgroundColor);
+    writeColor(QStringLiteral("border"), palette.viewAlternateBackgroundColor);
+
+    out << QLatin1String("\n[colors.main_window]\n");
+    writeColor(QStringLiteral("border"), palette.alternateBackgroundColor);
+    writeColor(QStringLiteral("footer.background"), palette.alternateBackgroundColor);
+
+    out << QLatin1String("\n[colors.settings_window]\n");
+    writeColor(QStringLiteral("border"), palette.alternateBackgroundColor);
+
+    out << QLatin1String("\n[colors.accents]\n");
+    writeColor(QStringLiteral("blue"), palette.linkColor);
+    writeColor(QStringLiteral("green"), palette.positiveBackgroundColor);
+    writeColor(QStringLiteral("magenta"), palette.highlightColor);
+    writeColor(QStringLiteral("orange"), palette.neutralBackgroundColor);
+    writeColor(QStringLiteral("red"), palette.negativeBackgroundColor);
+    writeColor(QStringLiteral("yellow"), palette.highlightColor.lighter(115));
+    writeColor(QStringLiteral("cyan"), palette.activeTextColor);
+    writeColor(QStringLiteral("purple"), palette.visitedLinkColor);
+
+    out << QLatin1String("\n[colors.shortcut]\n");
+    writeColor(QStringLiteral("border"), palette.viewAlternateBackgroundColor);
+
+    out << QLatin1String("\n[colors.text]\n");
+    writeColor(QStringLiteral("default"), palette.textColor);
+    writeColor(QStringLiteral("muted"), palette.disabledTextColor);
+    writeColor(QStringLiteral("danger"), palette.negativeTextColor);
+    writeColor(QStringLiteral("success"), palette.positiveTextColor);
+    writeColor(QStringLiteral("placeholder"), palette.disabledTextColor);
+
+    out << QLatin1String("\n[colors.text.links]\n");
+    writeColor(QStringLiteral("default"), palette.linkColor);
+    writeColor(QStringLiteral("visited"), palette.visitedLinkColor);
+
+    out << QLatin1String("\n[colors.text.selection]\n");
+    writeColor(QStringLiteral("background"), palette.selectionBackgroundColor);
+    writeColor(QStringLiteral("foreground"), palette.selectionTextColor);
+
+    out << QLatin1String("\n[colors.input]\n");
+    writeColor(QStringLiteral("background"), palette.viewBackgroundColor);
+    writeColor(QStringLiteral("border"), palette.viewAlternateBackgroundColor);
+    writeColor(QStringLiteral("border_focus"), palette.viewFocusColor);
+    writeColor(QStringLiteral("border_error"), palette.negativeBackgroundColor);
+
+    out << QLatin1String("\n[colors.button.primary]\n");
+    writeColor(QStringLiteral("background"), palette.buttonBackgroundColor);
+    writeColor(QStringLiteral("foreground"), palette.buttonTextColor);
+    writeColor(QStringLiteral("hover.background"), palette.buttonHoverColor);
+    writeColor(QStringLiteral("hover.foreground"), palette.buttonTextColor);
+    writeColor(QStringLiteral("focus.outline"), palette.buttonFocusColor);
+
+    out << QLatin1String("\n[colors.list.item.hover]\n");
+    writeColor(QStringLiteral("background"), palette.hoverColor);
+    writeColor(QStringLiteral("foreground"), palette.textColor);
+    writeColor(QStringLiteral("secondary_foreground"), palette.disabledTextColor);
+
+    out << QLatin1String("\n[colors.list.item.selection]\n");
+    writeColor(QStringLiteral("background"), palette.selectionBackgroundColor);
+    writeColor(QStringLiteral("foreground"), palette.selectionTextColor);
+    writeColor(QStringLiteral("secondary_background"), palette.selectionAlternateBackgroundColor);
+    writeColor(QStringLiteral("secondary_foreground"), palette.selectionTextColor);
+
+    out << QLatin1String("\n[colors.grid.item]\n");
+    writeColor(QStringLiteral("background"), palette.viewBackgroundColor);
+    writeColor(QStringLiteral("hover.outline"), palette.viewFocusColor);
+    writeColor(QStringLiteral("selection.outline"), palette.selectionFocusColor);
+
+    out << QLatin1String("\n[colors.scrollbars]\n");
+    writeColor(QStringLiteral("background"), withOpacity(palette.textColor, 0.25));
+    writeColor(QStringLiteral("secondary_background"), withOpacity(palette.textColor, 0.15));
+
+    out << QLatin1String("\n[colors.tooltip]\n");
+    writeColor(QStringLiteral("background"), palette.tooltipBackgroundColor);
+    writeColor(QStringLiteral("foreground"), palette.tooltipTextColor);
+    writeColor(QStringLiteral("border"), palette.tooltipFocusColor);
+
+    out << QLatin1String("\n[colors.loading]\n");
+    writeColor(QStringLiteral("bar"), palette.highlightColor);
+    writeColor(QStringLiteral("spinner"), palette.textColor);
+
+    return file.commit();
+}
+
+void WallpaperColorsController::activateVicinaeTheme()
+{
+    const QString executable = QStandardPaths::findExecutable(QStringLiteral("vicinae"));
+    if (executable.isEmpty())
+        return;
+
+    const QString themeId = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
+        ? QString::fromLatin1(generatedVicinaeLightThemeId)
+        : QString::fromLatin1(generatedVicinaeDarkThemeId);
+    if (QProcess::execute(executable, {QStringLiteral("theme"), QStringLiteral("set"), themeId}) != 0)
+        qWarning() << "Failed to activate Vicinae theme" << themeId;
+}
+
 void WallpaperColorsController::restorePreviousScheme()
 {
     if (m_kde->colorScheme() != QString::fromLatin1(generatedSchemeName) || !m_hasPreviousKdeScheme)
@@ -404,4 +555,10 @@ QString WallpaperColorsController::generatedSchemePath() const
 {
     return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
         + QStringLiteral("/color-schemes/") + QString::fromLatin1(generatedSchemeFileName);
+}
+
+QString WallpaperColorsController::generatedVicinaeThemePath(const QString &themeId) const
+{
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        + QStringLiteral("/vicinae/themes/") + themeId + QStringLiteral(".toml");
 }
