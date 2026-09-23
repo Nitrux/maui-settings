@@ -61,7 +61,7 @@ private:
                                     const QString &themeId,
                                     const QString &variant,
                                     const QString &parentId);
-    bool writeVicinaeSettings(bool generatedThemes, bool useLightTheme);
+    bool writeVicinaeSettings(bool useLightTheme);
     bool useLightVicinaeTheme(const MauiKit::AdaptivePalette &palette) const;
     void restorePreviousScheme();
     void persistSettings() const;

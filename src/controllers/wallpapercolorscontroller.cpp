@@ -239,8 +239,8 @@ WallpaperColorsController::WallpaperColorsController(MauiMan::ThemeManager *them
     QSettings settings;
     settings.beginGroup(QStringLiteral("WallpaperColors"));
     const bool legacySynchronizationEnabled = settings.value(QStringLiteral("SynchronizeKde"), false).toBool();
-    m_vicinaeSynchronizationEnabled = m_vicinaeAvailable
-        && settings.value(QStringLiteral("SynchronizeVicinae"), false).toBool();
+    m_vicinaeSynchronizationEnabled = settings.value(
+        QStringLiteral("SynchronizeVicinae"), false).toBool();
     m_kdeSynchronizationEnabled = m_theme->adaptiveColorSchemeEnabled();
     m_previousKdeScheme = settings.value(QStringLiteral("PreviousKdeScheme")).toString();
     m_hasPreviousKdeScheme = settings.value(QStringLiteral("PreviousKdeSchemeSet"), settings.contains(QStringLiteral("PreviousKdeScheme"))).toBool();
@@ -310,7 +310,8 @@ bool WallpaperColorsController::vicinaeSynchronizationEnabled() const
 
 void WallpaperColorsController::setVicinaeSynchronizationEnabled(bool enabled)
 {
-    enabled = enabled && m_vicinaeAvailable;
+    if (enabled && !m_vicinaeAvailable)
+        return;
     if (m_vicinaeSynchronizationEnabled == enabled)
         return;
 
@@ -484,9 +485,12 @@ void WallpaperColorsController::synchronizeVicinae(const QString &source)
         }
     }
 
-    if (!writeVicinaeSettings(generatedThemes, useLightTheme))
+    if (!generatedThemes)
+        return;
+
+    if (!writeVicinaeSettings(useLightTheme))
         qWarning() << "Failed to synchronize Vicinae settings";
-    else if (generatedThemes)
+    else
         refreshVicinaeTheme(useLightTheme ? QString::fromLatin1(generatedVicinaeLightThemeId)
                                           : QString::fromLatin1(generatedVicinaeDarkThemeId));
 }
@@ -716,7 +720,7 @@ bool WallpaperColorsController::writeGeneratedVicinaeTheme(const MauiKit::Adapti
     return file.commit();
 }
 
-bool WallpaperColorsController::writeVicinaeSettings(bool generatedThemes, bool useLightTheme)
+bool WallpaperColorsController::writeVicinaeSettings(bool useLightTheme)
 {
     const QString path = vicinaeSettingsPath();
     if (path.isEmpty() || !QDir().mkpath(QFileInfo(path).absolutePath()))
@@ -761,22 +765,19 @@ bool WallpaperColorsController::writeVicinaeSettings(bool generatedThemes, bool 
         darkConfig.insert(QStringLiteral("icon_theme"), iconTheme);
     }
 
-    if (generatedThemes)
-    {
-        const QString lightThemeId = QString::fromLatin1(generatedVicinaeLightThemeId);
-        const QString darkThemeId = QString::fromLatin1(generatedVicinaeDarkThemeId);
-        lightConfig.insert(QStringLiteral("name"), lightThemeId);
-        darkConfig.insert(QStringLiteral("name"), darkThemeId);
+    const QString lightThemeId = QString::fromLatin1(generatedVicinaeLightThemeId);
+    const QString darkThemeId = QString::fromLatin1(generatedVicinaeDarkThemeId);
+    lightConfig.insert(QStringLiteral("name"), lightThemeId);
+    darkConfig.insert(QStringLiteral("name"), darkThemeId);
 
-        QJsonObject activeConfig = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
-            ? lightConfig
-            : darkConfig;
-        activeConfig.insert(QStringLiteral("name"), useLightTheme ? lightThemeId : darkThemeId);
-        if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light)
-            lightConfig = activeConfig;
-        else
-            darkConfig = activeConfig;
-    }
+    QJsonObject activeConfig = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
+        ? lightConfig
+        : darkConfig;
+    activeConfig.insert(QStringLiteral("name"), useLightTheme ? lightThemeId : darkThemeId);
+    if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light)
+        lightConfig = activeConfig;
+    else
+        darkConfig = activeConfig;
 
     themeConfig.insert(QStringLiteral("light"), lightConfig);
     themeConfig.insert(QStringLiteral("dark"), darkConfig);

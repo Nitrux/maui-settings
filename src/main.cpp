@@ -161,6 +161,24 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QmlGreetController qmlGreetController;
     engine.rootContext()->setContextProperty(QStringLiteral("qmlGreetController"), &qmlGreetController);
 
+    QObject::connect(&backgroundInfo, &BackgroundInfo::wallpaperSourceSaved,
+                     &qmlGreetController, [&qmlGreetController](const QString &path) {
+        if (!qmlGreetController.wallpaperSynchronized())
+            return;
+
+        qmlGreetController.setWallpaperPath(path);
+        qmlGreetController.save();
+    });
+
+    QObject::connect(&backgroundInfo, &BackgroundInfo::wallpaperSourceSaved,
+                     &desklockController, [&desklockController](const QString &path) {
+        if (!desklockController.wallpaperSynchronized())
+            return;
+
+        desklockController.setWallpaperPath(path);
+        desklockController.save();
+    });
+
     QmlLogoutController qmlLogoutController;
     engine.rootContext()->setContextProperty(QStringLiteral("qmlLogoutController"), &qmlLogoutController);
 
