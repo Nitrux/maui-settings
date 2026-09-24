@@ -23,6 +23,7 @@ int MarinaInfo::dockHeight() const { return m_dockHeight; }
 bool MarinaInfo::showAboveFullscreen() const { return m_showAboveFullscreen; }
 bool MarinaInfo::autoHide() const { return m_autoHide; }
 int MarinaInfo::autoHideDelay() const { return m_autoHideDelay; }
+bool MarinaInfo::launcherShortcutsEnabled() const { return m_launcherShortcutsEnabled; }
 
 void MarinaInfo::setChanged() { Q_EMIT settingsChanged(); }
 
@@ -101,6 +102,14 @@ void MarinaInfo::setAutoHideDelay(int value)
     setChanged();
 }
 
+void MarinaInfo::setLauncherShortcutsEnabled(bool value)
+{
+    if (m_launcherShortcutsEnabled == value)
+        return;
+    m_launcherShortcutsEnabled = value;
+    setChanged();
+}
+
 void MarinaInfo::reload()
 {
     load();
@@ -122,6 +131,7 @@ void MarinaInfo::load()
     m_showAboveFullscreen = settings.value(QStringLiteral("Window/showAboveFullscreen"), false).toBool();
     m_autoHide = settings.value(QStringLiteral("Behavior/autoHide"), false).toBool();
     m_autoHideDelay = qBound(0, settings.value(QStringLiteral("Behavior/autoHideDelay"), 650).toInt(), 5000);
+    m_launcherShortcutsEnabled = settings.value(QStringLiteral("Behavior/launcherShortcutsEnabled"), true).toBool();
     setChanged();
 }
 
@@ -137,6 +147,7 @@ bool MarinaInfo::save()
     settings.setValue(QStringLiteral("Window/showAboveFullscreen"), m_showAboveFullscreen);
     settings.setValue(QStringLiteral("Behavior/autoHide"), m_autoHide);
     settings.setValue(QStringLiteral("Behavior/autoHideDelay"), m_autoHideDelay);
+    settings.setValue(QStringLiteral("Behavior/launcherShortcutsEnabled"), m_launcherShortcutsEnabled);
     settings.sync();
     if (settings.status() != QSettings::NoError)
         return false;

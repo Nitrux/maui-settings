@@ -425,8 +425,44 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Behavior")
-                text2: i18n("Configure when the dock hides.")
+                text2: i18n("Configure launcher shortcuts and when the dock hides.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Launcher shortcuts")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Hold Super to show numbered badges and launch pinned applications.")
+                label2.wrapMode: Text.Wrap
+                template.content: Switch
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    checked: info ? info.launcherShortcutsEnabled : true
+                    onToggled: if (info) info.launcherShortcutsEnabled = checked
+                }
             }
 
             Maui.SectionItem
