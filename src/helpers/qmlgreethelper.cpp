@@ -467,16 +467,21 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     if (liveVerification.status() != QSettings::NoError)
         return helperError(QStringLiteral("Could not verify /etc/qmlgreet/qmlgreet.conf after writing."), 1002);
 
-    qDebug() << "QmlGreetHelper: live settings write succeeded; persisting lower file";
+    const bool persistSystemFiles = SystemFilePersistence::isOverlayrootActive();
+    if (!persistSystemFiles)
+    {
+        qDebug() << "QmlGreetHelper: no active overlayroot; skipping lower filesystem persistence";
+    }
     QString persistenceError;
-    if (!SystemFilePersistence::persist(QString::fromLatin1(configPath), &persistenceError))
+    if (persistSystemFiles
+        && !SystemFilePersistence::persist(QString::fromLatin1(configPath), &persistenceError))
     {
         return helperError(QStringLiteral(
             "QMLGreet settings were applied to the running system, but could not be made persistent: %1")
             .arg(persistenceError), 1004);
     }
 
-    if (updateHyprpaper
+    if (persistSystemFiles && updateHyprpaper
         && !SystemFilePersistence::persist(QString::fromLatin1(hyprpaperConfigPath), &persistenceError))
     {
         return helperError(QStringLiteral(

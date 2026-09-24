@@ -4,6 +4,8 @@
 
 namespace SystemFilePersistence
 {
+bool isOverlayrootActive();
+
 /**
  * Copies a live system file to the persistent lower filesystem through NX
  * Overlayroot.

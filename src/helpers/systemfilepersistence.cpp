@@ -48,6 +48,25 @@ QString permissionMode(QFileDevice::Permissions permissions)
 }
 }
 
+bool SystemFilePersistence::isOverlayrootActive()
+{
+    QFile mounts(QStringLiteral("/proc/mounts"));
+    if (!mounts.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qWarning() << "SystemFilePersistence: could not read /proc/mounts";
+        return false;
+    }
+
+    while (!mounts.atEnd())
+    {
+        const QByteArray line = mounts.readLine().simplified();
+        if (line.startsWith(QByteArrayLiteral("overlayroot / ")))
+            return true;
+    }
+
+    return false;
+}
+
 bool SystemFilePersistence::persist(const QString &path, QString *errorMessage)
 {
     if (errorMessage)
