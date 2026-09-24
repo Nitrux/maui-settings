@@ -23,6 +23,8 @@ int MarinaInfo::dockHeight() const { return m_dockHeight; }
 bool MarinaInfo::showAboveFullscreen() const { return m_showAboveFullscreen; }
 bool MarinaInfo::autoHide() const { return m_autoHide; }
 int MarinaInfo::autoHideDelay() const { return m_autoHideDelay; }
+int MarinaInfo::launcherHoldDelay() const { return m_launcherHoldDelay; }
+int MarinaInfo::launcherModeDuration() const { return m_launcherModeDuration; }
 bool MarinaInfo::launcherShortcutsEnabled() const { return m_launcherShortcutsEnabled; }
 
 void MarinaInfo::setChanged() { Q_EMIT settingsChanged(); }
@@ -102,6 +104,24 @@ void MarinaInfo::setAutoHideDelay(int value)
     setChanged();
 }
 
+void MarinaInfo::setLauncherHoldDelay(int value)
+{
+    value = qBound(0, value, 10000);
+    if (m_launcherHoldDelay == value)
+        return;
+    m_launcherHoldDelay = value;
+    setChanged();
+}
+
+void MarinaInfo::setLauncherModeDuration(int value)
+{
+    value = qBound(0, value, 10000);
+    if (m_launcherModeDuration == value)
+        return;
+    m_launcherModeDuration = value;
+    setChanged();
+}
+
 void MarinaInfo::setLauncherShortcutsEnabled(bool value)
 {
     if (m_launcherShortcutsEnabled == value)
@@ -131,6 +151,8 @@ void MarinaInfo::load()
     m_showAboveFullscreen = settings.value(QStringLiteral("Window/showAboveFullscreen"), false).toBool();
     m_autoHide = settings.value(QStringLiteral("Behavior/autoHide"), false).toBool();
     m_autoHideDelay = qBound(0, settings.value(QStringLiteral("Behavior/autoHideDelay"), 650).toInt(), 5000);
+    m_launcherHoldDelay = qBound(0, settings.value(QStringLiteral("Behavior/launcherHoldDelay"), 3000).toInt(), 10000);
+    m_launcherModeDuration = qBound(0, settings.value(QStringLiteral("Behavior/launcherModeDuration"), 1000).toInt(), 10000);
     m_launcherShortcutsEnabled = settings.value(QStringLiteral("Behavior/launcherShortcutsEnabled"), true).toBool();
     setChanged();
 }
@@ -147,6 +169,8 @@ bool MarinaInfo::save()
     settings.setValue(QStringLiteral("Window/showAboveFullscreen"), m_showAboveFullscreen);
     settings.setValue(QStringLiteral("Behavior/autoHide"), m_autoHide);
     settings.setValue(QStringLiteral("Behavior/autoHideDelay"), m_autoHideDelay);
+    settings.setValue(QStringLiteral("Behavior/launcherHoldDelay"), m_launcherHoldDelay);
+    settings.setValue(QStringLiteral("Behavior/launcherModeDuration"), m_launcherModeDuration);
     settings.setValue(QStringLiteral("Behavior/launcherShortcutsEnabled"), m_launcherShortcutsEnabled);
     settings.sync();
     if (settings.status() != QSettings::NoError)

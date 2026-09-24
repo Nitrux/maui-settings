@@ -16,6 +16,8 @@ class MarinaInfo : public QObject
     Q_PROPERTY(bool showAboveFullscreen READ showAboveFullscreen WRITE setShowAboveFullscreen NOTIFY settingsChanged)
     Q_PROPERTY(bool autoHide READ autoHide WRITE setAutoHide NOTIFY settingsChanged)
     Q_PROPERTY(int autoHideDelay READ autoHideDelay WRITE setAutoHideDelay NOTIFY settingsChanged)
+    Q_PROPERTY(int launcherHoldDelay READ launcherHoldDelay WRITE setLauncherHoldDelay NOTIFY settingsChanged)
+    Q_PROPERTY(int launcherModeDuration READ launcherModeDuration WRITE setLauncherModeDuration NOTIFY settingsChanged)
     Q_PROPERTY(bool launcherShortcutsEnabled READ launcherShortcutsEnabled WRITE setLauncherShortcutsEnabled NOTIFY settingsChanged)
 
 public:
@@ -31,6 +33,8 @@ public:
     bool showAboveFullscreen() const;
     bool autoHide() const;
     int autoHideDelay() const;
+    int launcherHoldDelay() const;
+    int launcherModeDuration() const;
     bool launcherShortcutsEnabled() const;
 
     void setIconSize(int value);
@@ -41,6 +45,8 @@ public:
     void setShowAboveFullscreen(bool value);
     void setAutoHide(bool value);
     void setAutoHideDelay(int value);
+    void setLauncherHoldDelay(int value);
+    void setLauncherModeDuration(int value);
     void setLauncherShortcutsEnabled(bool value);
 
     Q_INVOKABLE void reload();
@@ -63,5 +69,7 @@ private:
     bool m_showAboveFullscreen = false;
     bool m_autoHide = false;
     int m_autoHideDelay = 650;
+    int m_launcherHoldDelay = 3000;
+    int m_launcherModeDuration = 1000;
     bool m_launcherShortcutsEnabled = true;
 };

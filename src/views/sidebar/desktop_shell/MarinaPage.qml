@@ -469,6 +469,92 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 flat: true
+                visible: info ? info.launcherShortcutsEnabled : false
+                label1.text: i18n("Launcher hold delay")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Milliseconds Super must be held before the numbered badges appear.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    from: 0
+                    to: 10000
+                    stepSize: 100
+                    value: info ? info.launcherHoldDelay : 3000
+                    onValueModified: if (info) info.launcherHoldDelay = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                visible: info ? info.launcherShortcutsEnabled : false
+                label1.text: i18n("Launcher badge duration")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Milliseconds the numbered badges remain visible.")
+                label2.wrapMode: Text.Wrap
+                template.content: SpinBox
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    from: 0
+                    to: 10000
+                    stepSize: 100
+                    value: info ? info.launcherModeDuration : 1000
+                    onValueModified: if (info) info.launcherModeDuration = value
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
                 label1.text: i18n("Auto-hide")
                 label1.elide: Text.ElideRight
                 label2.text: i18n("Hide Marina until the pointer reaches its screen edge.")
