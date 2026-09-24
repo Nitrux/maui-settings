@@ -63,7 +63,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     app.setApplicationName(QStringLiteral("maui-settings"));
     app.setOrganizationName(QStringLiteral("Maui"));
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("preferences-desktop-theme")));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("preferences-system")));
 
     QString instanceDirectory =
         QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
@@ -107,7 +107,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     const auto fileBrowsingData = MauiKitFileBrowsing::aboutData();
     about.addComponent(fileBrowsingData.name(), MauiKitFileBrowsing::buildVersion(), fileBrowsingData.version(), fileBrowsingData.webAddress());
     KAboutData::setApplicationData(about);
-    MauiApp::instance()->setIconName(QStringLiteral("preferences-desktop-theme"));
+    MauiApp::instance()->setIconName(QStringLiteral("preferences-system"));
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
