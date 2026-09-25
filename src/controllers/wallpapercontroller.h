@@ -8,6 +8,9 @@
 #include <QString>
 #include <QVariant>
 
+class QFileSystemWatcher;
+class QTimer;
+
 class WallpaperController final : public QAbstractListModel
 {
     Q_OBJECT
@@ -45,6 +48,8 @@ private:
         QString source;
     };
 
+    void updateSourceWatcher();
+
     static QString defaultPicturesPath();
     static bool isImageFile(const QString &path);
     static qint64 imageScore(const QString &path);
@@ -52,4 +57,6 @@ private:
     QString m_systemWallpaperPath;
     QString m_picturesPath;
     QList<Entry> m_entries;
+    QFileSystemWatcher *m_sourceWatcher = nullptr;
+    QTimer *m_sourceRefreshTimer = nullptr;
 };

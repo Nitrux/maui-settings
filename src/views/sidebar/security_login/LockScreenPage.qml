@@ -222,6 +222,7 @@ Maui.ScrollColumn
             Rectangle
             {
                 Layout.alignment: Qt.AlignHCenter
+                id: wallpaperPreviewFrame
                 readonly property real displayWidth: root.previewDisplay && Number(root.previewDisplay.width) > 0
                     ? Number(root.previewDisplay.width) : root.displayAspectRatio
                 readonly property real displayHeight: root.previewDisplay && Number(root.previewDisplay.height) > 0
@@ -238,10 +239,13 @@ Maui.ScrollColumn
                 radius: Maui.Style.radiusV
                 border.color: Maui.Theme.textColor
                 border.width: 1
+                border.pixelAligned: false
+                clip: true
                 Image
                 {
                     id: wallpaperPreviewImage
                     anchors.fill: parent
+                    anchors.margins: wallpaperPreviewFrame.border.width
                     asynchronous: true
                     fillMode: Image.PreserveAspectCrop
                     layer.enabled: true
@@ -258,7 +262,7 @@ Maui.ScrollColumn
                             {
                                 width: wallpaperPreviewImage.width
                                 height: wallpaperPreviewImage.height
-                                radius: Maui.Style.radiusV
+                                radius: Math.max(0, wallpaperPreviewFrame.radius - wallpaperPreviewFrame.border.width)
                                 color: "white"
                             }
                         }
@@ -426,11 +430,21 @@ Maui.ScrollColumn
 
                     Maui.GridBrowserDelegate
                     {
+                        id: wallpaperDelegate
                         anchors.fill: parent
                         anchors.margins: Maui.Style.space.small
                         imageSource: root.previewSource(model.path)
                         fillMode: Image.PreserveAspectCrop
                         maskRadius: Maui.Style.radiusV
+
+                        Binding
+                        {
+                            target: wallpaperDelegate.template.iconItem ? wallpaperDelegate.template.iconItem.image : null
+                            property: "cache"
+                            value: true
+                            when: wallpaperDelegate.template.iconItem !== null
+                        }
+
                         isCurrentItem: !root.stagedWallpaperSynchronized
                             && root.controller && root.controller.wallpaperPath === model.path
 

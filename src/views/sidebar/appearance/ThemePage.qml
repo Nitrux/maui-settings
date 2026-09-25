@@ -1445,7 +1445,7 @@ Maui.ScrollColumn
             {
                 Layout.fillWidth: true
                 text1: i18n("Desktop Integration")
-                text2: i18n("These values affect KDE, MauiKit, and Vicinae apps.")
+                text2: i18n("These values affect KDE, MauiKit, and other apps.")
                 label2.wrapMode: Text.Wrap
             }
 

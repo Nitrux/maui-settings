@@ -3,8 +3,10 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <QSet>
 #include <QStandardPaths>
+#include <QTimer>
 
 #include <algorithm>
 #include <utility>
@@ -34,6 +36,16 @@ WallpaperController::WallpaperController(QObject *parent)
     , m_systemWallpaperPath(QStringLiteral("/usr/share/wallpapers"))
     , m_picturesPath(defaultPicturesPath())
 {
+    m_sourceWatcher = new QFileSystemWatcher(this);
+    m_sourceRefreshTimer = new QTimer(this);
+    m_sourceRefreshTimer->setSingleShot(true);
+    m_sourceRefreshTimer->setInterval(100);
+
+    connect(m_sourceWatcher, &QFileSystemWatcher::directoryChanged, this, [this]() {
+        m_sourceRefreshTimer->start();
+    });
+    connect(m_sourceRefreshTimer, &QTimer::timeout, this, &WallpaperController::refresh);
+
     refresh();
 }
 
@@ -79,6 +91,34 @@ QHash<int, QByteArray> WallpaperController::roleNames() const
         {NameRole, "name"},
         {SourceRole, "source"}
     };
+}
+
+void WallpaperController::updateSourceWatcher()
+{
+    if (!m_sourceWatcher)
+        return;
+
+    const QStringList watchedDirectories = m_sourceWatcher->directories();
+    if (!watchedDirectories.isEmpty())
+        m_sourceWatcher->removePaths(watchedDirectories);
+
+    QStringList directories;
+    const auto appendDirectories = [&directories](const QString &path) {
+        const QDir root(path);
+        if (!root.exists())
+            return;
+
+        directories.append(root.absolutePath());
+        QDirIterator iterator(root.absolutePath(),
+                              QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable,
+                              QDirIterator::Subdirectories);
+        while (iterator.hasNext())
+            directories.append(iterator.next());
+    };
+
+    appendDirectories(m_systemWallpaperPath);
+    appendDirectories(m_picturesPath);
+    m_sourceWatcher->addPaths(directories);
 }
 
 void WallpaperController::refresh()
@@ -154,6 +194,8 @@ void WallpaperController::refresh()
     beginResetModel();
     m_entries = std::move(entries);
     endResetModel();
+
+    updateSourceWatcher();
 
     if (picturesLocationChanged)
         Q_EMIT picturesPathChanged();
