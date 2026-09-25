@@ -329,10 +329,9 @@ Maui.ScrollColumn
             wallpaperColors.vicinaeSynchronizationEnabled = stagedVicinaeSynchronizationEnabled
             if (stagedAdaptiveColorSchemeEnabled || stagedVicinaeSynchronizationEnabled)
                 wallpaperColors.synchronize()
-            else if (kde && kdeSaved)
-                kde.synchronizeGreeter()
         }
-        else if (kde && kdeSaved)
+
+        if (kde && kdeSaved)
             kde.synchronizeGreeter()
 
         if (gtk)

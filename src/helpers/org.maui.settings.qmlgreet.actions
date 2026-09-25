@@ -8,5 +8,5 @@ Policy=auth_admin
 
 [org.maui.settings.qmlgreet.copykdeglobals]
 Name=Copy KDE globals to QMLGreet
-Description=Authentication is required to update the greetd user KDE settings
+Description=Authentication is required to update the greetd user KDE and cursor settings
 Policy=auth_admin

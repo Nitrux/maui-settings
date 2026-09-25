@@ -27,7 +27,9 @@
 #include <QPainter>
 #include <QPalette>
 #include <QRegularExpression>
+#include <QSaveFile>
 #include <QPixmapCache>
+#include <QProcess>
 #include <QLocale>
 #include <QSet>
 #include <QVariant>
@@ -193,6 +195,98 @@ void notifyKcmChange(int changeType)
                                                       QStringLiteral("notifyChange"));
     message.setArguments({changeType, 0});
     QDBusConnection::sessionBus().send(message);
+}
+
+void reloadCursorTheme(const QString &theme, int size)
+{
+    const QString hyprctl = QStandardPaths::findExecutable(QStringLiteral("hyprctl"));
+    if (hyprctl.isEmpty())
+        return;
+
+    QProcess::startDetached(hyprctl, {
+        QStringLiteral("setcursor"),
+        theme,
+        QString::number(size > 0 ? size : 24)
+    });
+}
+
+bool updateLuaEnvironmentLine(QStringList &lines, const QString &name, const QString &value)
+{
+    const QRegularExpression expression(
+        QStringLiteral("^(\\s*)hl\\.env\\(\\s*\"%1\"\\s*,\\s*\"((?:\\\\.|[^\"\\\\])*)\"\\s*\\)(\\s*(?:--.*)?)$")
+            .arg(QRegularExpression::escape(name)));
+    for (QString &line : lines)
+    {
+        const QRegularExpressionMatch match = expression.match(line);
+        if (!match.hasMatch())
+            continue;
+
+        line = match.captured(1)
+            + QStringLiteral("hl.env(\"%1\", \"%2\")").arg(name, value)
+            + match.captured(3);
+        return true;
+    }
+
+    return false;
+}
+
+bool saveCursorEnvironment(const QString &theme, int size)
+{
+    const QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+        + QStringLiteral("/hypr/hyprland.lua");
+    const QFileInfo sourceInfo(path);
+    if (!sourceInfo.isFile())
+        return true;
+
+    QFile source(path);
+    if (!source.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+
+    QStringList lines = QString::fromUtf8(source.readAll()).split(QLatin1Char(10));
+    const QString cursorSize = QString::number(size > 0 ? size : 24);
+    const QList<QPair<QString, QString>> values {
+        {QStringLiteral("HYPRCURSOR_THEME"), theme},
+        {QStringLiteral("HYPRCURSOR_SIZE"), cursorSize},
+        {QStringLiteral("XCURSOR_THEME"), theme},
+        {QStringLiteral("XCURSOR_SIZE"), cursorSize}
+    };
+
+    int insertionLine = -1;
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        if (lines.at(i).trimmed().startsWith(QStringLiteral("hl.env(")))
+            insertionLine = i + 1;
+    }
+    if (insertionLine < 0)
+    {
+        if (!lines.isEmpty() && !lines.constLast().trimmed().isEmpty())
+            lines.append(QString());
+        insertionLine = lines.size();
+    }
+
+    for (const auto &entry : values)
+    {
+        if (updateLuaEnvironmentLine(lines, entry.first, entry.second))
+            continue;
+
+        lines.insert(insertionLine++,
+                     QStringLiteral("hl.env(\"%1\", \"%2\")").arg(entry.first, entry.second));
+    }
+
+    const QFileDevice::Permissions permissions = sourceInfo.permissions();
+    QSaveFile destination(path);
+    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text)
+        || (permissions != QFileDevice::Permissions() && !destination.setPermissions(permissions))
+        || destination.write(lines.join(QLatin1Char(10)).toUtf8()) < 0
+        || !destination.commit())
+    {
+        return false;
+    }
+
+    const QString hyprctl = QStandardPaths::findExecutable(QStringLiteral("hyprctl"));
+    if (!hyprctl.isEmpty())
+        QProcess::startDetached(hyprctl, {QStringLiteral("reload")});
+    return true;
 }
 
 bool applyColorScheme(KConfig *target, const QString &path)
@@ -744,7 +838,11 @@ void KdeGlobalsInfo::synchronizeGreeter()
 
     KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
     action.setHelperId(QString::fromLatin1(greeterHelperId));
-    action.setArguments({{QStringLiteral("sourcePath"), m_configPath}});
+    action.setArguments({
+        {QStringLiteral("sourcePath"), m_configPath},
+        {QStringLiteral("cursorTheme"), m_cursorTheme},
+        {QStringLiteral("cursorSize"), m_cursorSize > 0 ? m_cursorSize : 24}
+    });
     if (QWindow *window = QGuiApplication::focusWindow())
         action.setParentWindow(window);
 
@@ -756,7 +854,7 @@ void KdeGlobalsInfo::synchronizeGreeter()
         connect(job, &KJob::result, this, [](KJob *completedJob)
         {
             if (completedJob->error() != 0)
-                qWarning() << "Could not copy kdeglobals to the greetd user:" << completedJob->errorText();
+                qWarning() << "Could not synchronize KDE settings and cursor to the greetd user:" << completedJob->errorText();
         });
         job->start();
     }
@@ -825,6 +923,8 @@ bool KdeGlobalsInfo::save()
         mouseGroup.writeEntry(QStringLiteral("cursorSize"), m_cursorSize);
     inputSettings->sync();
 
+    const bool cursorEnvironmentSaved = (!cursorThemeChanged && !cursorSizeChanged)
+        || saveCursorEnvironment(m_cursorTheme, m_cursorSize);
     const bool settingsSaved = !settings->isDirty();
     const bool inputSettingsSaved = !inputSettings->isDirty();
     if (settingsSaved && inputSettingsSaved)
@@ -834,10 +934,13 @@ bool KdeGlobalsInfo::save()
         if (widgetStyleChanged)
             notifyKcmChange(2); // StyleChanged
         if (cursorThemeChanged || cursorSizeChanged)
+        {
+            reloadCursorTheme(m_cursorTheme, m_cursorSize);
             notifyKcmChange(5); // CursorChanged
+        }
     }
 
-    return settingsSaved && inputSettingsSaved;
+    return settingsSaved && inputSettingsSaved && cursorEnvironmentSaved;
 }
 
 QFont KdeGlobalsInfo::fontFromString(const QString &value) const

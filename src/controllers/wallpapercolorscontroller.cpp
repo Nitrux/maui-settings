@@ -294,7 +294,7 @@ void WallpaperColorsController::setKdeSynchronizationEnabled(bool enabled)
 
 void WallpaperColorsController::synchronize()
 {
-    synchronizeKde(m_currentSource, true);
+    synchronizeKde(m_currentSource, false);
     synchronizeVicinae(m_currentSource);
 }
 

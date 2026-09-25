@@ -7,6 +7,7 @@
 #include <QSaveFile>
 #include <QFileInfo>
 #include <QMimeDatabase>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
@@ -20,6 +21,7 @@ namespace
 constexpr auto configPath = "/etc/qmlgreet/qmlgreet.conf";
 constexpr auto hyprpaperConfigPath = "/etc/greetd/hyprpaper.conf";
 constexpr auto greetdHomePath = "/var/lib/greetd";
+constexpr auto greetdHyprlandConfigPath = "/var/lib/greetd/.config/hypr/hyprland.lua";
 constexpr qint64 maximumImageSize = 100 * 1024 * 1024;
 
 QVariantMap readSettings()
@@ -203,6 +205,88 @@ bool writeHyprpaperWallpaper(const QString &wallpaperPath, QString *error)
         *error = QStringLiteral("Could not write %1.").arg(sourceInfo.absoluteFilePath());
         return false;
     }
+    return true;
+}
+
+bool updateLuaEnvironmentLine(QStringList &lines, const QString &name, const QString &value)
+{
+    const QRegularExpression expression(
+        QStringLiteral("^(\\s*)hl\\.env\\(\\s*\"%1\"\\s*,\\s*\"((?:\\\\.|[^\"\\\\])*)\"\\s*\\)(\\s*(?:--.*)?)$")
+            .arg(QRegularExpression::escape(name)));
+    for (QString &line : lines)
+    {
+        const QRegularExpressionMatch match = expression.match(line);
+        if (!match.hasMatch())
+            continue;
+
+        line = match.captured(1)
+            + QStringLiteral("hl.env(\"%1\", \"%2\")").arg(name, value)
+            + match.captured(3);
+        return true;
+    }
+
+    return false;
+}
+
+bool writeCursorEnvironment(const QString &theme, int size, QString *error)
+{
+    const QString path = QString::fromLatin1(greetdHyprlandConfigPath);
+    const QFileInfo sourceInfo(path);
+    if (!sourceInfo.isFile())
+    {
+        *error = QStringLiteral("Could not find %1.").arg(path);
+        return false;
+    }
+
+    QFile source(path);
+    if (!source.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        *error = QStringLiteral("Could not read %1.").arg(path);
+        return false;
+    }
+
+    QStringList lines = QString::fromUtf8(source.readAll()).split(QLatin1Char(10));
+    const QString cursorSize = QString::number(size > 0 ? size : 24);
+    const QList<QPair<QString, QString>> values {
+        {QStringLiteral("HYPRCURSOR_THEME"), theme},
+        {QStringLiteral("HYPRCURSOR_SIZE"), cursorSize},
+        {QStringLiteral("XCURSOR_THEME"), theme},
+        {QStringLiteral("XCURSOR_SIZE"), cursorSize}
+    };
+
+    int insertionLine = -1;
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        if (lines.at(i).trimmed().startsWith(QStringLiteral("hl.env(")))
+            insertionLine = i + 1;
+    }
+    if (insertionLine < 0)
+    {
+        if (!lines.isEmpty() && !lines.constLast().trimmed().isEmpty())
+            lines.append(QString());
+        insertionLine = lines.size();
+    }
+
+    for (const auto &entry : values)
+    {
+        if (updateLuaEnvironmentLine(lines, entry.first, entry.second))
+            continue;
+
+        lines.insert(insertionLine++,
+                     QStringLiteral("hl.env(\"%1\", \"%2\")").arg(entry.first, entry.second));
+    }
+
+    const QFileDevice::Permissions permissions = sourceInfo.permissions();
+    QSaveFile destination(path);
+    if (!destination.open(QIODevice::WriteOnly | QIODevice::Text)
+        || (permissions != QFileDevice::Permissions() && !destination.setPermissions(permissions))
+        || destination.write(lines.join(QLatin1Char(10)).toUtf8()) < 0
+        || !destination.commit())
+    {
+        *error = QStringLiteral("Could not write %1.").arg(path);
+        return false;
+    }
+
     return true;
 }
 
@@ -520,7 +604,20 @@ KAuth::ActionReply QmlGreetHelper::copykdeglobals(const QVariantMap &a)
         || !target.commit())
         return helperError(QStringLiteral("Could not copy kdeglobals to %1.").arg(targetPath), 1104);
 
-    qDebug() << "QmlGreetHelper: copied kdeglobals" << canonicalSource << "to" << targetPath;
+    if (a.contains(QStringLiteral("cursorTheme")) || a.contains(QStringLiteral("cursorSize")))
+    {
+        const QString cursorTheme = boundedString(a, QStringLiteral("cursorTheme"), 256);
+        bool cursorSizeOk = false;
+        const int cursorSize = a.value(QStringLiteral("cursorSize")).toInt(&cursorSizeOk);
+        if (!cursorSizeOk || cursorSize < 1 || cursorSize > 1024)
+            return helperError(QStringLiteral("The cursor size is invalid."), 1105);
+
+        QString cursorError;
+        if (!writeCursorEnvironment(cursorTheme, cursorSize, &cursorError))
+            return helperError(cursorError, 1106);
+    }
+
+    qDebug() << "QmlGreetHelper: copied kdeglobals and synchronized cursor environment" << canonicalSource << "to" << targetPath;
     return KAuth::ActionReply::SuccessReply();
 }
 
