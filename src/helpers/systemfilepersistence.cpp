@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
 #include <QProcess>
 #include <QStringList>
 #include <QTemporaryFile>
@@ -50,21 +51,22 @@ QString permissionMode(QFileDevice::Permissions permissions)
 
 bool SystemFilePersistence::isOverlayrootActive()
 {
-    QFile mounts(QStringLiteral("/proc/mounts"));
-    if (!mounts.open(QIODevice::ReadOnly | QIODevice::Text))
+    qDebug() << "SystemFilePersistence: checking overlayroot kernel parameter";
+
+    QFile cmdline(QStringLiteral("/proc/cmdline"));
+    if (!cmdline.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        qWarning() << "SystemFilePersistence: could not read /proc/mounts";
+        qWarning() << "SystemFilePersistence: could not read /proc/cmdline";
         return false;
     }
 
-    while (!mounts.atEnd())
-    {
-        const QByteArray line = mounts.readLine().simplified();
-        if (line.startsWith(QByteArrayLiteral("overlayroot / ")))
-            return true;
-    }
-
-    return false;
+    const QByteArray commandLine = cmdline.readAll();
+    const QRegularExpression overlayrootParameter(
+        QStringLiteral("(?:^|\\s)overlayroot(?:=[^\\s]*)?(?:\\s|$)"));
+    const bool active = overlayrootParameter.match(QString::fromUtf8(commandLine)).hasMatch();
+    qDebug() << "SystemFilePersistence: /proc/cmdline contains overlayroot=" << active;
+    qDebug() << "SystemFilePersistence: overlayroot active=" << active;
+    return active;
 }
 
 bool SystemFilePersistence::persist(const QString &path, QString *errorMessage)
