@@ -1,0 +1,7 @@
+[Domain]
+Name=Graphics settings
+
+[org.maui.settings.graphics.set]
+Name=Change graphics mode
+Description=Authentication is required to change the system graphics mode
+Policy=auth_admin

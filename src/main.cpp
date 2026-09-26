@@ -40,6 +40,7 @@
 #include "controllers/valenzinfo.h"
 #include "controllers/tomainfo.h"
 #include "controllers/powerinfo.h"
+#include "controllers/graphicsmodecontroller.h"
 #include "controllers/batterycontroller.h"
 #include "controllers/hyprsunsetinfo.h"
 #include "controllers/hyprlandinfo.h"
@@ -185,6 +186,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     ValenzInfo valenzInfo;
     TomaInfo tomaInfo;
     PowerInfo powerInfo;
+    GraphicsModeController graphicsModeController;
     BatteryController batteryController;
     HyprsunsetInfo hyprsunsetInfo;
     AutostartController autostartController;
@@ -192,6 +194,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     FlatpakPermissionsController flatpakPermissionsController;
     DisplaysController displaysController;
     engine.rootContext()->setContextProperty(QStringLiteral("powerInfo"), &powerInfo);
+    engine.rootContext()->setContextProperty(QStringLiteral("graphicsModeController"), &graphicsModeController);
     engine.rootContext()->setContextProperty(QStringLiteral("batteryController"), &batteryController);
     engine.rootContext()->setContextProperty(QStringLiteral("hyprsunsetInfo"), &hyprsunsetInfo);
     engine.rootContext()->setContextProperty(QStringLiteral("hyprlandInfo"), &hyprlandInfo);

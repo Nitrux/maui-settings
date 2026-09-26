@@ -107,6 +107,8 @@ set(settings_SRCS
     src/controllers/tomainfo.h
     src/controllers/powerinfo.cpp
     src/controllers/powerinfo.h
+    src/controllers/graphicsmodecontroller.cpp
+    src/controllers/graphicsmodecontroller.h
     src/controllers/batterycontroller.cpp
     src/controllers/batterycontroller.h
     src/controllers/hyprsunsetinfo.cpp
@@ -189,6 +191,18 @@ target_compile_definitions(${DATETIME_HELPER_TARGET} PRIVATE MAUI_SETTINGS_HAS_P
 install(TARGETS ${DATETIME_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
 kauth_install_helper_files(${DATETIME_HELPER_TARGET} ${DATETIME_HELPER_ID} root)
 kauth_install_actions(${DATETIME_HELPER_ID} src/helpers/org.maui.settings.datetime.actions)
+
+set(GRAPHICS_HELPER_TARGET maui-settings-graphics-helper)
+set(GRAPHICS_HELPER_ID org.maui.settings.graphics)
+add_executable(${GRAPHICS_HELPER_TARGET}
+    src/helpers/graphicsmodehelper.cpp
+    src/helpers/graphicsmodehelper.h
+)
+target_compile_features(${GRAPHICS_HELPER_TARGET} PRIVATE cxx_std_23)
+target_link_libraries(${GRAPHICS_HELPER_TARGET} PRIVATE KF6::AuthCore Qt6::Core)
+install(TARGETS ${GRAPHICS_HELPER_TARGET} DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
+kauth_install_helper_files(${GRAPHICS_HELPER_TARGET} ${GRAPHICS_HELPER_ID} root)
+kauth_install_actions(${GRAPHICS_HELPER_ID} src/helpers/org.maui.settings.graphics.actions)
 
 configure_file(org.maui.settings.desktop.in
     ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop

@@ -85,6 +85,40 @@ QString iniValue(const QString &value)
     return result;
 }
 
+bool validLuaValue(const QString &value)
+{
+    for (const QChar character : value)
+    {
+        if (character.unicode() < 0x20 || character.unicode() == 0x7f)
+            return false;
+    }
+    return true;
+}
+
+QString luaStringValue(const QString &value)
+{
+    QString result;
+    result.reserve(value.size());
+    for (const QChar character : value)
+    {
+        if (character.unicode() == 92)
+        {
+            result += QChar(92);
+            result += QChar(92);
+        }
+        else if (character.unicode() == 34)
+        {
+            result += QChar(92);
+            result += QChar(34);
+        }
+        else
+        {
+            result += character;
+        }
+    }
+    return result;
+}
+
 bool replaceIniValue(QStringList &lines, const IniValue &entry)
 {
     int sectionStart = -1;
@@ -220,7 +254,7 @@ bool updateLuaEnvironmentLine(QStringList &lines, const QString &name, const QSt
             continue;
 
         line = match.captured(1)
-            + QStringLiteral("hl.env(\"%1\", \"%2\")").arg(name, value)
+            + QStringLiteral("hl.env(\"%1\", \"%2\")").arg(name, luaStringValue(value))
             + match.captured(3);
         return true;
     }
@@ -230,6 +264,11 @@ bool updateLuaEnvironmentLine(QStringList &lines, const QString &name, const QSt
 
 bool writeCursorEnvironment(const QString &theme, int size, QString *error)
 {
+    if (!validLuaValue(theme))
+    {
+        *error = QStringLiteral("The cursor theme contains invalid characters.");
+        return false;
+    }
     const QString path = QString::fromLatin1(greetdHyprlandConfigPath);
     const QFileInfo sourceInfo(path);
     if (!sourceInfo.isFile())
@@ -273,7 +312,7 @@ bool writeCursorEnvironment(const QString &theme, int size, QString *error)
             continue;
 
         lines.insert(insertionLine++,
-                     QStringLiteral("hl.env(\"%1\", \"%2\")").arg(entry.first, entry.second));
+                     QStringLiteral("hl.env(\"%1\", \"%2\")").arg(entry.first, luaStringValue(entry.second)));
     }
 
     const QFileDevice::Permissions permissions = sourceInfo.permissions();
@@ -584,8 +623,11 @@ KAuth::ActionReply QmlGreetHelper::copykdeglobals(const QVariantMap &a)
     const QString sourcePath = boundedString(a, QStringLiteral("sourcePath"), 4096);
     const QFileInfo sourceInfo(sourcePath);
     const QString canonicalSource = sourceInfo.canonicalFilePath();
+    const QFileInfo canonicalInfo(canonicalSource);
     if (canonicalSource.isEmpty() || sourceInfo.fileName() != QStringLiteral("kdeglobals")
-        || QFileInfo(canonicalSource).dir().dirName() != QStringLiteral(".config"))
+        || canonicalInfo.dir().dirName() != QStringLiteral(".config")
+        || !canonicalInfo.isFile() || !canonicalInfo.isReadable()
+        || canonicalInfo.ownerId() < 1000)
         return helperError(QStringLiteral("The kdeglobals source must be ~/.config/kdeglobals."), 1101);
 
     QFile source(canonicalSource);

@@ -2,6 +2,7 @@
 #include "systemfilepersistence.h"
 #include <QFile>
 #include <QFileInfo>
+#include <QMimeDatabase>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QSaveFile>
@@ -19,9 +20,30 @@ extern "C" {
 }
 #endif
 namespace {
-constexpr auto localtimePath = "/etc/localtime"; constexpr auto passwordQualityConfig = "/etc/security/pwquality.conf"; constexpr auto timezonePath = "/etc/timezone"; constexpr auto localePath = "/etc/default/locale"; constexpr auto hostnamePath = "/etc/hostname"; constexpr auto zoneinfoPath = "/usr/share/zoneinfo/";
+constexpr auto localtimePath = "/etc/localtime"; constexpr auto passwordQualityConfig = "/etc/security/pwquality.conf"; constexpr auto timezonePath = "/etc/timezone"; constexpr auto localePath = "/etc/default/locale"; constexpr auto hostnamePath = "/etc/hostname"; constexpr auto zoneinfoPath = "/usr/share/zoneinfo/"; constexpr qint64 maximumAvatarSize = 100 * 1024 * 1024;
 KAuth::ActionReply error(const QString &message, int code) { auto r=KAuth::ActionReply::HelperErrorReply(); r.setError(code); r.setErrorDescription(message); return r; }
-bool valid(const QString &z) { if(z.isEmpty()||z.startsWith('/')||z.contains("..")) return false; QFileInfo i(QString::fromLatin1(zoneinfoPath)+z); return i.exists()&&i.isFile()&&i.isReadable(); }
+bool valid(const QString &z) { if(z.isEmpty()||z.startsWith(QLatin1Char(47))||z.contains("..")) return false; QFileInfo i(QString::fromLatin1(zoneinfoPath)+z); return i.exists()&&i.isFile()&&i.isReadable(); }
+bool validUsername(const QString &username) { return QRegularExpression(QStringLiteral("^[a-z_][a-z0-9_-]{0,31}\\z")).match(username).hasMatch(); }
+bool validAvatar(const QString &path, QString *canonicalPath, QString *e) {
+    const QFileInfo supplied(path);
+    if (!supplied.isAbsolute()) { *e = "Avatar paths must be absolute."; return false; }
+    const QString canonical = supplied.canonicalFilePath();
+    const QFileInfo info(canonical);
+    if (canonical.isEmpty() || !info.isFile() || !info.isReadable() || info.ownerId() < 1000) { *e = "The avatar must be a readable user-owned file."; return false; }
+    if (info.size() <= 0 || info.size() > maximumAvatarSize) { *e = "The avatar has an invalid size."; return false; }
+    if (!QMimeDatabase().mimeTypeForFile(canonical, QMimeDatabase::MatchContent).name().startsWith(QStringLiteral("image/"))) { *e = "The avatar must be an image file."; return false; }
+    *canonicalPath = canonical;
+    return true;
+}
+bool installAvatar(const QString &avatarPath, const struct passwd *account, QString *e) {
+    QString sourcePath;
+    if (!validAvatar(avatarPath, &sourcePath, e)) return false;
+    const QString destination = QString::fromLocal8Bit(account->pw_dir) + QStringLiteral("/.face");
+    if (QFileInfo::exists(destination) && !QFile::remove(destination)) { *e = "Could not replace the existing avatar."; return false; }
+    if (!QFile::copy(sourcePath, destination)) { *e = "The avatar could not be installed."; return false; }
+    if (::lchown(destination.toUtf8().constData(), account->pw_uid, account->pw_gid) != 0) { *e = QStringLiteral("Could not assign the avatar to the user account: %1").arg(QString::fromLocal8Bit(std::strerror(errno))); return false; }
+    return SystemFilePersistence::persist(destination, e);
+}
 bool updateTimezone(const QString &z, QString *e) { const QString target=QString::fromLatin1(zoneinfoPath)+z; QFile::remove(localtimePath); if(!QFile::link(target,localtimePath)){*e="Could not update /etc/localtime.";return false;} QSaveFile f(timezonePath); if(!f.open(QIODevice::WriteOnly|QIODevice::Text)||f.write(z.toUtf8()+QByteArray("\n"))<0||!f.commit()){*e="Could not update /etc/timezone.";return false;} QString pe; if(!SystemFilePersistence::persistSymlink(target,localtimePath,&pe)||!SystemFilePersistence::persist(timezonePath,&pe)){*e=QStringLiteral("Timezone changed for this session but could not be persisted: %1").arg(pe);return false;} return true; }
 bool clock(qint64 s, QString *e) { timespec t{s,0}; if(::clock_settime(CLOCK_REALTIME,&t)!=0){*e=QStringLiteral("Could not set the system clock: %1").arg(QString::fromLocal8Bit(std::strerror(errno)));return false;} QProcess p; p.start("/sbin/hwclock",{"--systohc"}); if(!p.waitForFinished(10000)||p.exitCode()!=0){*e="System clock changed, but the hardware clock could not be synchronized.";return false;} return true; }
 bool persistAccountFiles(QString *e) {
@@ -79,11 +101,7 @@ bool addUser(const QString &username, const QString &fullName, const QString &pa
     if (!avatarPath.isEmpty()) {
         const struct passwd *account = ::getpwnam(username.toUtf8().constData());
         if (!account) { *e = "User created, but its account entry could not be read."; return false; }
-        const QString destination = QString::fromLocal8Bit(account->pw_dir) + QStringLiteral("/.face");
-        QFile::remove(destination);
-        if (!QFile::copy(avatarPath, destination)) { *e = "User created, but the avatar could not be installed."; return false; }
-        ::chown(destination.toUtf8().constData(), account->pw_uid, account->pw_gid);
-        if (!SystemFilePersistence::persist(destination, e)) return false;
+        if (!installAvatar(avatarPath, account, e)) { *e = QStringLiteral("User created, but the avatar could not be installed: %1").arg(*e); return false; }
     }
     if (!persistAccountFiles(e)) { *e = QStringLiteral("User created for this session but could not be persisted: %1").arg(*e); return false; }
     return true;
@@ -91,7 +109,7 @@ bool addUser(const QString &username, const QString &fullName, const QString &pa
 
 bool sudoMember(const struct passwd *account) { const struct group *sudo = ::getgrnam("sudo"); if (!account || !sudo) return false; if (account->pw_gid == sudo->gr_gid) return true; for (char **member = sudo->gr_mem; member && *member; ++member) if (std::strcmp(account->pw_name, *member) == 0) return true; return false; }
 bool accountCanBeDeleted(const QString &username, QString *e) { const QByteArray name = username.toUtf8(); const struct passwd *target = ::getpwnam(name.constData()); if (!target || target->pw_uid < 1000 || target->pw_uid == 65534) { *e = "This account cannot be deleted."; return false; } int regular = 0, sudo = 0; bool targetSudo = false; ::setpwent(); while (const struct passwd *account = ::getpwent()) { if (account->pw_uid < 1000 || account->pw_uid == 65534) continue; ++regular; if (sudoMember(account)) { ++sudo; if (username == QString::fromLocal8Bit(account->pw_name)) targetSudo = true; } } ::endpwent(); if (regular <= 1 || (targetSudo && sudo <= 1)) { *e = "This account cannot be deleted."; return false; } return true; }
-bool updateUserAccount(const QString &username, const QString &password, const QString &avatarPath, QString *e) { const struct passwd *account = ::getpwnam(username.toUtf8().constData()); if (!account) { *e = "The user account could not be found."; return false; } if (!password.isEmpty() && !validatePassword(username, password, e)) return false; if (!password.isEmpty()) { QProcess process; process.setProgram(QStringLiteral("/usr/sbin/chpasswd")); process.start(); if (!process.waitForStarted(5000) || process.write(username.toUtf8() + QByteArray(":") + password.toUtf8() + QByteArray("\n")) < 0) { *e = "The password could not be set."; return false; } process.closeWriteChannel(); if (!process.waitForFinished(30000) || process.exitCode() != 0) { *e = "The password could not be set."; return false; } } if (!avatarPath.isEmpty()) { const QString destination = QString::fromLocal8Bit(account->pw_dir) + QStringLiteral("/.face"); QFile::remove(destination); if (!QFile::copy(avatarPath, destination)) { *e = "The avatar could not be installed."; return false; } ::chown(destination.toUtf8().constData(), account->pw_uid, account->pw_gid); if (!SystemFilePersistence::persist(destination, e)) return false; } return persistAccountFiles(e); }
+bool updateUserAccount(const QString &username, const QString &password, const QString &avatarPath, QString *e) { if (!validUsername(username)) { *e = "Invalid username."; return false; } const struct passwd *account = ::getpwnam(username.toUtf8().constData()); if (!account || account->pw_uid < 1000 || account->pw_uid == 65534) { *e = "The user account could not be found."; return false; } if (!password.isEmpty() && !validatePassword(username, password, e)) return false; if (!password.isEmpty()) { QProcess process; process.setProgram(QStringLiteral("/usr/sbin/chpasswd")); process.start(); if (!process.waitForStarted(5000) || process.write(username.toUtf8() + QByteArray(":") + password.toUtf8() + QByteArray("\n")) < 0) { *e = "The password could not be set."; return false; } process.closeWriteChannel(); if (!process.waitForFinished(30000) || process.exitCode() != 0) { *e = "The password could not be set."; return false; } } if (!avatarPath.isEmpty() && !installAvatar(avatarPath, account, e)) return false; return persistAccountFiles(e); }
 bool deleteUserAccount(const QString &username, QString *e) { if (!accountCanBeDeleted(username, e)) return false; QProcess process; process.setProgram(QStringLiteral("/usr/sbin/userdel")); process.setArguments({QStringLiteral("--remove"), username}); process.start(); if (!process.waitForFinished(30000) || process.exitCode() != 0) { *e = QString::fromLocal8Bit(process.readAllStandardError()).trimmed(); if (e->isEmpty()) *e = "Could not delete the user account."; return false; } return persistAccountFiles(e); }
 bool updateHostname(const QString &hostname, QString *e) {
     if (!QRegularExpression(QStringLiteral("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\\z")).match(hostname).hasMatch()) { *e = "Invalid hostname."; return false; }

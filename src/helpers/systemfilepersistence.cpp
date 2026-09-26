@@ -76,6 +76,7 @@ bool SystemFilePersistence::persist(const QString &path, QString *errorMessage)
 
     const QFileInfo sourceInfo(path);
     if (!sourceInfo.isAbsolute() || !sourceInfo.exists() || !sourceInfo.isFile()
+        || sourceInfo.isSymLink()
         || !sourceInfo.isReadable())
     {
         return fail(QStringLiteral("Cannot persist invalid system file %1.").arg(path), errorMessage);
