@@ -159,7 +159,10 @@ bool GraphicsModeController::detectSupportedHardware() const
             otherGraphicsFound = true;
     }
 
-    return nvidiaFound && otherGraphicsFound;
+    if (nvidiaFound && otherGraphicsFound)
+        return true;
+
+    return !nvidiaFound && otherGraphicsFound && queryCurrentMode() == QStringLiteral("integrated");
 }
 
 QString GraphicsModeController::queryCurrentMode() const

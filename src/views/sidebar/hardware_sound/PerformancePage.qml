@@ -10,11 +10,12 @@ Maui.ScrollColumn {
     readonly property var info: powerInfo
     readonly property var graphics: (typeof graphicsModeController !== "undefined" && graphicsModeController) ? graphicsModeController : null
     readonly property var graphicsModes: [
-        { mode: "integrated", label: i18n("Integrated"), description: i18n("Use integrated graphics to reduce power consumption. External displays connected to the Nvidia GPU may be unavailable.") },
-        { mode: "hybrid", label: i18n("Hybrid"), description: i18n("Use integrated graphics by default and enable Nvidia rendering when needed.") },
-        { mode: "nvidia", label: i18n("Nvidia"), description: i18n("Use the Nvidia GPU exclusively for higher graphics performance and power consumption.") }
+        { mode: "integrated", label: i18n("Integrated"), description: i18n("Use integrated graphics to reduce power consumption. External displays connected to the NVIDIA GPU may be unavailable.") },
+        { mode: "hybrid", label: i18n("Hybrid"), description: i18n("Use integrated graphics by default and enable NVIDIA rendering when needed.") },
+        { mode: "nvidia", label: i18n("NVIDIA"), description: i18n("Use the NVIDIA GPU exclusively for higher graphics performance and power consumption.") }
     ]
     property string requestedGraphicsMode: ""
+    property string notifiedGraphicsError: ""
     function graphicsModeIndex(mode) {
         for (let i = 0; i < graphicsModes.length; ++i)
             if (graphicsModes[i].mode === mode)
@@ -55,7 +56,23 @@ Maui.ScrollColumn {
     Connections
     {
         target: root.graphics
-        function onStateChanged() { root.syncGraphicsModeSelection() }
+        function onStateChanged()
+        {
+            root.syncGraphicsModeSelection()
+
+            const error = root.graphics ? root.graphics.errorMessage : ""
+            if (error.length === 0)
+            {
+                root.notifiedGraphicsError = ""
+                return
+            }
+
+            if (error === root.notifiedGraphicsError)
+                return
+
+            root.notifiedGraphicsError = error
+            Maui.App.rootComponent.notify("dialog-error", i18n("Graphics mode error"), error)
+        }
     }
 
     Maui.SectionHeader {
@@ -208,10 +225,18 @@ Maui.ScrollColumn {
                 text1: i18n("Graphics Mode")
                 text2: !root.graphics || !root.graphics.available
                     ? i18n("Graphics mode switching is unavailable on this system.")
+                    : root.graphics.busy
+                    ? i18n("Applying the selected graphics mode. This may take a moment.")
                     : root.graphics.rebootRequired
                     ? i18n("%1 is selected and will be applied after restarting.", root.graphicsModeInfo(root.graphics.pendingMode).label)
                     : i18n("Select which GPU is used when the system starts.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.ProgressIndicator
+            {
+                Layout.fillWidth: true
+                visible: !!(root.graphics && root.graphics.busy)
             }
 
             Maui.SectionItem
@@ -251,9 +276,8 @@ Maui.ScrollColumn {
                     Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
                     enabled: !!(root.graphics && root.graphics.available && !root.graphics.busy)
                     model: root.graphics && root.graphics.available
-                        ? root.graphicsModes
-                        : [{ mode: "", label: i18n("Unavailable"), description: "" }]
-                    textRole: "label"
+                        ? root.graphicsModes.map((mode) => mode.label)
+                        : [i18n("Unavailable")]
                     currentIndex: root.graphics && root.graphics.available
                         ? root.graphicsModeIndex(root.displayedGraphicsMode)
                         : 0
@@ -273,16 +297,6 @@ Maui.ScrollColumn {
                 label2.wrapMode: Text.Wrap
             }
 
-            Maui.SectionItem
-            {
-                Layout.fillWidth: true
-                visible: root.graphics && root.graphics.errorMessage.length > 0
-                flat: true
-                label1.text: i18n("Graphics mode error")
-                label1.elide: Text.ElideRight
-                label2.text: root.graphics ? root.graphics.errorMessage : ""
-                label2.wrapMode: Text.Wrap
-            }
         }
     }
 
@@ -318,6 +332,7 @@ Maui.ScrollColumn {
             Action
             {
                 text: i18n("Cancel")
+                Maui.Controls.status: Maui.Controls.Negative
                 onTriggered: graphicsModeDialog.close()
             },
             Action
