@@ -503,6 +503,8 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     };
 
     const bool copyWallpaper = arguments.contains(QStringLiteral("wallpaperSourcePath"));
+    const bool persistSystemFiles = SystemFilePersistence::isOverlayrootActive();
+    QString persistenceError;
     if (copyWallpaper)
     {
         const QString destinationPath = boundedString(
@@ -517,6 +519,13 @@ const auto validateChangedFile = [&](const QString &argumentKey,
             return helperError(validationError, 1003);
         }
         wallpaperPath = QDir::cleanPath(destinationPath);
+        if (persistSystemFiles
+            && !SystemFilePersistence::persist(wallpaperPath, &persistenceError))
+        {
+            return helperError(QStringLiteral(
+                "The greeter wallpaper was copied to the running system, but could not be made persistent: %1")
+                .arg(persistenceError), 1004);
+        }
     }
     else if (!validateChangedFile(
                    QStringLiteral("wallpaperPath"), QStringLiteral("Appearance/BackgroundImage"),
@@ -590,12 +599,10 @@ const auto validateChangedFile = [&](const QString &argumentKey,
     if (liveVerification.status() != QSettings::NoError)
         return helperError(QStringLiteral("Could not verify /etc/qmlgreet/qmlgreet.conf after writing."), 1002);
 
-    const bool persistSystemFiles = SystemFilePersistence::isOverlayrootActive();
     if (!persistSystemFiles)
     {
         qDebug() << "QmlGreetHelper: no active overlayroot; skipping lower filesystem persistence";
     }
-    QString persistenceError;
     if (persistSystemFiles
         && !SystemFilePersistence::persist(QString::fromLatin1(configPath), &persistenceError))
     {

@@ -111,6 +111,7 @@ bool SystemFilePersistence::persist(const QString &path, QString *errorMessage)
     process.setProgram(QString::fromLatin1(overlayrootChrootPath));
     const QStringList processArguments = {
         QString::fromLatin1(installPath),
+        QStringLiteral("-D"),
         QStringLiteral("-o"), QString::number(sourceInfo.ownerId()),
         QStringLiteral("-g"), QString::number(sourceInfo.groupId()),
         QStringLiteral("-m"), permissionMode(sourceInfo.permissions()),
