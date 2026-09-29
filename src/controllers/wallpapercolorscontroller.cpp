@@ -767,17 +767,9 @@ bool WallpaperColorsController::writeVicinaeSettings(bool useLightTheme)
 
     const QString lightThemeId = QString::fromLatin1(generatedVicinaeLightThemeId);
     const QString darkThemeId = QString::fromLatin1(generatedVicinaeDarkThemeId);
-    lightConfig.insert(QStringLiteral("name"), lightThemeId);
-    darkConfig.insert(QStringLiteral("name"), darkThemeId);
-
-    QJsonObject activeConfig = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light
-        ? lightConfig
-        : darkConfig;
-    activeConfig.insert(QStringLiteral("name"), useLightTheme ? lightThemeId : darkThemeId);
-    if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light)
-        lightConfig = activeConfig;
-    else
-        darkConfig = activeConfig;
+    const QString themeId = useLightTheme ? lightThemeId : darkThemeId;
+    lightConfig.insert(QStringLiteral("name"), themeId);
+    darkConfig.insert(QStringLiteral("name"), themeId);
 
     themeConfig.insert(QStringLiteral("light"), lightConfig);
     themeConfig.insert(QStringLiteral("dark"), darkConfig);
