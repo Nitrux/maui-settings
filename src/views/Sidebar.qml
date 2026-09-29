@@ -7,7 +7,7 @@ import org.mauikit.controls as Maui
 Loader
 {
     id: control
-    asynchronous: true
+    asynchronous: false
     active: (control.enabled && control.visible) || item
     Keys.enabled: false
     focus: false

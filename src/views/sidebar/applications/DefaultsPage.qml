@@ -227,32 +227,8 @@ Maui.ScrollColumn
                 label2.elide: Text.ElideRight
                 label2.wrapMode: Text.NoWrap
 
-                template.content: RowLayout
+                template.content: Row
                 {
-                    property Item wideParent
-                    property Item responsiveSectionItem
-                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                    function updateResponsiveParent()
-                    {
-                        if (!wideParent || !responsiveSectionItem)
-                            return
-
-                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                    }
-
-                    onResponsiveNarrowChanged: updateResponsiveParent()
-
-                    Component.onCompleted:
-                    {
-                        const originalParent = parent
-                        responsiveSectionItem = originalParent.parent.parent.parent
-                        wideParent = originalParent
-                        updateResponsiveParent()
-                    }
-                    Layout.fillWidth: responsiveNarrow
-                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
                     spacing: Maui.Style.space.tiny
 
                     ToolButton

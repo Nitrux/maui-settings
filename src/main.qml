@@ -259,7 +259,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _sidebarToggleLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: !!shell.sideBar
                     visible: active
 
@@ -293,7 +293,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _defaultsAddLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: root.currentSection === "applications-defaults"
                     visible: active
 
@@ -316,7 +316,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _settingsActionsLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "desktop-window-compositor" || root.currentSection === "applications-default-apps" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "security-login-autostart" || root.currentSection === "security-login-environment-variables" || root.currentSection === "security-login-flatpak-permissions" || root.currentSection === "hardware-sound-displays" || root.currentSection === "hardware-sound-input" || root.currentSection === "hardware-sound-performance"
                     visible: active
 
@@ -429,7 +429,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _autostartAddLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: root.currentSection === "security-login-autostart"
                     visible: active
 
@@ -459,7 +459,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _environmentVariablesAddLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: root.currentSection === "security-login-environment-variables"
                     visible: active
 
@@ -493,7 +493,7 @@ Maui.ApplicationWindow
                 Loader
                 {
                     id: _mainMenuLoader
-                    asynchronous: true
+                    asynchronous: false
                     active: true
                     visible: true
 

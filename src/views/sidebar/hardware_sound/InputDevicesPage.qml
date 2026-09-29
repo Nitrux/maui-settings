@@ -34,7 +34,7 @@ Maui.ScrollColumn
 
     function responsive(control)
     {
-        control.responsiveSectionItem = control.parent.parent.parent
+        control.responsiveSectionItem = control.parent.parent.parent.parent
         control.wideParent = control.parent
         control.updateResponsiveParent()
     }
@@ -580,32 +580,8 @@ Maui.ScrollColumn
                     Layout.fillWidth: true; flat: true
                     label1.text: modelData.name || i18n("Unnamed device"); label1.elide: Text.ElideRight
                     label2.text: i18n("Sensitivity: %1", Number(modelData.sensitivity).toFixed(2)); label2.elide: Text.ElideRight
-                    template.content: RowLayout
+                    template.content: Row
                     {
-                        property Item wideParent
-                        property Item responsiveSectionItem
-                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                        function updateResponsiveParent()
-                        {
-                            if (!wideParent || !responsiveSectionItem)
-                                return
-
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                        }
-
-                        onResponsiveNarrowChanged: updateResponsiveParent()
-
-                        Component.onCompleted:
-                        {
-                            const originalParent = parent
-                            responsiveSectionItem = originalParent.parent.parent.parent
-                            wideParent = originalParent
-                            updateResponsiveParent()
-                        }
-                        Layout.fillWidth: responsiveNarrow
-                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
                         spacing: Maui.Style.space.tiny
                         ToolButton { icon.name: "document-edit"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Edit device"); onClicked: root.editDevice(index, modelData) }
                         ToolButton { icon.name: "edit-delete"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Remove device"); onClicked: root.removeInputItem(1, index) }
@@ -639,32 +615,8 @@ Maui.ScrollColumn
                     Layout.fillWidth: true; flat: true
                     label1.text: modelData.key || i18n("Unnamed keybind"); label1.elide: Text.ElideRight
                     label2.text: modelData.command || modelData.action || i18n("No action"); label2.elide: Text.ElideRight; label2.wrapMode: Text.NoWrap
-                    template.content: RowLayout
+                    template.content: Row
                     {
-                        property Item wideParent
-                        property Item responsiveSectionItem
-                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
-
-                        function updateResponsiveParent()
-                        {
-                            if (!wideParent || !responsiveSectionItem)
-                                return
-
-                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
-                        }
-
-                        onResponsiveNarrowChanged: updateResponsiveParent()
-
-                        Component.onCompleted:
-                        {
-                            const originalParent = parent
-                            responsiveSectionItem = originalParent.parent.parent.parent
-                            wideParent = originalParent
-                            updateResponsiveParent()
-                        }
-                        Layout.fillWidth: responsiveNarrow
-                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
-                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 8
                         spacing: Maui.Style.space.tiny
                         ToolButton { icon.name: "document-edit"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Edit keybind"); onClicked: root.editKeybind(index, modelData) }
                         ToolButton { icon.name: "edit-delete"; display: ToolButton.IconOnly; ToolTip.visible: hovered; ToolTip.text: i18n("Remove keybind"); onClicked: root.removeKeybind(index) }
