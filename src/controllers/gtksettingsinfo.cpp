@@ -94,6 +94,14 @@ void setGsettingsValue(const QString &schema, const QString &key, const QString 
     process.waitForFinished(1000);
 }
 
+void setGsettingsString(const QString &schema, const QString &key, const QString &value)
+{
+    QString escaped = value;
+    escaped.replace(QStringLiteral("\\"), QStringLiteral("\\\\"));
+    escaped.replace(QStringLiteral("\x27"), QStringLiteral("\\\x27"));
+    setGsettingsValue(schema, key, QStringLiteral("\x27") + escaped + QStringLiteral("\x27"));
+}
+
 QString settingValue(const QString &path, const QString &key, const QString &fallback)
 {
     if (!QFileInfo::exists(path))
@@ -164,7 +172,9 @@ QStringList preservedSettings(const QString &path, const QMap<QString, QString> 
             preserved.append(line);
     }
 
-    while (!preserved.isEmpty() && preserved.constLast().isEmpty())
+    while (!preserved.isEmpty() && preserved.constFirst().trimmed().isEmpty())
+        preserved.removeFirst();
+    while (!preserved.isEmpty() && preserved.constLast().trimmed().isEmpty())
         preserved.removeLast();
     return preserved;
 }
@@ -267,15 +277,15 @@ void applyGsettings(const QString &theme, const QString &iconTheme, const QStrin
                     const QString &fontHinting, const QString &fontAntialiasing, const QString &fontRgbaOrder,
                     double textScalingFactor)
 {
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("gtk-theme"), theme);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme"), iconTheme);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-name"), font);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("cursor-theme"), cursorTheme);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("gtk-theme"), theme);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("icon-theme"), iconTheme);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-name"), font);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("cursor-theme"), cursorTheme);
     setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("cursor-size"), QString::number(cursorSize));
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("color-scheme"), colorScheme);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-hinting"), fontHinting);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-antialiasing"), fontAntialiasing);
-    setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-rgba-order"), fontRgbaOrder);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("color-scheme"), colorScheme);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-hinting"), fontHinting);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-antialiasing"), fontAntialiasing);
+    setGsettingsString(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("font-rgba-order"), fontRgbaOrder);
     setGsettingsValue(QStringLiteral("org.gnome.desktop.interface"), QStringLiteral("text-scaling-factor"), QString::number(textScalingFactor));
     setGsettingsValue(QStringLiteral("org.gnome.desktop.sound"), QStringLiteral("event-sounds"), eventSounds ? QStringLiteral("true") : QStringLiteral("false"));
     setGsettingsValue(QStringLiteral("org.gnome.desktop.sound"), QStringLiteral("input-feedback-sounds"), inputFeedbackSounds ? QStringLiteral("true") : QStringLiteral("false"));
