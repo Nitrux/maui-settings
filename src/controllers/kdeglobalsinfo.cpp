@@ -9,8 +9,6 @@
 #include <QCryptographicHash>
 #include <QDBusConnection>
 #include <QDBusMessage>
-#include <QDBusConnectionInterface>
-#include <QDBusReply>
 #include <KAuth/Action>
 #include <KAuth/ExecuteJob>
 #include <KJob>
@@ -57,17 +55,6 @@ namespace
 {
 constexpr auto greeterHelperId = "org.maui.settings.qmlgreet";
 constexpr auto greeterCopyActionId = "org.maui.settings.qmlgreet.copykdeglobals";
-bool authHelperAvailable(const QString &serviceName)
-{
-    QDBusConnectionInterface *busInterface = QDBusConnection::systemBus().interface();
-    if (!busInterface)
-        return false;
-
-    const QDBusReply<bool> registered = busInterface->isServiceRegistered(serviceName);
-    const QDBusReply<QStringList> activatable = busInterface->activatableServiceNames();
-    return (registered.isValid() && registered.value())
-        || (activatable.isValid() && activatable.value().contains(serviceName));
-}
 QString systemDefaultFont()
 {
     return QApplication::font().toString();
@@ -833,9 +820,6 @@ bool KdeGlobalsInfo::applyColorSchemeFile(const QString &path, const QString &sc
 
 void KdeGlobalsInfo::synchronizeGreeter()
 {
-    if (!authHelperAvailable(QString::fromLatin1(greeterHelperId)))
-        return;
-
     KAuth::Action action(QString::fromLatin1(greeterCopyActionId));
     action.setHelperId(QString::fromLatin1(greeterHelperId));
     action.setArguments({

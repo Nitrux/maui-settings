@@ -345,7 +345,9 @@ void WallpaperColorsController::publishWallpaperSource(const QString &path)
 
 void WallpaperColorsController::synchronizeWallpaperSource(const QString &path)
 {
-    updateWallpaperSource(path, true);
+    updateWallpaperSource(path, false);
+    if (m_kdeSynchronizationEnabled)
+        Q_EMIT greeterSynchronizationRequested();
 }
 
 void WallpaperColorsController::updateWallpaperSource(const QString &path, bool synchronizeGreeter)

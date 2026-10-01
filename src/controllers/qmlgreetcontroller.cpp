@@ -1,9 +1,6 @@
 #include "qmlgreetcontroller.h"
 
 #include <QDir>
-#include <QDBusConnection>
-#include <QDBusConnectionInterface>
-#include <QDBusReply>
 #include <QDebug>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -292,15 +289,7 @@ void QmlGreetController::refreshSaveAvailability()
     KAuth::Action action(QString::fromLatin1(saveActionId));
     action.setHelperId(QString::fromLatin1(helperId));
 
-    const QString serviceName = QString::fromLatin1(helperId);
-    QDBusConnectionInterface *busInterface = QDBusConnection::systemBus().interface();
-    const QDBusReply<bool> registered = busInterface
-        ? busInterface->isServiceRegistered(serviceName) : QDBusReply<bool>();
-    const QDBusReply<QStringList> activatable = busInterface
-        ? busInterface->activatableServiceNames() : QDBusReply<QStringList>();
-    const bool helperAvailable = (registered.isValid() && registered.value())
-        || (activatable.isValid() && activatable.value().contains(serviceName));
-    const bool available = action.isValid() && helperAvailable;
+    const bool available = action.isValid();
     if (m_saveAvailable == available)
         return;
 
@@ -478,6 +467,16 @@ bool QmlGreetController::save()
         action.setParentWindow(window);
 
     KAuth::ExecuteJob *job = action.execute();
+    if (!job)
+    {
+        setSaving(false);
+        const QString message = QStringLiteral("Could not start the privileged QMLGreet settings operation.");
+        setStatusMessage(QString());
+        setErrorMessage(message);
+        Q_EMIT saveFailed(message, false);
+        return false;
+    }
+
     connect(job, &KJob::result, this, [this, job](KJob *)
     {
         setSaving(false);

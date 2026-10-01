@@ -162,13 +162,50 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QmlGreetController qmlGreetController;
     engine.rootContext()->setContextProperty(QStringLiteral("qmlGreetController"), &qmlGreetController);
 
+    bool greeterSynchronizationPending = false;
+    QObject::connect(&wallpaperColorsController,
+                     &WallpaperColorsController::greeterSynchronizationRequested,
+                     &app, [&] {
+        if (!qmlGreetController.wallpaperSynchronized())
+        {
+            kdeGlobalsInfo.synchronizeGreeter();
+            return;
+        }
+
+        greeterSynchronizationPending = true;
+    });
+
+    QObject::connect(&qmlGreetController, &QmlGreetController::saveSucceeded, &app, [&] {
+        if (!greeterSynchronizationPending)
+            return;
+
+        greeterSynchronizationPending = false;
+        kdeGlobalsInfo.synchronizeGreeter();
+    });
+
+    QObject::connect(&qmlGreetController, &QmlGreetController::saveFailed, &app, [&] {
+        if (!greeterSynchronizationPending)
+            return;
+
+        greeterSynchronizationPending = false;
+        kdeGlobalsInfo.synchronizeGreeter();
+    });
+
     QObject::connect(&backgroundInfo, &BackgroundInfo::wallpaperSourceSaved,
-                     &qmlGreetController, [&qmlGreetController](const QString &path) {
+                     &qmlGreetController, [&qmlGreetController, &kdeGlobalsInfo, &greeterSynchronizationPending](const QString &path) {
         if (!qmlGreetController.wallpaperSynchronized())
             return;
 
         qmlGreetController.setWallpaperPath(path);
-        qmlGreetController.save();
+        const bool saveStarted = qmlGreetController.save();
+        if (saveStarted && qmlGreetController.saving())
+            return;
+
+        if (greeterSynchronizationPending)
+        {
+            greeterSynchronizationPending = false;
+            kdeGlobalsInfo.synchronizeGreeter();
+        }
     });
 
     QObject::connect(&backgroundInfo, &BackgroundInfo::wallpaperSourceSaved,

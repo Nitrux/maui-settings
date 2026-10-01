@@ -43,6 +43,7 @@ public:
 Q_SIGNALS:
     void kdeSynchronizationEnabledChanged();
     void vicinaeSynchronizationEnabledChanged();
+    void greeterSynchronizationRequested();
 
 private:
     void publishWallpaperSource(const QString &path);
