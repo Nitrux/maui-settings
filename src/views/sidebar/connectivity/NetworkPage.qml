@@ -16,6 +16,41 @@ Maui.ScrollColumn
     property bool selectedAutoConnect: false
     property string selectedConnectionUuid: ""
     property bool selectedIsWired: false
+    property string vpnSecretConnectionPath: ""
+    property string vpnSecretConnectionName: ""
+    property list<string> vpnSecretHints: []
+    property bool vpnSecretRequestHandled: false
+
+    function clearVpnSecretFields()
+    {
+        _vpnUsernameField.clear()
+        _vpnPasswordField.clear()
+        _vpnCertificatePasswordField.clear()
+        _vpnProxyPasswordField.clear()
+    }
+
+    function loadSelectedConnection()
+    {
+        if (!root.controller || root.selectedConnectionUuid.length === 0)
+            return
+
+        const details = root.controller.connectionDetails(root.selectedConnectionUuid)
+        if (!details || !details.profileName)
+            return
+
+        _profileName.text = details.profileName
+        _autoConnectSwitch.checked = !!details.autoconnect
+        _ipv4Method.currentIndex = details.ipv4Method === "manual" ? 2 : (details.ipv4IgnoreAutoDns ? 1 : 0)
+        _ipv4Addresses.text = details.ipv4Addresses || ""
+        _ipv4Gateway.text = details.ipv4Gateway || ""
+        _ipv4Dns.text = details.ipv4Dns || ""
+        _ipv4SearchDomains.text = details.ipv4SearchDomains || ""
+        _ipv6Method.currentIndex = details.ipv6Method === "disabled" ? 3 : (details.ipv6Method === "manual" ? 2 : (details.ipv6IgnoreAutoDns ? 1 : 0))
+        _ipv6Addresses.text = details.ipv6Addresses || ""
+        _ipv6Gateway.text = details.ipv6Gateway || ""
+        _ipv6Dns.text = details.ipv6Dns || ""
+        _ipv6SearchDomains.text = details.ipv6SearchDomains || ""
+    }
 
     function saveSelectedConnection()
     {
@@ -24,25 +59,19 @@ Maui.ScrollColumn
         const values = {
             id: _profileName.text,
             autoconnect: _autoConnectSwitch.checked,
-            ipv4Method: _ipv4Method.currentText.toLowerCase() === "manual" ? "manual" : "auto",
+            ipv4Method: _ipv4Method.currentIndex === 2 ? "manual" : "auto",
+            ipv4IgnoreAutoDns: _ipv4Method.currentIndex === 1 || _ipv4Dns.text.trim().length > 0,
             ipv4Addresses: _ipv4Addresses.text,
             ipv4Gateway: _ipv4Gateway.text,
             ipv4Dns: _ipv4Dns.text,
             ipv4SearchDomains: _ipv4SearchDomains.text,
-            ipv6Method: _ipv6Method.currentText === i18n("Disabled") ? "disabled" : (_ipv6Method.currentText.toLowerCase() === "manual" ? "manual" : "auto"),
+            ipv6Method: _ipv6Method.currentIndex === 3 ? "disabled" : (_ipv6Method.currentIndex === 2 ? "manual" : "auto"),
+            ipv6IgnoreAutoDns: _ipv6Method.currentIndex === 1 || _ipv6Dns.text.trim().length > 0,
             ipv6Addresses: _ipv6Addresses.text,
             ipv6Gateway: _ipv6Gateway.text,
             ipv6Dns: _ipv6Dns.text,
             ipv6SearchDomains: _ipv6SearchDomains.text
         }
-        if (_ipv4Addresses.text.length === 0) delete values.ipv4Addresses
-        if (_ipv4Gateway.text.length === 0) delete values.ipv4Gateway
-        if (_ipv4Dns.text.length === 0) delete values.ipv4Dns
-        if (_ipv4SearchDomains.text.length === 0) delete values.ipv4SearchDomains
-        if (_ipv6Addresses.text.length === 0) delete values.ipv6Addresses
-        if (_ipv6Gateway.text.length === 0) delete values.ipv6Gateway
-        if (_ipv6Dns.text.length === 0) delete values.ipv6Dns
-        if (_ipv6SearchDomains.text.length === 0) delete values.ipv6SearchDomains
         root.controller.updateConnection(root.selectedConnectionUuid, values)
         _networkEditor.close()
     }
@@ -73,12 +102,145 @@ Maui.ScrollColumn
         }
     }
 
+    Maui.SettingsDialog
+    {
+        id: _vpnSecretsDialog
+        title: i18n("VPN credentials")
+        persistent: true
+
+        ColumnLayout
+        {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.small
+
+            Label
+            {
+                Layout.fillWidth: true
+                text: i18n("Enter the credentials required to connect to %1. These credentials are not saved.", root.vpnSecretConnectionName)
+                color: Maui.Theme.textColor
+                opacity: 0.7
+                wrapMode: Text.WordWrap
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                visible: true
+                label1.text: i18n("VPN username")
+                label2.text: i18n("The username supplied by your VPN provider.")
+                TextField
+                {
+                    id: _vpnUsernameField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Username")
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                visible: true
+                label1.text: i18n("VPN password")
+                label2.text: i18n("The password supplied by your VPN provider.")
+                Maui.PasswordField
+                {
+                    id: _vpnPasswordField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Password")
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                visible: true
+                label1.text: i18n("Certificate password")
+                label2.text: i18n("The password for the certificate or private key.")
+                Maui.PasswordField
+                {
+                    id: _vpnCertificatePasswordField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Certificate password")
+                }
+            }
+
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                visible: true
+                label1.text: i18n("Proxy password")
+                label2.text: i18n("The password supplied by your VPN proxy.")
+                Maui.PasswordField
+                {
+                    id: _vpnProxyPasswordField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Proxy password")
+                }
+            }
+        }
+
+        actions: [
+            Action
+            {
+                text: i18n("Cancel")
+                onTriggered:
+                {
+                    root.vpnSecretRequestHandled = true
+                    if (root.controller)
+                        root.controller.cancelVpnSecrets(root.vpnSecretConnectionPath)
+                    _vpnSecretsDialog.close()
+                }
+            },
+            Action
+            {
+                text: i18n("Connect")
+                enabled: _vpnUsernameField.text.length > 0
+                         || _vpnPasswordField.text.length > 0
+                         || _vpnCertificatePasswordField.text.length > 0
+                         || _vpnProxyPasswordField.text.length > 0
+                onTriggered:
+                {
+                    const secrets = {}
+                    if (_vpnUsernameField.text.length > 0)
+                        secrets.username = _vpnUsernameField.text
+                    if (_vpnPasswordField.text.length > 0)
+                        secrets.password = _vpnPasswordField.text
+                    if (_vpnCertificatePasswordField.text.length > 0)
+                        secrets["cert-pass"] = _vpnCertificatePasswordField.text
+                    if (_vpnProxyPasswordField.text.length > 0)
+                    {
+                        secrets["proxy-password"] = _vpnProxyPasswordField.text
+                        secrets["http-proxy-password"] = _vpnProxyPasswordField.text
+                    }
+                    root.vpnSecretRequestHandled = true
+                    if (root.controller)
+                        root.controller.submitVpnSecrets(root.vpnSecretConnectionPath, secrets)
+                    _vpnSecretsDialog.close()
+                }
+            }
+        ]
+
+        onClosed:
+        {
+            if (!root.vpnSecretRequestHandled && root.controller && root.vpnSecretConnectionPath.length > 0)
+                root.controller.cancelVpnSecrets(root.vpnSecretConnectionPath)
+            root.clearVpnSecretFields()
+            root.vpnSecretConnectionPath = ""
+            root.vpnSecretConnectionName = ""
+            root.vpnSecretHints = []
+            root.vpnSecretRequestHandled = false
+        }
+    }
+
     onVisibleChanged:
     {
         if (!visible)
         {
             _passwordDialog.close()
             _networkEditor.close()
+            if (root.controller && root.vpnSecretConnectionPath.length > 0)
+                root.controller.cancelVpnSecrets(root.vpnSecretConnectionPath)
+            _vpnSecretsDialog.close()
         }
     }
 
@@ -162,12 +324,12 @@ Maui.ScrollColumn
             spacing: Maui.Style.space.small
 
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Profile name"); label2.text: i18n("The name shown for this saved NetworkManager connection."); TextField { id: _profileName; Layout.fillWidth: true; placeholderText: i18n("Profile name") } }
-            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 configuration"); label2.text: i18n("Choose automatic addressing or enter a fixed IPv4 address below."); ComboBox { id: _ipv4Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Manual")]; displayText: currentText } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 configuration"); label2.text: i18n("Choose automatic addressing or enter a fixed IPv4 address below."); ComboBox { id: _ipv4Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Automatic (addresses only)"), i18n("Manual")]; displayText: currentText } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 addresses"); label2.text: i18n("Enter one or more addresses using address/prefix notation, such as 192.168.1.20/24."); TextField { id: _ipv4Addresses; Layout.fillWidth: true; placeholderText: i18n("IPv4 addresses (address/prefix)") } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 gateway"); label2.text: i18n("The router used to reach other networks."); TextField { id: _ipv4Gateway; Layout.fillWidth: true; placeholderText: i18n("IPv4 gateway") } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 DNS servers"); label2.text: i18n("Optional name servers, separated by spaces or commas."); TextField { id: _ipv4Dns; Layout.fillWidth: true; placeholderText: i18n("IPv4 DNS servers") } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv4 search domains"); label2.text: i18n("Optional domains used when resolving short host names."); TextField { id: _ipv4SearchDomains; Layout.fillWidth: true; placeholderText: i18n("IPv4 search domains") } }
-            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 configuration"); label2.text: i18n("Choose automatic, manual, or disabled IPv6 addressing."); ComboBox { id: _ipv6Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Manual"), i18n("Disabled")]; displayText: currentText } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 configuration"); label2.text: i18n("Choose automatic, manual, or disabled IPv6 addressing."); ComboBox { id: _ipv6Method; Layout.fillWidth: true; model: [i18n("Automatic"), i18n("Automatic (addresses only)"), i18n("Manual"), i18n("Disabled")]; displayText: currentText } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 addresses"); label2.text: i18n("Enter IPv6 addresses using address/prefix notation, such as 2001:db8::20/64."); TextField { id: _ipv6Addresses; Layout.fillWidth: true; placeholderText: i18n("IPv6 addresses (address/prefix)") } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 gateway"); label2.text: i18n("The IPv6 router used to reach other networks."); TextField { id: _ipv6Gateway; Layout.fillWidth: true; placeholderText: i18n("IPv6 gateway") } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("IPv6 DNS servers"); label2.text: i18n("Optional IPv6 name servers, separated by spaces or commas."); TextField { id: _ipv6Dns; Layout.fillWidth: true; placeholderText: i18n("IPv6 DNS servers") } }
@@ -314,7 +476,7 @@ Maui.ScrollColumn
                         spacing: Maui.Style.space.small
                         Button { text: modelData.connected ? i18n("Disconnect") : i18n("Connect"); onClicked: modelData.connected ? root.controller.disconnectNetwork(modelData.devicePath) : root.controller.connectWired(modelData.devicePath, modelData.connectionPath) }
                         ToolSeparator { topPadding: 10; bottomPadding: 10 }
-                        ToolButton { icon.name: "configure"; enabled: modelData.hasProfile; onClicked: { root.selectedConnectionUuid = modelData.connectionUuid; root.selectedIsWired = true; root.selectedSsid = modelData.connectionName; root.selectedAutoConnect = modelData.autoConnect; _profileName.text = modelData.connectionName; _networkEditor.open() } }
+                        ToolButton { icon.name: "configure"; enabled: modelData.hasProfile; onClicked: { root.selectedConnectionUuid = modelData.connectionUuid; root.selectedIsWired = true; root.selectedSsid = modelData.connectionName; root.selectedAutoConnect = modelData.autoConnect; _profileName.text = modelData.connectionName; root.loadSelectedConnection(); _networkEditor.open() } }
                     }
                 }
             }
@@ -502,7 +664,11 @@ Maui.ScrollColumn
                     }
                     checked: !!(root.controller && root.controller.dnsEncryptionEnabled)
                     enabled: root.controller !== null
-                    onToggled: if (root.controller) root.controller.dnsEncryptionEnabled = checked
+                    onToggled:
+                    {
+                        if (root.controller)
+                            root.controller.dnsEncryptionEnabled = checked
+                    }
                 }
             }
 
@@ -545,6 +711,57 @@ Maui.ScrollColumn
                     enabled: root.controller !== null
                     onClicked: _openVpnDialog.open()
                 }
+            }
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                visible: !!(root.controller && root.controller.vpnConnections.length > 0)
+                text1: i18n("VPN connections")
+                text2: i18n("Connect to imported NetworkManager VPN profiles.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Repeater
+            {
+                model: root.controller ? root.controller.vpnConnections : []
+
+                delegate: Maui.SectionItem
+                {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    visible: !!modelData
+                    flat: true
+                    label1.text: modelData.connectionName
+                    label1.elide: Text.ElideRight
+                    label2.text: modelData.connected
+                                 ? i18n("Connected")
+                                 : modelData.connecting
+                                   ? i18n("Connecting")
+                                   : i18n("Disconnected")
+                    label2.wrapMode: Text.Wrap
+                    template.iconSource: "network-vpn"
+                    template.content: Button
+                    {
+                        text: modelData.connected || modelData.connecting ? i18n("Disconnect") : i18n("Connect")
+                        enabled: root.controller !== null
+                        onClicked: modelData.connected || modelData.connecting
+                                   ? root.controller.disconnectVpnConnection(modelData.connectionPath)
+                                   : root.controller.connectVpnConnection(modelData.connectionPath)
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                visible: !!(root.controller && root.controller.vpnConnections.length === 0)
+                flat: true
+                label1.text: i18n("No imported VPN connections")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Import an OpenVPN configuration file to add a VPN profile.")
+                label2.wrapMode: Text.Wrap
             }
         }
     }
@@ -627,6 +844,7 @@ Maui.ScrollColumn
                             root.selectedSsid = _currentWifiItem.connection.ssid
                             root.selectedAutoConnect = _currentWifiItem.connection.autoConnect
                             _profileName.text = _currentWifiItem.connection.ssid
+                            root.loadSelectedConnection()
                             _networkEditor.open()
                         }
                     }
@@ -638,6 +856,27 @@ Maui.ScrollColumn
     Connections
     {
         target: root.controller
+
+        function onVpnSecretsRequested(connectionPath, connectionName, hints)
+        {
+            if (_vpnSecretsDialog.visible)
+            {
+                root.vpnSecretRequestHandled = true
+                root.clearVpnSecretFields()
+            }
+            root.vpnSecretConnectionPath = connectionPath
+            root.vpnSecretConnectionName = connectionName
+            root.vpnSecretHints = hints
+            root.vpnSecretRequestHandled = false
+            if (!_vpnSecretsDialog.visible)
+                _vpnSecretsDialog.open()
+        }
+
+        function onVpnSecretsCanceled(connectionPath)
+        {
+            if (connectionPath === root.vpnSecretConnectionPath)
+                _vpnSecretsDialog.close()
+        }
 
         function onErrorMessageChanged()
         {
@@ -770,6 +1009,7 @@ Maui.ScrollColumn
                                 root.selectedConnectionUuid = connectionUuid
                                 root.selectedIsWired = false
                                 _profileName.text = ssid
+                                root.loadSelectedConnection()
                                 _networkEditor.open()
                             }
                             ToolTip.visible: hovered && !saved

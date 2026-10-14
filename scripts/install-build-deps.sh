@@ -43,14 +43,17 @@ $APT_COMMAND install -y --no-install-recommends \
     libkf6config-dev \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
+    libkf6modemmanagerqt-dev \
     libkf6networkmanagerqt-dev \
     libpwquality-dev \
     libxcursor-dev \
     lintian \
+    qcoro-qt6-dev \
     qt6-base-dev \
     qt6-declarative-dev \
     qt6-svg-dev \
-    qt6-wayland-dev
+    qt6-wayland-dev \
+    qtkeychain-qt6-dev
 
 
 # -- Add package from our repository.

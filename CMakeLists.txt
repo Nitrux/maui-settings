@@ -3,8 +3,12 @@ cmake_minimum_required(VERSION 3.20)
 project(maui-settings VERSION 0.1 LANGUAGES CXX)
 
 set(APP_NAME maui-settings)
+set(QT_MAJOR_VERSION 6)
+set(REQUIRED_QT_VERSION 6.9)
+set(REQUIRED_KF_VERSION 6.13.0)
+set(REQUIRED_MAUIKIT_VERSION 4.0.5)
 
-find_package(ECM REQUIRED NO_MODULE)
+find_package(ECM ${REQUIRED_KF_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 include(KDEInstallDirs)
@@ -13,7 +17,7 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 include(CheckCXXCompilerFlag)
 include(ECMSourceVersionControl)
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Gui Network Qml Quick Widgets)
+find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED COMPONENTS Core DBus Gui Network Qml Quick Widgets)
 find_package(X11 REQUIRED COMPONENTS Xcursor)
 
 if(ECM_SOURCE_UNDER_VERSION_CONTROL)
@@ -57,9 +61,10 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-find_package(KF6 REQUIRED COMPONENTS Auth BluezQt ColorScheme Config CoreAddons I18n NetworkManagerQt)
-find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing)
+find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS Auth BluezQt ColorScheme Config CoreAddons I18n NetworkManagerQt)
+find_package(MauiKit4 ${REQUIRED_MAUIKIT_VERSION} REQUIRED COMPONENTS FileBrowsing)
 find_package(MauiKitSystemControl REQUIRED)
+find_package(MauiKitSystemNetwork REQUIRED)
 find_package(MauiMan4 REQUIRED)
 
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_URL_CAST_FROM_STRING)
@@ -278,6 +283,7 @@ target_link_libraries(${APP_NAME}
     MauiKit4
     MauiKit4::FileBrowsing
     MauiKitSystem::Control
+    MauiKitSystem::Network
     MauiMan4::MauiMan4
     Qt6::Core
     Qt6::DBus

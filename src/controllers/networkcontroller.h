@@ -3,6 +3,10 @@
 #include <QAbstractListModel>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QStringList>
+#include <memory>
+
+class Handler;
 
 class NetworkController : public QAbstractListModel
 {
@@ -13,6 +17,7 @@ class NetworkController : public QAbstractListModel
     Q_PROPERTY(bool scanning READ scanning NOTIFY scanningChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QVariantList wiredConnections READ wiredConnections NOTIFY wiredConnectionsChanged)
+    Q_PROPERTY(QVariantList vpnConnections READ vpnConnections NOTIFY vpnConnectionsChanged)
     Q_PROPERTY(QVariantMap connectedWirelessConnection READ connectedWirelessConnection NOTIFY connectedWirelessConnectionChanged)
     Q_PROPERTY(bool dnsEncryptionEnabled READ dnsEncryptionEnabled WRITE setDnsEncryptionEnabled NOTIFY dnsEncryptionEnabledChanged)
 
@@ -46,6 +51,7 @@ public:
     bool scanning() const;
     QString errorMessage() const;
     QVariantList wiredConnections() const;
+    QVariantList vpnConnections() const;
     QVariantMap connectedWirelessConnection() const;
     bool dnsEncryptionEnabled() const;
     void setDnsEncryptionEnabled(bool enabled);
@@ -62,7 +68,12 @@ public:
                                         bool autoConnect);
     Q_INVOKABLE void forgetNetwork(const QString &devicePath, const QString &ssid);
     Q_INVOKABLE void updateConnection(const QString &connectionUuid, const QVariantMap &values);
+    Q_INVOKABLE QVariantMap connectionDetails(const QString &connectionUuid) const;
     Q_INVOKABLE void importOpenVpnConnection(const QString &filePath);
+    Q_INVOKABLE void connectVpnConnection(const QString &connectionPath);
+    Q_INVOKABLE void disconnectVpnConnection(const QString &connectionPath);
+    Q_INVOKABLE void submitVpnSecrets(const QString &connectionPath, const QVariantMap &secrets);
+    Q_INVOKABLE void cancelVpnSecrets(const QString &connectionPath);
     Q_INVOKABLE void clearError();
 
 Q_SIGNALS:
@@ -72,12 +83,16 @@ Q_SIGNALS:
     void scanningChanged();
     void errorMessageChanged();
     void wiredConnectionsChanged();
+    void vpnConnectionsChanged();
+    void vpnSecretsRequested(const QString &connectionPath, const QString &connectionName, const QStringList &hints);
+    void vpnSecretsCanceled(const QString &connectionPath);
     void connectedWirelessConnectionChanged();
     void dnsEncryptionEnabledChanged();
 
 private:
     class Private;
     Private *const d;
+    std::unique_ptr<Handler> m_networkHandler;
 
     void rebuild();
     void scheduleRebuild();
