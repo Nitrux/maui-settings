@@ -12,7 +12,7 @@
 #include <QSurfaceFormat>
 #include <QUrl>
 
-#include <KLocalizedContext>
+#include <KLocalizedQmlContext>
 
 #include <KAboutData>
 #include <KLocalizedString>
@@ -111,7 +111,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     MauiApp::instance()->setIconName(QStringLiteral("preferences-system"));
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+    engine.rootContext()->setContextObject(new KLocalizedQmlContext(&engine));
 
     SystemManager systemManager;
     engine.rootContext()->setContextProperty(QStringLiteral("systemManager"), &systemManager);

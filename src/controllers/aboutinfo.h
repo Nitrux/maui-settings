@@ -18,7 +18,7 @@ class AboutInfo : public QObject
     Q_PROPERTY(QString memoryAvailable READ memoryAvailable CONSTANT)
     Q_PROPERTY(QVariantList graphicsDevices READ graphicsDevices CONSTANT)
     Q_PROPERTY(QVariantList storageDevices READ storageDevices NOTIFY storageDevicesChanged)
-    Q_PROPERTY(QVariantList storageVolumes READ storageDevices NOTIFY storageDevicesChanged)
+    Q_PROPERTY(QVariantList storageVolumes READ storageVolumes NOTIFY storageDevicesChanged)
 
 public:
     explicit AboutInfo(QObject *parent = nullptr);
@@ -34,6 +34,7 @@ public:
     QString memoryAvailable() const;
     QVariantList graphicsDevices() const;
     QVariantList storageDevices() const;
+    QVariantList storageVolumes() const;
 
 Q_SIGNALS:
     void storageDevicesChanged();

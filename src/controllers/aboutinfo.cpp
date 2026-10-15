@@ -581,3 +581,8 @@ QVariantList AboutInfo::storageDevices() const
 {
     return m_storageDevices;
 }
+
+QVariantList AboutInfo::storageVolumes() const
+{
+    return m_storageDevices;
+}
