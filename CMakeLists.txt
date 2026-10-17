@@ -62,6 +62,8 @@ if(QT_KNOWN_POLICY_QTP0004)
 endif()
 
 find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS Auth BluezQt ColorScheme Config CoreAddons I18n NetworkManagerQt)
+set(QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL
+    "MauiKit uses Qt's private WaylandClient API" FORCE)
 find_package(MauiKit4 ${REQUIRED_MAUIKIT_VERSION} REQUIRED COMPONENTS FileBrowsing)
 find_package(MauiKitSystemControl REQUIRED)
 find_package(MauiKitSystemNetwork REQUIRED)
@@ -300,6 +302,7 @@ target_link_libraries(${APP_NAME}
     KF6::ColorScheme
     KF6::CoreAddons
     KF6::I18n
+    KF6::I18nQml
     KF6::NetworkManagerQt
 )
 
