@@ -43,6 +43,8 @@ $APT_COMMAND install -y --no-install-recommends \
     libkf6config-dev \
     libkf6coreaddons-dev \
     libkf6i18n-dev \
+    libkf6notifications-dev \
+    libkf6windowsystem-dev \
     libkf6modemmanagerqt-dev \
     libkf6networkmanagerqt-dev \
     libpwquality-dev \
