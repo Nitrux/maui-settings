@@ -421,8 +421,12 @@ void HyprlandInfo::setRoundingFollowsMauiKit(bool value)
 
 void HyprlandInfo::setLayout(const QString &value)
 {
-    const QString normalized = value.trimmed().toLower() == QLatin1String("master")
-        ? QStringLiteral("master") : QStringLiteral("dwindle");
+    const QString normalizedValue = value.trimmed().toLower();
+    const QString normalized = normalizedValue == QLatin1String("master")
+        ? QStringLiteral("master")
+        : normalizedValue == QLatin1String("scrolling")
+            ? QStringLiteral("scrolling")
+            : QStringLiteral("dwindle");
     if (m_layout == normalized)
         return;
     m_layout = normalized;
@@ -853,7 +857,7 @@ void HyprlandInfo::load()
     m_borderGradientAngle = integerValue(valueInTable(lines, activeBorder, QStringLiteral("angle")), 45, 0, 360);
     m_rounding = integerValue(valueInTable(lines, decoration, QStringLiteral("rounding")), 16, 0, 128);
     m_layout = valueInTable(lines, general, QStringLiteral("layout")).trimmed().toLower();
-    if (m_layout != QLatin1String("master"))
+    if (m_layout != QLatin1String("master") && m_layout != QLatin1String("scrolling"))
         m_layout = QStringLiteral("dwindle");
     m_activeOpacity = percentValue(valueInTable(lines, decoration, QStringLiteral("active_opacity")), 100);
     m_inactiveOpacity = percentValue(valueInTable(lines, decoration, QStringLiteral("inactive_opacity")), 80);

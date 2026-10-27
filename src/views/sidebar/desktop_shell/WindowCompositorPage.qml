@@ -21,8 +21,8 @@ Maui.ScrollColumn
         || root.info.blurPasses !== 3
         || !root.info.animationsEnabled)
 
-    property var layoutLabels: [i18n("Dwindle"), i18n("Master")]
-    property var layoutValues: ["dwindle", "master"]
+    property var layoutLabels: [i18n("Dwindle"), i18n("Master"), i18n("Scrolling")]
+    property var layoutValues: ["dwindle", "master", "scrolling"]
     property var ruleTypeLabels: [i18n("Window rule"), i18n("Layer rule")]
     property var ruleTypeValues: ["window", "layer"]
     property var windowMatchLabels: [i18n("Class"), i18n("Title"), i18n("App ID")]
