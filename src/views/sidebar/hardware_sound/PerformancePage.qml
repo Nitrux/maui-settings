@@ -332,12 +332,13 @@ Maui.ScrollColumn {
             Action
             {
                 text: i18n("Cancel")
-                Maui.Controls.status: Maui.Controls.Negative
+                Maui.Controls.status: Maui.Controls.Normal
                 onTriggered: graphicsModeDialog.close()
             },
             Action
             {
                 text: i18n("Apply")
+                Maui.Controls.status: Maui.Controls.Positive
                 enabled: root.graphics && !root.graphics.busy && root.requestedGraphicsMode.length > 0
                 onTriggered:
                 {

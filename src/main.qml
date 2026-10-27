@@ -761,8 +761,9 @@ Maui.ApplicationWindow
         id: _resetSettingsDialog
         title: i18n("Reset settings")
         message: i18n("Restore this module's default settings? The changes will be staged until you save them.")
-        standardButtons: Dialog.Cancel | Dialog.Ok
-        onAccepted: root.resetCurrentSettings()
+        standardButtons: Dialog.Discard | Dialog.Cancel
+        Component.onCompleted: standardButton(Dialog.Discard).text = i18n("Reset")
+        onDiscarded: root.resetCurrentSettings()
         onRejected: root.pendingResetPage = null
     }
 }

@@ -220,7 +220,7 @@ Maui.ScrollColumn
         id: editUserDialog
         title: i18n("Configure User")
         persistent: true
-        actions: [Action { text: i18n("Cancel"); onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); enabled: root.manager && !root.manager.busy && (editPasswordField.text.length > 0 || editingAvatarPath.length > 0); onTriggered: root.manager.updateUser(editingUsername, editPasswordField.text, editingAvatarPath) }]
+        actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); Maui.Controls.status: Maui.Controls.Positive; enabled: root.manager && !root.manager.busy && (editPasswordField.text.length > 0 || editingAvatarPath.length > 0); onTriggered: root.manager.updateUser(editingUsername, editPasswordField.text, editingAvatarPath) }]
         ColumnLayout { Layout.fillWidth: true; spacing: Maui.Style.space.small
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Avatar"); label2.text: editingAvatarPath.length > 0 ? editingAvatarPath : i18n("Keep the current avatar."); Button { text: i18n("Choose"); onClicked: root.pickEditAvatar() } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("New password"); label2.text: i18n("Leave empty to keep the current password."); TextField { id: editPasswordField; Layout.fillWidth: true; placeholderText: i18n("New password (optional)"); echoMode: TextInput.Password } }
@@ -232,7 +232,7 @@ Maui.ScrollColumn
         id: deleteUserDialog
         title: i18n("Delete User")
         persistent: true
-        actions: [Action { text: i18n("Cancel"); onTriggered: deleteUserDialog.close() }, Action { text: i18n("Delete"); onTriggered: root.manager.deleteUser(pendingDeleteUsername) }]
+        actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: deleteUserDialog.close() }, Action { text: i18n("Delete"); Maui.Controls.status: Maui.Controls.Negative; onTriggered: root.manager.deleteUser(pendingDeleteUsername) }]
         Label { Layout.fillWidth: true; text: i18n("Delete the user account %1 and its home directory?", root.pendingDeleteUsername); wrapMode: Text.WordWrap }
     }
 

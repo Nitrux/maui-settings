@@ -377,7 +377,7 @@ Maui.ScrollColumn
         }
 
         actions: [
-            Action { text: i18n("Save"); onTriggered: root.saveSelectedConnection() },
+            Action { text: i18n("Save"); Maui.Controls.status: Maui.Controls.Positive; onTriggered: root.saveSelectedConnection() },
             Action
             {
                 text: i18n("Forget")
