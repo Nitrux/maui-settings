@@ -178,7 +178,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: i18n("Layout style")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Use a dynamically split layout or a master window layout.")
+                label2.text: i18n("Use a dynamically split, master, or scrolling layout.")
                 label2.wrapMode: Text.Wrap
                 template.content: ComboBox
                 {
