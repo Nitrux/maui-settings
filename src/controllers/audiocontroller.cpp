@@ -15,9 +15,17 @@ AudioController::AudioController(QObject *parent)
     : QObject(parent)
 {
     m_hiddenDevices = QSettings().value(QStringLiteral("audio/hiddenDevices")).toStringList();
-    refresh();
     m_refreshTimer.setInterval(1000);
     connect(&m_refreshTimer, &QTimer::timeout, this, &AudioController::refresh);
+}
+
+void AudioController::start()
+{
+    if (m_started)
+        return;
+
+    m_started = true;
+    refresh();
     m_refreshTimer.start();
 }
 

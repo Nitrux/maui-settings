@@ -56,6 +56,7 @@ public:
     bool dnsEncryptionEnabled() const;
     void setDnsEncryptionEnabled(bool enabled);
 
+    Q_INVOKABLE void initialize();
     Q_INVOKABLE void requestScan();
     Q_INVOKABLE void connectToNetwork(const QString &devicePath,
                                       const QString &accessPointPath,
@@ -93,6 +94,7 @@ private:
     class Private;
     Private *const d;
     std::unique_ptr<Handler> m_networkHandler;
+    bool m_initialized = false;
 
     void rebuild();
     void scheduleRebuild();

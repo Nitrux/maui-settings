@@ -337,7 +337,6 @@ bool writeGtkRc20(const QString &path, const QString &theme, const QString &icon
 GtkSettingsInfo::GtkSettingsInfo(QObject *parent)
     : QObject(parent)
 {
-    load();
 }
 
 QString GtkSettingsInfo::theme() const { return m_theme; }

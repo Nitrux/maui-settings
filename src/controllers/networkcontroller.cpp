@@ -535,7 +535,14 @@ NetworkController::NetworkController(QObject *parent)
     connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionRemoved, this, [this](const QString &) {
         scheduleRebuild();
     });
+}
 
+void NetworkController::initialize()
+{
+    if (m_initialized)
+        return;
+
+    m_initialized = true;
     rebuild();
 }
 
@@ -1888,7 +1895,8 @@ void NetworkController::watchActivation(const QString &activeConnectionPath,
 
 void NetworkController::scheduleRebuild()
 {
-    d->rebuildTimer->start();
+    if (m_initialized)
+        d->rebuildTimer->start();
 }
 
 void NetworkController::setScanning(bool scanning)

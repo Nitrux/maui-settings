@@ -11,6 +11,18 @@ Maui.ScrollColumn
     property string selectedDevicePath: ""
     property string selectedDeviceName: ""
     property bool selectedDeviceTrusted: false
+    readonly property bool adapterNameSaveAvailable: root.controller
+                                                    && _adapterNameField.text.trim().length > 0
+                                                    && _adapterNameField.text.trim() !== root.controller.adapterName
+
+    function saveAdapterName()
+    {
+        if (!adapterNameSaveAvailable || !root.controller)
+            return false
+
+        root.controller.setAdapterName(_adapterNameField.text)
+        return true
+    }
 
     anchors.fill: parent
     spacing: Maui.Style.space.big
@@ -318,6 +330,12 @@ Maui.ScrollColumn
             _errorToast.showError(root.controller.errorMessage)
             root.controller.clearError()
         }
+
+        function onAdapterNameChanged()
+        {
+            if (root.controller)
+                _adapterNameField.text = root.controller.adapterName
+        }
     }
 
     Maui.SectionHeader
@@ -351,6 +369,54 @@ Maui.ScrollColumn
                        ? i18n("Ready to connect and discover nearby Bluetooth devices.")
                        : i18n("No Bluetooth adapter or BlueZ service was found.")
                 label2.wrapMode: Text.Wrap
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("Device name")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("Name shown to nearby Bluetooth devices.")
+                label2.wrapMode: Text.Wrap
+                enabled: root.controller && root.controller.available
+                template.content: RowLayout
+                {
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    spacing: Maui.Style.space.small
+
+                    TextField
+                    {
+                        id: _adapterNameField
+                        Layout.fillWidth: true
+                        placeholderText: i18n("Bluetooth device name")
+                        Component.onCompleted: text = root.controller ? root.controller.adapterName : ""
+                        onAccepted: root.saveAdapterName()
+                    }
+                }
             }
 
             Maui.SectionItem
@@ -443,11 +509,11 @@ Maui.ScrollColumn
         radius: Maui.Style.radiusV
         border.color: Maui.Theme.backgroundColor
         border.width: 1
-        implicitHeight: _devicesLayout.implicitHeight + Maui.Style.contentMargins * 2
+        implicitHeight: _pairedDevicesLayout.implicitHeight + Maui.Style.contentMargins * 2
 
         ColumnLayout
         {
-            id: _devicesLayout
+            id: _pairedDevicesLayout
             anchors.fill: parent
             anchors.margins: Maui.Style.contentMargins
             spacing: Maui.Style.space.small
@@ -455,14 +521,14 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Devices")
-                text2: i18n("Connected and paired devices appear first.")
+                text1: i18n("Paired devices")
+                text2: i18n("Connect to or manage devices paired with this computer.")
                 label2.wrapMode: Text.Wrap
             }
 
             Repeater
             {
-                id: _devicesRepeater
+                id: _pairedDevicesRepeater
                 model: root.controller
 
                 delegate: Maui.SectionItem
@@ -474,19 +540,19 @@ Maui.ScrollColumn
                     required property bool connected
                     required property bool trusted
                     required property int signalStrength
+                    required property int batteryPercentage
                     required property string devicePath
 
                     Layout.fillWidth: true
+                    visible: paired
                     flat: true
                     label1.text: name
                     label1.elide: Text.ElideRight
-                    label2.text: connected
-                                 ? i18n("Connected · %1", address)
-                                 : paired
-                                   ? i18n("Paired · %1", address)
-                                   : signalStrength !== 0
-                                     ? i18n("Available · RSSI %1 dBm", signalStrength)
-                                     : i18n("Available · %1", address)
+                    label2.text: batteryPercentage >= 0
+                                 ? (connected
+                                    ? i18n("Connected · %1 · Battery %2%", address, batteryPercentage)
+                                    : i18n("Paired · %1 · Battery %2%", address, batteryPercentage))
+                                 : (connected ? i18n("Connected · %1", address) : i18n("Paired · %1", address))
                     label2.wrapMode: Text.Wrap
                     template.iconSource: iconName.length > 0 ? iconName : "preferences-system-bluetooth"
                     template.iconSizeHint: Maui.Style.iconSizes.small
@@ -520,16 +586,10 @@ Maui.ScrollColumn
 
                         Button
                         {
-                            text: connected ? i18n("Disconnect") : paired ? i18n("Connect") : i18n("Pair")
-                            onClicked:
-                            {
-                                if (connected)
-                                    root.controller.disconnectDevice(devicePath)
-                                else if (paired)
-                                    root.controller.connectDevice(devicePath)
-                                else
-                                    root.controller.pairDevice(devicePath)
-                            }
+                            text: connected ? i18n("Disconnect") : i18n("Connect")
+                            onClicked: connected
+                                       ? root.controller.disconnectDevice(devicePath)
+                                       : root.controller.connectDevice(devicePath)
                         }
 
                         ToolSeparator
@@ -541,7 +601,6 @@ Maui.ScrollColumn
                         ToolButton
                         {
                             icon.name: "configure"
-                            enabled: paired
                             onClicked:
                             {
                                 root.selectedDevicePath = devicePath
@@ -553,7 +612,6 @@ Maui.ScrollColumn
 
                         ToolButton
                         {
-                            visible: paired
                             icon.name: "edit-delete"
                             ToolTip.visible: hovered
                             ToolTip.text: i18n("Unpair")
@@ -566,11 +624,86 @@ Maui.ScrollColumn
             Maui.SectionItem
             {
                 Layout.fillWidth: true
-                visible: root.controller && root.controller.powered && _devicesRepeater.count === 0
+                visible: root.controller && root.controller.pairedDeviceCount === 0
                 flat: true
-                label1.text: i18n("No devices found")
+                label1.text: i18n("No paired devices")
                 label1.elide: Text.ElideRight
-                label2.text: i18n("Start discovery and make sure the other device is visible.")
+                label2.text: i18n("Pair with a nearby device to see it here.")
+                label2.wrapMode: Text.Wrap
+            }
+        }
+    }
+
+    Rectangle
+    {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _availableDevicesLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _availableDevicesLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Available devices")
+                text2: root.controller && root.controller.discovering
+                       ? i18n("Searching for nearby Bluetooth devices…")
+                       : i18n("Nearby devices that haven’t been paired with this computer.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Repeater
+            {
+                id: _availableDevicesRepeater
+                model: root.controller
+
+                delegate: Maui.SectionItem
+                {
+                    required property string name
+                    required property string address
+                    required property string iconName
+                    required property bool paired
+                    required property bool connected
+                    required property int signalStrength
+                    required property string devicePath
+
+                    Layout.fillWidth: true
+                    visible: !paired
+                    flat: true
+                    label1.text: name
+                    label1.elide: Text.ElideRight
+                    label2.text: signalStrength !== 0
+                                 ? i18n("Available · RSSI %1 dBm", signalStrength)
+                                 : i18n("Available · %1", address)
+                    label2.wrapMode: Text.Wrap
+                    template.iconSource: iconName.length > 0 ? iconName : "preferences-system-bluetooth"
+                    template.iconSizeHint: Maui.Style.iconSizes.small
+                    template.content: Button
+                    {
+                        text: i18n("Pair")
+                        onClicked: root.controller.pairDevice(devicePath)
+                    }
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                visible: root.controller && root.controller.powered && root.controller.availableDeviceCount === 0
+                flat: true
+                label1.text: i18n("No available devices")
+                label1.elide: Text.ElideRight
+                label2.text: root.controller && root.controller.discovering
+                             ? i18n("No nearby devices were found yet.")
+                             : i18n("Start discovery and make sure the other device is visible.")
                 label2.wrapMode: Text.Wrap
             }
         }

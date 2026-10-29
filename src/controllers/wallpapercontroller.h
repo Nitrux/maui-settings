@@ -35,6 +35,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
+    Q_INVOKABLE void initialize();
     Q_INVOKABLE void refresh();
 
 Q_SIGNALS:
@@ -59,4 +60,5 @@ private:
     QList<Entry> m_entries;
     QFileSystemWatcher *m_sourceWatcher = nullptr;
     QTimer *m_sourceRefreshTimer = nullptr;
+    bool m_initialized = false;
 };

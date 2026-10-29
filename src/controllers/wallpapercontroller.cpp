@@ -46,7 +46,6 @@ WallpaperController::WallpaperController(QObject *parent)
     });
     connect(m_sourceRefreshTimer, &QTimer::timeout, this, &WallpaperController::refresh);
 
-    refresh();
 }
 
 QString WallpaperController::systemWallpaperPath() const
@@ -121,8 +120,18 @@ void WallpaperController::updateSourceWatcher()
     m_sourceWatcher->addPaths(directories);
 }
 
+void WallpaperController::initialize()
+{
+    if (m_initialized)
+        return;
+
+    m_initialized = true;
+    refresh();
+}
+
 void WallpaperController::refresh()
 {
+    m_initialized = true;
     const QString picturesPath = defaultPicturesPath();
     const bool picturesLocationChanged = m_picturesPath != picturesPath;
     m_picturesPath = picturesPath;

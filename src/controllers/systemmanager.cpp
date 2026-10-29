@@ -36,6 +36,14 @@ SystemManager::SystemManager(QObject *parent)
     : QObject(parent)
     , m_network(new QNetworkAccessManager(this))
 {
+}
+
+void SystemManager::initialize()
+{
+    if (m_initialized)
+        return;
+
+    m_initialized = true;
     QFile file(QString::fromLatin1(timezoneFile));
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         m_timezone = QString::fromUtf8(file.readAll()).trimmed();
@@ -86,6 +94,12 @@ SystemManager::SystemManager(QObject *parent)
     }
     m_timezones.removeDuplicates();
     m_timezones.sort(Qt::CaseInsensitive);
+
+    Q_EMIT timezoneChanged();
+    Q_EMIT timezonesChanged();
+    Q_EMIT localeChanged();
+    Q_EMIT localesChanged();
+    Q_EMIT hostNameChanged();
 }
 
 QString SystemManager::timezone() const { return m_timezone; }

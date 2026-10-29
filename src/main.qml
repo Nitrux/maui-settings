@@ -321,6 +321,31 @@ Maui.ApplicationWindow
 
                 Loader
                 {
+                    id: _bluetoothSaveLoader
+                    asynchronous: false
+                    active: root.currentSection === "connectivity-bluetooth"
+                    visible: active
+
+                    sourceComponent: ToolButton
+                    {
+                        icon.name: "document-save"
+                        enabled: _bluetoothPageLoader.item
+                                 && _bluetoothPageLoader.item.adapterNameSaveAvailable
+                        display: ToolButton.IconOnly
+                        ToolTip.delay: 1000
+                        ToolTip.timeout: 5000
+                        ToolTip.visible: hovered
+                        ToolTip.text: i18n("Save settings")
+                        onClicked:
+                        {
+                            if (_bluetoothPageLoader.item)
+                                _bluetoothPageLoader.item.saveAdapterName()
+                        }
+                    }
+                },
+
+                Loader
+                {
                     id: _settingsActionsLoader
                     asynchronous: false
                     active: root.currentSection === "general-system" || root.currentSection === "appearance-background" || root.currentSection === "appearance-theme" || root.currentSection === "desktop-valenz" || root.currentSection === "desktop-nudge-osd" || root.currentSection === "desktop-marina" || root.currentSection === "desktop-window-compositor" || root.currentSection === "applications-default-apps" || root.currentSection === "general-accessibility" || root.currentSection === "security-login-greeter" || root.currentSection === "security-login-lock-screen" || root.currentSection === "security-login-autostart" || root.currentSection === "security-login-environment-variables" || root.currentSection === "security-login-flatpak-permissions" || root.currentSection === "hardware-sound-displays" || root.currentSection === "hardware-sound-input" || root.currentSection === "hardware-sound-performance"

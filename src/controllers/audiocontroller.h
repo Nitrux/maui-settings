@@ -25,6 +25,7 @@ public:
     QVariantList captureStreams() const;
     QStringList hiddenDevices() const;
 
+    Q_INVOKABLE void start();
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void setVolume(quint32 index, qreal volume);
     Q_INVOKABLE void setMuted(quint32 index, bool muted);
@@ -53,4 +54,5 @@ private:
     QVariantList m_captureStreams;
     QStringList m_hiddenDevices;
     QTimer m_refreshTimer;
+    bool m_started = false;
 };

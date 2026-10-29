@@ -67,7 +67,11 @@ Maui.ScrollColumn
         return valenzSaved && tomaSaved
     }
 
-    Component.onCompleted: root.refreshAudioDevices()
+    Component.onCompleted: {
+        if (typeof audioController !== "undefined" && audioController)
+            audioController.start()
+        root.refreshAudioDevices()
+    }
 
     Connections
     {

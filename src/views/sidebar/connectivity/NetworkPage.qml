@@ -1032,5 +1032,11 @@ Maui.ScrollColumn
         }
     }
 
-    Component.onCompleted: if (controller && controller.wirelessEnabled) controller.requestScan()
+    Component.onCompleted: {
+        if (controller) {
+            controller.initialize()
+            if (controller.wirelessEnabled)
+                controller.requestScan()
+        }
+    }
 }

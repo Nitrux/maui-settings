@@ -306,6 +306,13 @@ target_link_libraries(${APP_NAME}
     KF6::NetworkManagerQt
 )
 
+target_precompile_headers(${APP_NAME} PRIVATE
+    <QtCore>
+    <QtGui>
+    <QtQml>
+    <QtQuick>
+)
+
 install(TARGETS ${APP_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/org.maui.settings.desktop
         DESTINATION ${KDE_INSTALL_APPDIR})

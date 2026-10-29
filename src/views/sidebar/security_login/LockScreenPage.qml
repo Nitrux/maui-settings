@@ -14,6 +14,7 @@ Maui.ScrollColumn
                                         && desklockController) ? desklockController : null
     readonly property var backgroundInfoController: (typeof backgroundInfo !== "undefined" && backgroundInfo) ? backgroundInfo : null
     readonly property var wallpaperCatalog: (typeof wallpaperController !== "undefined" && wallpaperController) ? wallpaperController : null
+    Component.onCompleted: if (wallpaperCatalog) wallpaperCatalog.initialize()
     property bool stagedWallpaperSynchronized: controller ? controller.wallpaperSynchronized : true
     readonly property string effectiveWallpaperPath: stagedWallpaperSynchronized && backgroundInfoController
         ? backgroundInfoController.wallpaperPath

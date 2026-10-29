@@ -236,7 +236,11 @@ Maui.ScrollColumn
         Label { Layout.fillWidth: true; text: i18n("Delete the user account %1 and its home directory?", root.pendingDeleteUsername); wrapMode: Text.WordWrap }
     }
 
-    Component.onCompleted: root.reloadSettings()
+    Component.onCompleted: {
+        if (root.manager)
+            root.manager.initialize()
+        root.reloadSettings()
+    }
 
     property date tempDate: root.selectedDate
     property int tempHour: root.selectedHour

@@ -191,7 +191,11 @@ Maui.ScrollColumn
         _fileDialog.open()
     }
 
-    Component.onCompleted: root.refreshMonitorOptions()
+    Component.onCompleted: {
+        if (wallpaperCatalog)
+            wallpaperCatalog.initialize()
+        root.refreshMonitorOptions()
+    }
 
     Connections
     {

@@ -2,6 +2,7 @@
 
 #include <BluezQt/Agent>
 #include <BluezQt/Adapter>
+#include <BluezQt/Battery>
 #include <BluezQt/Device>
 #include <BluezQt/InitManagerJob>
 #include <BluezQt/Manager>
@@ -26,6 +27,7 @@ struct BluetoothEntry {
     bool connected = false;
     bool trusted = false;
     int signalStrength = 0;
+    int batteryPercentage = -1;
     QString devicePath;
 };
 }
@@ -212,6 +214,8 @@ public:
     BluezQt::Manager *manager;
     PairingAgent *agent = nullptr;
     QList<BluetoothEntry> entries;
+    int pairedDeviceCount = 0;
+    int availableDeviceCount = 0;
     bool initialized = false;
     bool agentRegistrationRequested = false;
     QString errorMessage;
@@ -276,7 +280,23 @@ BluetoothController::BluetoothController(QObject *parent)
         Q_EMIT adapterNameChanged();
         rebuild();
     });
-    connect(d->manager, &BluezQt::Manager::deviceAdded, this, [this] {
+    connect(d->manager, &BluezQt::Manager::deviceAdded, this, [this](BluezQt::DevicePtr device) {
+        if (device) {
+            const auto watchBattery = [this](const BluezQt::BatteryPtr &battery) {
+                if (!battery)
+                    return;
+
+                connect(battery.data(), &BluezQt::Battery::percentageChanged, this, [this] {
+                    scheduleRebuild();
+                });
+            };
+            connect(device.data(), &BluezQt::Device::batteryChanged, this,
+                    [this, watchBattery](BluezQt::BatteryPtr battery) {
+                watchBattery(battery);
+                scheduleRebuild();
+            });
+            watchBattery(device->battery());
+        }
         scheduleRebuild();
     });
     connect(d->manager, &BluezQt::Manager::deviceRemoved, this, [this] {
@@ -337,6 +357,8 @@ QVariant BluetoothController::data(const QModelIndex &index, int role) const
         return entry.trusted;
     case SignalStrengthRole:
         return entry.signalStrength;
+    case BatteryPercentageRole:
+        return entry.batteryPercentage;
     case DevicePathRole:
         return entry.devicePath;
     default:
@@ -354,6 +376,7 @@ QHash<int, QByteArray> BluetoothController::roleNames() const
         {ConnectedRole, "connected"},
         {TrustedRole, "trusted"},
         {SignalStrengthRole, "signalStrength"},
+        {BatteryPercentageRole, "batteryPercentage"},
         {DevicePathRole, "devicePath"},
     };
 }
@@ -408,6 +431,16 @@ QString BluetoothController::adapterName() const
     return adapters.isEmpty() ? QString() : adapters.constFirst()->name();
 }
 
+int BluetoothController::pairedDeviceCount() const
+{
+    return d->pairedDeviceCount;
+}
+
+int BluetoothController::availableDeviceCount() const
+{
+    return d->availableDeviceCount;
+}
+
 QString BluetoothController::errorMessage() const
 {
     return d->errorMessage;
@@ -457,6 +490,26 @@ void BluetoothController::setDiscoveryEnabled(bool enabled)
         return;
     }
     watchCall(enabled ? adapter->startDiscovery() : adapter->stopDiscovery());
+}
+
+void BluetoothController::setAdapterName(const QString &name)
+{
+    clearError();
+    const auto adapter = d->manager->usableAdapter();
+    if (!adapter) {
+        setErrorMessage(tr("The Bluetooth adapter is no longer available."));
+        return;
+    }
+
+    const QString trimmedName = name.trimmed();
+    if (trimmedName.isEmpty()) {
+        setErrorMessage(tr("Enter a name for this Bluetooth device."));
+        return;
+    }
+    if (trimmedName == adapter->name()) {
+        return;
+    }
+    watchCall(adapter->setName(trimmedName));
 }
 
 void BluetoothController::pairDevice(const QString &devicePath)
@@ -559,6 +612,8 @@ void BluetoothController::rebuild()
         entry.connected = device->isConnected();
         entry.trusted = device->isTrusted();
         entry.signalStrength = device->rssi();
+        const auto battery = device->battery();
+        entry.batteryPercentage = battery ? battery->percentage() : -1;
         entry.devicePath = device->ubi();
         entries.append(entry);
     }
@@ -612,6 +667,16 @@ void BluetoothController::rebuild()
             d->entries[targetRow] = entries.at(targetRow);
             Q_EMIT dataChanged(index(targetRow, 0), index(targetRow, 0));
         }
+    }
+
+    const int pairedDeviceCount = std::count_if(entries.cbegin(), entries.cend(), [](const BluetoothEntry &entry) {
+        return entry.paired;
+    });
+    const int availableDeviceCount = entries.size() - pairedDeviceCount;
+    if (d->pairedDeviceCount != pairedDeviceCount || d->availableDeviceCount != availableDeviceCount) {
+        d->pairedDeviceCount = pairedDeviceCount;
+        d->availableDeviceCount = availableDeviceCount;
+        Q_EMIT deviceCountsChanged();
     }
 }
 

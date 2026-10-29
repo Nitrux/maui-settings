@@ -11,11 +11,11 @@ class SystemManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString timezone READ timezone NOTIFY timezoneChanged)
-    Q_PROPERTY(QStringList timezones READ timezones CONSTANT)
+    Q_PROPERTY(QStringList timezones READ timezones NOTIFY timezonesChanged)
     Q_PROPERTY(QString locale READ locale NOTIFY localeChanged)
     Q_PROPERTY(QString hostName READ hostName NOTIFY hostNameChanged)
     Q_PROPERTY(QVariantList users READ users NOTIFY usersChanged)
-    Q_PROPERTY(QStringList locales READ locales CONSTANT)
+    Q_PROPERTY(QStringList locales READ locales NOTIFY localesChanged)
     Q_PROPERTY(bool automaticLocation READ automaticLocation WRITE setAutomaticLocation NOTIFY automaticLocationChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
@@ -35,6 +35,8 @@ public:
 
     void setAutomaticLocation(bool enabled);
 
+    Q_INVOKABLE void initialize();
+
     Q_INVOKABLE void setTimezone(const QString &timezone);
     Q_INVOKABLE void setLocale(const QString &locale);
     Q_INVOKABLE void setHostName(const QString &hostName);
@@ -47,7 +49,9 @@ public:
 
 Q_SIGNALS:
     void timezoneChanged();
+    void timezonesChanged();
     void localeChanged();
+    void localesChanged();
     void hostNameChanged();
     void usersChanged();
     void automaticLocationChanged();
@@ -70,4 +74,5 @@ private:
     bool m_busy = false;
     QString m_errorMessage;
     QNetworkAccessManager *m_network = nullptr;
+    bool m_initialized = false;
 };

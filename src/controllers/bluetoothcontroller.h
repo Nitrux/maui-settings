@@ -9,6 +9,8 @@ class BluetoothController : public QAbstractListModel
     Q_PROPERTY(bool powered READ powered WRITE setPowered NOTIFY poweredChanged)
     Q_PROPERTY(bool discovering READ discovering NOTIFY discoveringChanged)
     Q_PROPERTY(QString adapterName READ adapterName NOTIFY adapterNameChanged)
+    Q_PROPERTY(int pairedDeviceCount READ pairedDeviceCount NOTIFY deviceCountsChanged)
+    Q_PROPERTY(int availableDeviceCount READ availableDeviceCount NOTIFY deviceCountsChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(bool pairingPromptActive READ pairingPromptActive NOTIFY pairingPromptChanged)
     Q_PROPERTY(bool pairingConfirmationRequired READ pairingConfirmationRequired NOTIFY pairingPromptChanged)
@@ -27,6 +29,7 @@ public:
         ConnectedRole,
         TrustedRole,
         SignalStrengthRole,
+        BatteryPercentageRole,
         DevicePathRole,
     };
     Q_ENUM(Role)
@@ -43,6 +46,8 @@ public:
     void setPowered(bool powered);
     bool discovering() const;
     QString adapterName() const;
+    int pairedDeviceCount() const;
+    int availableDeviceCount() const;
     QString errorMessage() const;
     bool pairingPromptActive() const;
     bool pairingConfirmationRequired() const;
@@ -53,6 +58,7 @@ public:
     QString pairingRequestId() const;
 
     Q_INVOKABLE void setDiscoveryEnabled(bool enabled);
+    Q_INVOKABLE void setAdapterName(const QString &name);
     Q_INVOKABLE void pairDevice(const QString &devicePath);
     Q_INVOKABLE void unpairDevice(const QString &devicePath);
     Q_INVOKABLE void connectDevice(const QString &devicePath);
@@ -69,6 +75,7 @@ Q_SIGNALS:
     void poweredChanged();
     void discoveringChanged();
     void adapterNameChanged();
+    void deviceCountsChanged();
     void errorMessageChanged();
     void pairingPromptChanged();
 

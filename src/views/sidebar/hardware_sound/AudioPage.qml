@@ -27,7 +27,7 @@ Maui.ScrollColumn
         return true
     }
 
-    Component.onCompleted: reloadSettings()
+    Component.onCompleted: if (controller) controller.start()
 
     Maui.SectionHeader
     {
