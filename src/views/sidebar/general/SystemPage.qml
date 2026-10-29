@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
+import org.mauikit.calendar 1.0 as MauiCalendar
 
 Maui.ScrollColumn
 {
@@ -109,12 +110,14 @@ Maui.ScrollColumn
         currentPath: FB.FM.homePath()
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: addUserDialog
         title: i18n("Add User")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         actions: [
             Action
             {
@@ -215,11 +218,13 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: editUserDialog
         title: i18n("Configure User")
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); Maui.Controls.status: Maui.Controls.Positive; enabled: root.manager && !root.manager.busy && (editPasswordField.text.length > 0 || editingAvatarPath.length > 0); onTriggered: root.manager.updateUser(editingUsername, editPasswordField.text, editingAvatarPath) }]
         ColumnLayout { Layout.fillWidth: true; spacing: Maui.Style.space.small
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Avatar"); label2.text: editingAvatarPath.length > 0 ? editingAvatarPath : i18n("Keep the current avatar."); Button { text: i18n("Choose"); onClicked: root.pickEditAvatar() } }
@@ -227,11 +232,13 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: deleteUserDialog
         title: i18n("Delete User")
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: deleteUserDialog.close() }, Action { text: i18n("Delete"); Maui.Controls.status: Maui.Controls.Negative; onTriggered: root.manager.deleteUser(pendingDeleteUsername) }]
         Label { Layout.fillWidth: true; text: i18n("Delete the user account %1 and its home directory?", root.pendingDeleteUsername); wrapMode: Text.WordWrap }
     }
@@ -246,16 +253,18 @@ Maui.ScrollColumn
     property int tempHour: root.selectedHour
     property int tempMinute: root.selectedMinute
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: dateDialog
         title: i18n("Select Date")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         onOpened:
         {
             root.tempDate = root.selectedDate
-            dateCalendar.showSelectedMonth()
+            dateCalendar.setToDate(root.tempDate)
         }
 
         actions: [
@@ -277,21 +286,8 @@ Maui.ScrollColumn
 
         ColumnLayout
         {
-            id: dateCalendar
             Layout.fillWidth: true
-            implicitHeight: childrenRect.height
             spacing: Maui.Style.space.small
-
-            property int displayedMonth: root.tempDate.getMonth()
-            property int displayedYear: root.tempDate.getFullYear()
-            readonly property int firstWeekday: (new Date(displayedYear, displayedMonth, 1).getDay() + 6) % 7
-            readonly property int monthDays: new Date(displayedYear, displayedMonth + 1, 0).getDate()
-
-            function showSelectedMonth()
-            {
-                displayedMonth = root.tempDate.getMonth()
-                displayedYear = root.tempDate.getFullYear()
-            }
 
             RowLayout
             {
@@ -300,101 +296,44 @@ Maui.ScrollColumn
                 Button
                 {
                     text: "‹"
-                    onClicked:
-                    {
-                        if (dateCalendar.displayedMonth === 0)
-                        {
-                            dateCalendar.displayedMonth = 11
-                            --dateCalendar.displayedYear
-                        }
-                        else
-                            --dateCalendar.displayedMonth
-                    }
+                    onClicked: dateCalendar.previousDate()
                 }
 
                 Label
                 {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: Qt.formatDate(new Date(dateCalendar.displayedYear,
-                                                  dateCalendar.displayedMonth, 1), "MMMM yyyy")
+                    text: Qt.formatDate(dateCalendar.firstDayOfMonth || root.tempDate, "MMMM yyyy")
                     font.bold: true
                 }
 
                 Button
                 {
                     text: "›"
-                    onClicked:
-                    {
-                        if (dateCalendar.displayedMonth === 11)
-                        {
-                            dateCalendar.displayedMonth = 0
-                            ++dateCalendar.displayedYear
-                        }
-                        else
-                            ++dateCalendar.displayedMonth
-                    }
+                    onClicked: dateCalendar.nextDate()
                 }
             }
 
-            GridLayout
+            MauiCalendar.MonthView
             {
+                id: dateCalendar
                 Layout.fillWidth: true
-                columns: 7
-                columnSpacing: Maui.Style.space.tiny
-                rowSpacing: Maui.Style.space.tiny
-
-                Repeater
-                {
-                    model: [i18n("Mon"), i18n("Tue"), i18n("Wed"), i18n("Thu"),
-                            i18n("Fri"), i18n("Sat"), i18n("Sun")]
-
-                    delegate: Label
-                    {
-                        required property string modelData
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: modelData
-                        opacity: 0.7
-                    }
-                }
-
-                Repeater
-                {
-                    model: 42
-
-                    delegate: Button
-                    {
-                        required property int index
-                        readonly property int dayNumber: index - dateCalendar.firstWeekday + 1
-                        readonly property bool validDay: dayNumber > 0 && dayNumber <= dateCalendar.monthDays
-                        readonly property bool selectedDay: validDay
-                            && root.tempDate.getFullYear() === dateCalendar.displayedYear
-                            && root.tempDate.getMonth() === dateCalendar.displayedMonth
-                            && root.tempDate.getDate() === dayNumber
-
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        Layout.preferredHeight: Maui.Style.units.gridUnit * 2.5
-                        text: validDay ? String(dayNumber) : ""
-                        enabled: validDay
-                        opacity: validDay ? 1 : 0
-                        highlighted: selectedDay
-
-                        onClicked: root.tempDate = new Date(dateCalendar.displayedYear,
-                                                            dateCalendar.displayedMonth, dayNumber)
-                    }
-                }
+                Layout.preferredHeight: Maui.Style.units.gridUnit * 14
+                selectedDate: root.tempDate
+                dragDropEnabled: false
+                onDateClicked: function(date) { root.tempDate = date }
             }
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: timeDialog
         title: i18n("Select Time")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         onOpened:
         {
             root.tempHour = root.selectedHour
@@ -426,6 +365,8 @@ Maui.ScrollColumn
             Layout.alignment: Qt.AlignHCenter
             implicitHeight: Maui.Style.units.gridUnit * 12
             spacing: Maui.Style.space.small
+
+            Item { Layout.fillWidth: true }
 
             Tumbler
             {
@@ -477,6 +418,8 @@ Maui.ScrollColumn
 
                 onCurrentIndexChanged: root.tempMinute = currentIndex
             }
+
+            Item { Layout.fillWidth: true }
         }
     }
 

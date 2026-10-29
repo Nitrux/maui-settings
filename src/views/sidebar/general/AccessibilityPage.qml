@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -439,12 +440,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: timeDialog
         title: i18n("Select Time")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         onOpened:
         {
             if (root.editingDaytimeProfile)

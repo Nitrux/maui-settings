@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -2894,12 +2895,14 @@ Maui.ScrollColumn
             }
         }
     }
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _gtkThemePreviewDialog
         title: i18n("GTK Theme Preview")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string previewName
         property string previewStatus: i18n("Representative GTK widgets rendered with the selected theme.")
         property var previews: []
@@ -2951,12 +2954,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _widgetStylePreviewDialog
         title: i18n("Widget Style Preview")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string previewName
         property var preview: ({})
 
@@ -2989,12 +2994,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _cursorThemePreviewDialog
         title: i18n("Cursor Theme Preview")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string previewTheme
         property string previewName
         property var previewImages: []
@@ -3034,12 +3041,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _iconThemePreviewDialog
         title: i18n("Icon Theme Preview")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string previewTheme
         property string previewName
         property var previewIcons: []
@@ -3079,12 +3088,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _colorSchemePreviewDialog
         title: i18n("Color Scheme Preview")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string previewScheme
         property var preview: ({})
 
@@ -3313,12 +3324,14 @@ Maui.ScrollColumn
     }
 
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: borderGradientDialog
         title: i18n("Border Color Gradient")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         property string pendingStartColor: root.rgbaToHex(root.borderStartColor(), "#26c6da")
         property string pendingEndColor: root.rgbaToHex(root.borderEndColor(), "#2eefff")
         property string pendingInactiveColor: root.rgbaToHex(root.inactiveBorderColor(), "#595959")

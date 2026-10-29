@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -631,11 +632,13 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _removeInputDialog
         title: root.inputItemType === 1 ? i18n("Remove Device") : i18n("Remove Keybind")
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         Label { Layout.fillWidth: true; text: root.inputItemType === 1 ? i18n("Remove this device override?") : i18n("Remove this keybind?"); wrapMode: Text.WordWrap }
         actions: [
             Action { text: i18n("Cancel"); onTriggered: _removeInputDialog.close() },
@@ -657,13 +660,15 @@ Maui.ScrollColumn
         onClosed: { root.pendingKeybindIndex = -1; root.pendingDeviceIndex = -1 }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _inputDialog
         title: root.inputItemType === 1
             ? (root.editingDeviceIndex >= 0 ? i18n("Modify Device") : i18n("Add Device"))
             : (root.editingKeybindIndex >= 0 ? i18n("Modify Keybind") : i18n("Add Keybind"))
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

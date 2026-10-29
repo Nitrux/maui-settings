@@ -73,12 +73,14 @@ Maui.ScrollColumn
         currentPath: FB.FM.homePath()
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _removeDialog
         title: i18n("Remove Association")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         Label
         {
             Layout.fillWidth: true
@@ -108,12 +110,14 @@ Maui.ScrollColumn
         onClosed: root.pendingRemoval = ""
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _associationDialog
         title: root.editing ? i18n("Modify Association") : i18n("Add Association")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

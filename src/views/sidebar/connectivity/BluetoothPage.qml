@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -81,7 +82,7 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _pairingDialog
         property string requestId: ""
@@ -91,6 +92,8 @@ Maui.ScrollColumn
                : i18n("Bluetooth pairing request")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true
@@ -191,12 +194,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _deviceEditor
         title: i18n("Edit Bluetooth Device")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

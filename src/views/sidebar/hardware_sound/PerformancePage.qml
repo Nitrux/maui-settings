@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn {
     id: root
@@ -300,11 +301,13 @@ Maui.ScrollColumn {
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: graphicsModeDialog
         title: i18n("Change Graphics Mode")
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         onClosed: root.syncGraphicsModeSelection()
 
         ColumnLayout

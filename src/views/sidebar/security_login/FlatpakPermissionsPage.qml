@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -115,7 +116,7 @@ Maui.ScrollColumn
     anchors.fill: parent
     spacing: Maui.Style.space.medium
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _permissionsDialog
         title: root.controller && root.controller.selectedAppName.length > 0
@@ -123,6 +124,8 @@ Maui.ScrollColumn
             : i18n("Flatpak Permissions")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

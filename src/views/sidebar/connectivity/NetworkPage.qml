@@ -102,12 +102,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _vpnSecretsDialog
         title: i18n("VPN credentials")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true
@@ -244,12 +246,14 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _passwordDialog
         title: i18n("Connect to %1", root.selectedSsid)
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true
@@ -312,12 +316,14 @@ Maui.ScrollColumn
         onClosed: _passwordField.clear()
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _networkEditor
         title: i18n("Edit %1", root.selectedSsid)
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

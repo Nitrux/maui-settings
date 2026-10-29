@@ -19,6 +19,9 @@
 
 #include <MauiKit4/Core/mauiapp.h>
 #include <MauiKit4/FileBrowsing/moduleinfo.h>
+#include <MauiKit4/Calendar/moduleinfo.h>
+#include <Maui/Core/System/moduleinfo.h>
+#include <MauiKit4/Core/moduleinfo.h>
 #include <MauiMan4/thememanager.h>
 
 #include "controllers/aboutinfo.h"
@@ -92,7 +95,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     KAboutData about(QStringLiteral("maui-settings"),
                      i18n("Workspace Settings"),
-                     QStringLiteral("0.0.1"),
+                     QStringLiteral("4.0.5"),
                      i18n("A simple settings shell built with MauiKit."),
                      KAboutLicense::GPL_V3,
                      i18n("© %1 Made by Nitrux | Built with MauiKit", QString::number(QDate::currentDate().year())),
@@ -107,6 +110,19 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     const auto fileBrowsingData = MauiKitFileBrowsing::aboutData();
     about.addComponent(fileBrowsingData.name(), MauiKitFileBrowsing::buildVersion(), fileBrowsingData.version(), fileBrowsingData.webAddress());
+    const auto calendarData = MauiKitCalendar::aboutData();
+    about.addComponent(calendarData.name(), MauiKitCalendar::buildVersion(), calendarData.version(), calendarData.webAddress());
+    const auto systemData = MauiKitSystem::aboutData();
+    const QString systemVersion = systemData.version().isEmpty()
+                                      ? MauiKitCore::versionString()
+                                      : systemData.version();
+    const QString systemBuildVersion = MauiKitSystem::buildVersion().isEmpty()
+                                           ? QStringLiteral("n/a")
+                                           : MauiKitSystem::buildVersion();
+    about.addComponent(systemData.name(),
+                       systemBuildVersion,
+                       systemVersion,
+                       systemData.webAddress());
     KAboutData::setApplicationData(about);
     MauiApp::instance()->setIconName(QStringLiteral("preferences-system"));
 

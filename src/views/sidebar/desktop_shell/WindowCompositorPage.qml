@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -570,11 +571,13 @@ Maui.ScrollColumn
         }
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _removeWindowRuleDialog
         title: i18n("Remove Window Rule")
         persistent: true
+        template.visible: true
+        template.iconVisible: false
         maxWidth: Maui.Style.units.gridUnit * 24
 
         Label
@@ -606,12 +609,14 @@ Maui.ScrollColumn
         onClosed: root.pendingRuleIndex = -1
     }
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _windowRuleDialog
         title: root.editingRuleIndex >= 0 ? i18n("Modify Window Rule") : i18n("Add Window Rule")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

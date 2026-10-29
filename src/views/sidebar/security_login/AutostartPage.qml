@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.ScrollColumn
 {
@@ -52,12 +53,14 @@ Maui.ScrollColumn
     anchors.fill: parent
     spacing: Maui.Style.space.big
 
-    Maui.SettingsDialog
+    FB.FileListingDialog
     {
         id: _commandDialog
         title: root.editingIndex < 0 ? i18n("Add Autostart Command") : i18n("Edit Autostart Command")
         persistent: true
 
+        template.visible: true
+        template.iconVisible: false
         ColumnLayout
         {
             Layout.fillWidth: true

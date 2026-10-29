@@ -65,6 +65,7 @@ find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS Auth BluezQt ColorSc
 set(QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL
     "MauiKit uses Qt's private WaylandClient API" FORCE)
 find_package(MauiKit4 ${REQUIRED_MAUIKIT_VERSION} REQUIRED COMPONENTS FileBrowsing)
+find_package(MauiKitCalendar4 ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
 find_package(MauiKitSystemControl ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
 find_package(MauiKitSystemNetwork ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
 find_package(MauiMan4 REQUIRED)
@@ -284,6 +285,7 @@ target_link_libraries(${APP_NAME}
     PRIVATE
     MauiKit4
     MauiKit4::FileBrowsing
+    MauiKit4::Calendar
     MauiKitSystem::Control
     MauiKitSystem::Network
     MauiMan4::MauiMan4
