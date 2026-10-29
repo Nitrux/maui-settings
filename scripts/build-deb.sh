@@ -32,7 +32,7 @@ Priority: optional
 Architecture: ${TARGET_ARCH}
 Maintainer: uri_herrera@nxos.org
 Provides: maui-settings
-Depends: libkf6bluezqt6,libkf6coreaddons6,libkf6i18n6,libkf6configgui6,libqt6core6t64,libqt6dbus6,libqt6gui6,libqt6network6,libqt6qml6,libqt6quick6,libqt6widgets6,cracklib-runtime,hypridle,hyprland,hyprpaper,libcrack2,libgtk-3-0,libgtk-4-1,libkf6authcore6,libkf6colorscheme6,libkf6configcore6,libkf6modemmanagerqt6,libkf6networkmanagerqt6,libnotify-bin,libpwquality-common,libpwquality1,libqcoro6core0,libqcoro6dbus0,libqcoro6network0,libqcoro6qml0,libqcoro6quick0,libqcoro6websockets0,libqt6svg6,libqt6keychain1,libxcursor1,mauikit (>= 4.0.5),mauikit-calendar (>= 4.0.5),mauikit-filebrowsing (>= 4.0.5),mauikit-system (>= 4.0.5),qml6-module-qtquick,qml6-module-qtquick-controls,qml6-module-qtquick-effects,qml6-module-qtquick-layouts,nwsm,nx-powerd,openrc,python3-envycontrol,wamerican
+Depends: libkf6bluezqt6,libkf6calendarcore6,libkf6coreaddons6,libkf6i18n6,libkf6configgui6,libqt6core6t64,libqt6dbus6,libqt6gui6,libqt6network6,libqt6qml6,libqt6quick6,libqt6widgets6,cracklib-runtime,hypridle,hyprland,hyprpaper,libcrack2,libgtk-3-0,libgtk-4-1,libkf6authcore6,libkf6colorscheme6,libkf6configcore6,libkf6modemmanagerqt6,libkf6networkmanagerqt6,libnotify-bin,libpwquality-common,libpwquality1,libqcoro6core0,libqcoro6dbus0,libqcoro6network0,libqcoro6qml0,libqcoro6quick0,libqcoro6websockets0,libqt6svg6,libqt6keychain1,libxcursor1,mauikit (>= 4.0.5),mauikit-calendar (>= 4.0.5),mauikit-filebrowsing (>= 4.0.5),mauikit-system (>= 4.0.5),qml6-module-qtquick,qml6-module-qtquick-controls,qml6-module-qtquick-effects,qml6-module-qtquick-layouts,nwsm,nx-powerd,openrc,python3-envycontrol,wamerican
 Description: maui-settings
  maui-settings
 CONTROL
