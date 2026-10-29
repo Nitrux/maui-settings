@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(maui-settings VERSION 0.1 LANGUAGES CXX)
+project(maui-settings VERSION 4.0.5 LANGUAGES CXX)
 
 set(APP_NAME maui-settings)
 set(QT_MAJOR_VERSION 6)
@@ -65,8 +65,8 @@ find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS Auth BluezQt ColorSc
 set(QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL
     "MauiKit uses Qt's private WaylandClient API" FORCE)
 find_package(MauiKit4 ${REQUIRED_MAUIKIT_VERSION} REQUIRED COMPONENTS FileBrowsing)
-find_package(MauiKitSystemControl REQUIRED)
-find_package(MauiKitSystemNetwork REQUIRED)
+find_package(MauiKitSystemControl ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
+find_package(MauiKitSystemNetwork ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
 find_package(MauiMan4 REQUIRED)
 
 remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_URL_CAST_FROM_STRING)
