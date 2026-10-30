@@ -2898,6 +2898,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: _gtkThemePreviewDialog
+        maxWidth: Maui.Style.units.gridUnit * 40
         title: i18n("GTK Theme Preview")
         persistent: true
 
@@ -2957,6 +2958,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: _widgetStylePreviewDialog
+        maxWidth: Maui.Style.units.gridUnit * 40
         title: i18n("Widget Style Preview")
         persistent: true
 
@@ -2997,6 +2999,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: _cursorThemePreviewDialog
+        maxWidth: Maui.Style.units.gridUnit * 30
         title: i18n("Cursor Theme Preview")
         persistent: true
 
@@ -3044,6 +3047,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: _iconThemePreviewDialog
+        maxWidth: Maui.Style.units.gridUnit * 30
         title: i18n("Icon Theme Preview")
         persistent: true
 
@@ -3091,6 +3095,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: _colorSchemePreviewDialog
+        maxWidth: Maui.Style.units.gridUnit * 30
         title: i18n("Color Scheme Preview")
         persistent: true
 
@@ -3327,6 +3332,7 @@ Maui.ScrollColumn
     FB.FileListingDialog
     {
         id: borderGradientDialog
+        maxWidth: Maui.Style.units.gridUnit * 30
         title: i18n("Border Color Gradient")
         persistent: true
 
