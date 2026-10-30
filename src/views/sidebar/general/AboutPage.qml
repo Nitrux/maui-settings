@@ -20,6 +20,27 @@ Maui.ScrollColumn
         return null
     }
 
+    function componentVersion(name)
+    {
+        const component = componentByName(name)
+        if (component)
+        {
+            if (name === "MauiKit System")
+                return component.version + " (" + (component.description || i18n("n/a")) + ")"
+
+            return component.version
+        }
+
+        if (name === "MauiKit System")
+        {
+            const mauikit = componentByName("MauiKit Core")
+            const version = mauikit ? mauikit.version : (Maui.App.mauikitVersion || i18n("n/a"))
+            return version + " (" + i18n("n/a") + ")"
+        }
+
+        return i18n("Unknown")
+    }
+
     anchors.fill: parent
     spacing: Maui.Style.space.big
 
@@ -123,7 +144,7 @@ Maui.ScrollColumn
 
             Repeater
             {
-                model: ["MauiKit Core", "Qt", "KDE Frameworks"]
+                model: ["MauiKit Core", "MauiKit Calendar", "MauiKit System", "Qt", "KDE Frameworks"]
 
                 delegate: Maui.SectionItem
                 {
@@ -133,10 +154,7 @@ Maui.ScrollColumn
                     flat: true
                     label1.text: modelData
                     label1.elide: Text.ElideRight
-                    label2.text: {
-                        const component = componentByName(modelData)
-                        return component ? component.version : i18n("Unknown")
-                    }
+                    label2.text: componentVersion(modelData)
                     label2.wrapMode: Text.Wrap
                 }
             }
