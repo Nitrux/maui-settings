@@ -19,32 +19,29 @@ jobs:
   build-amd64:
     runs-on: ubuntu-24.04
     container:
-      image: debian:stable-20260713
+      image: debian:testing-20260713-slim
       env:
         DEBIAN_FRONTEND: noninteractive
         PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
 
     steps:
       - name: Install CA certificates
-        run: apt update && apt install -y ca-certificates
-
-      - name: Divert files conflicting during the APT transition
-        run: dpkg-divert --package util-linux --no-rename --add /usr/bin/logger
-
+        run: apt update && apt install --no-install-recommends -y ca-certificates
       - name: Update APT sources and upgrade
         run: |
-          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10-no-check-valid-until
+          echo 'Acquire::Check-Date "false";' >> /etc/apt/apt.conf.d/10-no-check-valid-until
           cat <<EOF > /etc/apt/sources.list.d/debian.sources
           Types: deb
-          URIs: https://snapshot.debian.org/archive/debian/20261013T082854Z
-          Suites: testing testing-updates
-          Components: main non-free non-free-firmware contrib
+          URIs: https://snapshot.debian.org/archive/debian/20261105T143010Z
+          Suites: testing
+          Components: main
           Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
           Architectures: amd64
           EOF
-          apt update && apt -o Dpkg::Options::=--force-overwrite full-upgrade -y
+          apt update && apt full-upgrade -y
       - name: Setup amd64 environment
-        run: apt install -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
+        run: apt install --no-install-recommends -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
       - run: gem install package_cloud
       - uses: actions/checkout@v4
       - run: ./scripts/install-build-deps.sh
@@ -61,32 +58,29 @@ jobs:
   build-arm64:
     runs-on: ubuntu-24.04-arm
     container:
-      image: arm64v8/debian:stable-20260713
+      image: arm64v8/debian:testing-20260713-slim
       env:
         DEBIAN_FRONTEND: noninteractive
         PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
 
     steps:
       - name: Install CA certificates
-        run: apt update && apt install -y ca-certificates
-
-      - name: Divert files conflicting during the APT transition
-        run: dpkg-divert --package util-linux --no-rename --add /usr/bin/logger
-
+        run: apt update && apt install --no-install-recommends -y ca-certificates
       - name: Update APT sources and upgrade
         run: |
-          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10-no-check-valid-until
+          echo 'Acquire::Check-Date "false";' >> /etc/apt/apt.conf.d/10-no-check-valid-until
           cat <<EOF > /etc/apt/sources.list.d/debian.sources
           Types: deb
-          URIs: https://snapshot.debian.org/archive/debian/20261013T082854Z
-          Suites: testing testing-updates
-          Components: main non-free non-free-firmware contrib
+          URIs: https://snapshot.debian.org/archive/debian/20261105T143010Z
+          Suites: testing
+          Components: main
           Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
           Architectures: arm64
           EOF
-          apt update && apt -o Dpkg::Options::=--force-overwrite full-upgrade -y
+          apt update && apt full-upgrade -y
       - name: Setup arm64 environment
-        run: apt install -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
+        run: apt install --no-install-recommends -y build-essential devscripts equivs git gnupg lintian ruby-full sudo
       - run: gem install package_cloud
       - uses: actions/checkout@v4
       - run: ./scripts/install-build-deps.sh
