@@ -526,7 +526,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Paired devices")
+                text1: i18n("Paired Devices")
                 text2: i18n("Connect to or manage devices paired with this computer.")
                 label2.wrapMode: Text.Wrap
             }
@@ -658,7 +658,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Available devices")
+                text1: i18n("Available Devices")
                 text2: root.controller && root.controller.discovering
                        ? i18n("Searching for nearby Bluetooth devices…")
                        : i18n("Nearby devices that haven’t been paired with this computer.")

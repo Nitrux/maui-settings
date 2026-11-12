@@ -601,7 +601,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Date and time")
+                text1: i18n("Date and Time")
                 text2: i18n("Set the system date and time manually when offline.")
             }
 

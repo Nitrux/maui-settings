@@ -201,7 +201,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Night light")
+                text1: i18n("Night Light")
                 text2: !root.hyprsunset || !root.hyprsunset.available
                     ? i18n("hyprsunset is not available.")
                     : i18n("Configure the daytime and nighttime profiles.")

@@ -134,7 +134,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Startup commands")
+                text1: i18n("Startup Commands")
                 text2: i18n("Configure the commands used during session startup.")
                 label2.wrapMode: Text.Wrap
             }

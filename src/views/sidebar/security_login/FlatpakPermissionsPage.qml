@@ -17,7 +17,7 @@ Maui.ScrollColumn
     property var sectionCards: [
         {
             section: "application",
-            headerText: i18n("Flatpak applications"),
+            headerText: i18n("Flatpak Applications"),
             details: i18n("Select an installed Flatpak application to manage its sandbox permissions.")
         }
     ]

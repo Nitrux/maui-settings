@@ -17,6 +17,7 @@ class NetworkController : public QAbstractListModel
     Q_PROPERTY(bool scanning READ scanning NOTIFY scanningChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QVariantList wiredConnections READ wiredConnections NOTIFY wiredConnectionsChanged)
+    Q_PROPERTY(QVariantList savedWirelessConnections READ savedWirelessConnections NOTIFY savedWirelessConnectionsChanged)
     Q_PROPERTY(QVariantList vpnConnections READ vpnConnections NOTIFY vpnConnectionsChanged)
     Q_PROPERTY(QVariantMap connectedWirelessConnection READ connectedWirelessConnection NOTIFY connectedWirelessConnectionChanged)
     Q_PROPERTY(bool dnsEncryptionEnabled READ dnsEncryptionEnabled WRITE setDnsEncryptionEnabled NOTIFY dnsEncryptionEnabledChanged)
@@ -51,6 +52,7 @@ public:
     bool scanning() const;
     QString errorMessage() const;
     QVariantList wiredConnections() const;
+    QVariantList savedWirelessConnections() const;
     QVariantList vpnConnections() const;
     QVariantMap connectedWirelessConnection() const;
     bool dnsEncryptionEnabled() const;
@@ -58,6 +60,7 @@ public:
 
     Q_INVOKABLE void initialize();
     Q_INVOKABLE void requestScan();
+    Q_INVOKABLE void connectSavedNetwork(const QString &connectionUuid, const QString &devicePath);
     Q_INVOKABLE void connectToNetwork(const QString &devicePath,
                                       const QString &accessPointPath,
                                       const QString &ssid,
@@ -84,6 +87,7 @@ Q_SIGNALS:
     void scanningChanged();
     void errorMessageChanged();
     void wiredConnectionsChanged();
+    void savedWirelessConnectionsChanged();
     void vpnConnectionsChanged();
     void vpnSecretsRequested(const QString &connectionPath, const QString &connectionName, const QStringList &hints);
     void vpnSecretsCanceled(const QString &connectionPath);

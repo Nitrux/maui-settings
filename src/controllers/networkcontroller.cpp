@@ -465,6 +465,7 @@ public:
     int scanRequests = 0;
     QString errorMessage;
     QVariantList wiredConnections;
+    QVariantList savedWirelessConnections;
     QVariantList vpnConnections;
     QVariantMap connectedWirelessConnection;
     QTimer *rebuildTimer = nullptr;
@@ -529,8 +530,24 @@ NetworkController::NetworkController(QObject *parent)
     });
 
     auto *settingsNotifier = NetworkManager::settingsNotifier();
-    connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionAdded, this, [this](const QString &) {
+    connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionAdded, this, [this](const QString &connectionPath) {
         scheduleRebuild();
+        if (!d->dnsEncryptionEnabled)
+            return;
+
+        QTimer::singleShot(0, this, [this, connectionPath] {
+            const auto connection = NetworkManager::findConnection(connectionPath);
+            if (!connection || !connection->settings())
+                return;
+
+            const auto type = connection->settings()->connectionType();
+            if (type != NetworkManager::ConnectionSettings::Wired
+                && type != NetworkManager::ConnectionSettings::Wireless) {
+                return;
+            }
+
+            updateConnection(connection->uuid(), connectionDetails(connection->uuid()));
+        });
     });
     connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionRemoved, this, [this](const QString &) {
         scheduleRebuild();
@@ -645,6 +662,11 @@ QString NetworkController::errorMessage() const
 QVariantList NetworkController::wiredConnections() const
 {
     return d->wiredConnections;
+}
+
+QVariantList NetworkController::savedWirelessConnections() const
+{
+    return d->savedWirelessConnections;
 }
 
 QVariantList NetworkController::vpnConnections() const
@@ -781,6 +803,8 @@ void NetworkController::setDnsEncryptionEnabled(bool enabled)
                 settings.setValue(groupName + QStringLiteral("/ipv6IgnoreAutoDns"), ipv6->ignoreAutoDns());
                 createdBackups.insert(groupName);
             }
+            // Keep profile DNS empty: NetworkManager's dnsmasq plugin forwards to dnscrypt-proxy.
+            // A loopback server here would make the local stub use itself as an upstream.
             ipv4->setDns({});
             ipv4->setIgnoreAutoDns(true);
             ipv6->setDns({});
@@ -812,8 +836,6 @@ void NetworkController::setDnsEncryptionEnabled(bool enabled)
             ipv6->setAddresses({});
             ipv6->setAddressData({});
         }
-
-
         NMVariantMapMap updateMap = connectionSettings->toMap();
         updateMap.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::Ipv4), ipv4->toMap());
         updateMap.insert(NetworkManager::Setting::typeAsString(NetworkManager::Setting::Ipv6), ipv6->toMap());
@@ -846,7 +868,6 @@ void NetworkController::setDnsEncryptionEnabled(bool enabled)
             notifyDnsToggleFailure(updateReply.error().message());
             return;
         }
-
         for (const auto &target : profileRollback.activeTargets) {
             QString deactivationError;
             if (!disconnectActiveDevice(connection->uuid(), target.first, &deactivationError)) {
@@ -1147,6 +1168,62 @@ void NetworkController::connectToNetwork(const QString &devicePath,
 
     m_networkHandler->addAndActivateConnection(devicePath, accessPointPath, password);
     QTimer::singleShot(300, this, &NetworkController::rebuild);
+}
+
+void NetworkController::connectSavedNetwork(const QString &connectionUuid, const QString &devicePath)
+{
+    clearError();
+    NetworkManager::Connection::Ptr connection;
+    for (const auto &candidate : NetworkManager::listConnections()) {
+        if (candidate && candidate->uuid() == connectionUuid && candidate->settings()
+            && candidate->settings()->connectionType() == NetworkManager::ConnectionSettings::Wireless) {
+            connection = candidate;
+            break;
+        }
+    }
+    if (!connection) {
+        setErrorMessage(tr("The saved network profile is no longer available."));
+        return;
+    }
+
+    auto device = NetworkManager::findNetworkInterface(devicePath).objectCast<NetworkManager::WirelessDevice>();
+    if (!device) {
+        for (const auto &candidate : NetworkManager::networkInterfaces()) {
+            if (candidate->type() == NetworkManager::Device::Wifi) {
+                device = candidate.objectCast<NetworkManager::WirelessDevice>();
+                if (device)
+                    break;
+            }
+        }
+    }
+    if (!device || !wirelessEnabled()) {
+        setErrorMessage(tr("Turn on Wi-Fi before connecting to a saved network."));
+        return;
+    }
+
+    QString specificObject = QStringLiteral("/");
+    const auto wirelessSetting = connection->settings()->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
+    const QString ssid = wirelessSetting ? QString::fromUtf8(wirelessSetting->ssid()) : connection->name();
+    for (const auto &network : device->networks()) {
+        if (!network || network->ssid() != ssid || !network->referenceAccessPoint())
+            continue;
+        specificObject = network->referenceAccessPoint()->uni();
+        break;
+    }
+
+    auto *watcher = new QDBusPendingCallWatcher(
+        NetworkManager::activateConnection(connection->path(), device->uni(), specificObject), this);
+    const QString connectionName = connection->name();
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, connectionName] {
+        const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
+        if (reply.isError()) {
+            setErrorMessage(reply.error().message());
+        } else {
+            watchActivation(reply.value().path(), connectionName, QStringLiteral("network-wireless"));
+        }
+        watcher->deleteLater();
+        QTimer::singleShot(300, this, &NetworkController::rebuild);
+    });
 }
 
 void NetworkController::connectWired(const QString &devicePath, const QString &connectionPath)
@@ -1516,6 +1593,7 @@ void NetworkController::updateConnection(const QString &connectionUuid, const QV
             dnsSettings.setValue(groupName + QStringLiteral("/ipv6IgnoreAutoDns"), ipv6->ignoreAutoDns());
             createdDnsBackupGroup = groupName;
         }
+        // Match the encrypted DNS toggle: let NetworkManager's dnsmasq plugin use its dnscrypt-proxy upstream.
         ipv4->setDns({});
         ipv4->setIgnoreAutoDns(true);
         ipv6->setDns({});
@@ -1572,6 +1650,7 @@ void NetworkController::rebuild()
 {
     QList<NetworkEntry> entries;
     QVariantList wiredConnections;
+    QVariantList savedWirelessConnections;
     QVariantMap connectedWirelessConnection;
     bool hasWirelessDevice = false;
     QVariantList vpnConnections;
@@ -1633,6 +1712,56 @@ void NetworkController::rebuild()
             {QStringLiteral("connecting"), connecting},
         });
     }
+
+    for (const auto &connection : NetworkManager::listConnections()) {
+        if (!connection || !connection->settings()
+            || connection->settings()->connectionType() != NetworkManager::ConnectionSettings::Wireless) {
+            continue;
+        }
+
+        connect(connection.data(), &NetworkManager::Connection::updated,
+                this, &NetworkController::scheduleRebuild, Qt::UniqueConnection);
+
+        const auto wirelessSetting = connection->settings()->setting(NetworkManager::Setting::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
+        const QString ssid = wirelessSetting ? QString::fromUtf8(wirelessSetting->ssid()) : connection->name();
+        QString devicePath;
+        bool connected = false;
+        bool connecting = false;
+        for (const auto &active : NetworkManager::activeConnections()) {
+            if (!active || active->uuid() != connection->uuid())
+                continue;
+            connected = active->state() == NetworkManager::ActiveConnection::Activated;
+            connecting = active->state() != NetworkManager::ActiveConnection::Activated
+                && active->state() != NetworkManager::ActiveConnection::Deactivated;
+            if (!active->devices().isEmpty())
+                devicePath = active->devices().constFirst();
+            break;
+        }
+        if (devicePath.isEmpty()) {
+            for (const auto &candidate : NetworkManager::networkInterfaces()) {
+                if (candidate->type() == NetworkManager::Device::Wifi) {
+                    devicePath = candidate->uni();
+                    break;
+                }
+            }
+        }
+
+        savedWirelessConnections.append(QVariantMap{
+            {QStringLiteral("ssid"), ssid},
+            {QStringLiteral("connectionName"), connection->name()},
+            {QStringLiteral("connectionUuid"), connection->uuid()},
+            {QStringLiteral("devicePath"), devicePath},
+            {QStringLiteral("connected"), connected},
+            {QStringLiteral("connecting"), connecting},
+            {QStringLiteral("autoConnect"), connection->settings()->autoconnect()},
+        });
+    }
+
+    std::sort(savedWirelessConnections.begin(), savedWirelessConnections.end(), [](const QVariant &left, const QVariant &right) {
+        return left.toMap().value(QStringLiteral("connectionName")).toString().compare(
+                   right.toMap().value(QStringLiteral("connectionName")).toString(), Qt::CaseInsensitive)
+            < 0;
+    });
 
     for (const auto &baseDevice : NetworkManager::networkInterfaces()) {
         if (baseDevice->type() == NetworkManager::Device::Ethernet) {
@@ -1823,6 +1952,11 @@ void NetworkController::rebuild()
     if (d->wiredConnections != wiredConnections) {
         d->wiredConnections = wiredConnections;
         Q_EMIT wiredConnectionsChanged();
+    }
+
+    if (d->savedWirelessConnections != savedWirelessConnections) {
+        d->savedWirelessConnections = savedWirelessConnections;
+        Q_EMIT savedWirelessConnectionsChanged();
     }
 
     if (d->vpnConnections != vpnConnections) {

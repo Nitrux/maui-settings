@@ -859,6 +859,111 @@ Maui.ScrollColumn
         }
     }
 
+    Rectangle
+    {
+        Layout.fillWidth: true
+        visible: !!(root.controller && root.controller.savedWirelessConnections.length > 0)
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        border.color: Maui.Theme.backgroundColor
+        border.width: 1
+        implicitHeight: _savedNetworksLayout.implicitHeight + Maui.Style.contentMargins * 2
+
+        ColumnLayout
+        {
+            id: _savedNetworksLayout
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Saved Networks")
+                text2: i18n("Connect to saved Wi-Fi profiles without searching the changing available-network list.")
+                label2.wrapMode: Text.Wrap
+            }
+
+            Repeater
+            {
+                model: root.controller ? root.controller.savedWirelessConnections : []
+
+                delegate: Maui.SectionItem
+                {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    flat: true
+                    label1.text: modelData.connectionName
+                    label1.elide: Text.ElideRight
+                    label2.text: modelData.connected
+                                 ? i18n("Connected")
+                                 : modelData.connecting
+                                   ? i18n("Connecting")
+                                   : modelData.autoConnect
+                                     ? i18n("Saved · Connects automatically")
+                                     : i18n("Saved · Connect manually")
+                    label2.wrapMode: Text.Wrap
+                    template.iconSource: "network-wireless"
+                    template.iconSizeHint: Maui.Style.iconSizes.small
+                    template.content: RowLayout
+                    {
+                        property Item wideParent
+                        property Item responsiveSectionItem
+                        readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                        function updateResponsiveParent()
+                        {
+                            if (!wideParent || !responsiveSectionItem)
+                                return
+
+                            parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                        }
+
+                        onResponsiveNarrowChanged: updateResponsiveParent()
+
+                        Component.onCompleted:
+                        {
+                            const originalParent = parent
+                            responsiveSectionItem = originalParent.parent.parent.parent
+                            wideParent = originalParent
+                            updateResponsiveParent()
+                        }
+                        Layout.fillWidth: responsiveNarrow
+                        Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                        Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                        spacing: Maui.Style.space.small
+
+                        Button
+                        {
+                            text: modelData.connected ? i18n("Disconnect") : (modelData.connecting ? i18n("Connecting") : i18n("Connect"))
+                            enabled: !!modelData.devicePath && (modelData.connected || (root.controller && root.controller.wirelessEnabled && !modelData.connecting))
+                            onClicked: modelData.connected
+                                       ? root.controller.disconnectNetwork(modelData.devicePath)
+                                       : root.controller.connectSavedNetwork(modelData.connectionUuid, modelData.devicePath)
+                        }
+
+                        ToolButton
+                        {
+                            icon.name: "configure"
+                            onClicked:
+                            {
+                                root.selectedConnectionUuid = modelData.connectionUuid
+                                root.selectedIsWired = false
+                                root.selectedDevicePath = modelData.devicePath
+                                root.selectedSsid = modelData.ssid
+                                root.selectedAutoConnect = modelData.autoConnect
+                                _profileName.text = modelData.connectionName
+                                root.loadSelectedConnection()
+                                _networkEditor.open()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Connections
     {
         target: root.controller

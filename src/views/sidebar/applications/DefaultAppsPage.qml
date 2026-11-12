@@ -82,7 +82,7 @@ Maui.ScrollColumn
             Maui.SectionHeader
             {
                 Layout.fillWidth: true
-                text1: i18n("Desktop applications")
+                text1: i18n("Desktop Applications")
                 text2: i18n("These commands are used by the Hyprland desktop configuration.")
                 label2.wrapMode: Text.Wrap
             }
