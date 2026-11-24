@@ -564,8 +564,8 @@ Maui.ScrollColumn
                         text: gpuTemperatureDeviceComboBox.displayText
                         font: gpuTemperatureDeviceComboBox.font
                         color: Maui.Theme.textColor
-                        wrapMode: Text.Wrap
-                        elide: Text.ElideNone
+                        wrapMode: Text.NoWrap
+                        elide: Text.ElideRight
                         leftPadding: 0
                         rightPadding: gpuTemperatureDeviceComboBox.indicator.width + gpuTemperatureDeviceComboBox.spacing
                         horizontalAlignment: Text.AlignLeft
