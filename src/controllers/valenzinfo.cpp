@@ -51,6 +51,7 @@ QString ValenzInfo::controlCenterSettingsCommand() const { return m_controlCente
 QString ValenzInfo::launcherCommand() const { return m_launcherCommand; }
 QString ValenzInfo::clipboardCommand() const { return m_clipboardCommand; }
 QString ValenzInfo::controlCenterDiskUsagePath() const { return m_controlCenterDiskUsagePath; }
+QString ValenzInfo::controlCenterGpuTemperatureDevice() const { return m_controlCenterGpuTemperatureDevice; }
 bool ValenzInfo::mprisAlwaysVisible() const { return m_mprisAlwaysVisible; }
 double ValenzInfo::weatherLatitude() const { return m_weatherLatitude; }
 double ValenzInfo::weatherLongitude() const { return m_weatherLongitude; }
@@ -162,6 +163,15 @@ void ValenzInfo::setControlCenterDiskUsagePath(const QString &value)
     setChanged();
 }
 
+void ValenzInfo::setControlCenterGpuTemperatureDevice(const QString &value)
+{
+    const QString normalized = value.trimmed();
+    if (m_controlCenterGpuTemperatureDevice == normalized)
+        return;
+    m_controlCenterGpuTemperatureDevice = normalized;
+    setChanged();
+}
+
 void ValenzInfo::setMprisAlwaysVisible(bool value)
 {
     if (m_mprisAlwaysVisible == value)
@@ -236,6 +246,7 @@ void ValenzInfo::load()
     m_launcherCommand = value(QStringLiteral("Actions/launcherCommand"), QStringLiteral("vicinae toggle")).toString().trimmed();
     m_clipboardCommand = value(QStringLiteral("Actions/clipboardCommand"), QStringLiteral("vicinae vicinae://launch/clipboard/history")).toString().trimmed();
     m_controlCenterDiskUsagePath = value(QStringLiteral("ControlCenter/diskUsagePath"), QStringLiteral("/")).toString().trimmed();
+    m_controlCenterGpuTemperatureDevice = value(QStringLiteral("ControlCenter/gpuTemperatureDevice"), QString()).toString().trimmed();
     m_mprisAlwaysVisible = value(QStringLiteral("Mpris/alwaysVisible"), false).toBool();
     m_weatherLatitude = qBound(-90.0, value(QStringLiteral("Weather/latitude"), 40.7128).toDouble(), 90.0);
     m_weatherLongitude = qBound(-180.0, value(QStringLiteral("Weather/longitude"), -74.0060).toDouble(), 180.0);
@@ -272,6 +283,7 @@ bool ValenzInfo::save()
     settings.setValue(QStringLiteral("Actions/launcherCommand"), m_launcherCommand);
     settings.setValue(QStringLiteral("Actions/clipboardCommand"), m_clipboardCommand);
     settings.setValue(QStringLiteral("ControlCenter/diskUsagePath"), m_controlCenterDiskUsagePath);
+    settings.setValue(QStringLiteral("ControlCenter/gpuTemperatureDevice"), m_controlCenterGpuTemperatureDevice);
     settings.setValue(QStringLiteral("Mpris/alwaysVisible"), m_mprisAlwaysVisible);
     settings.setValue(QStringLiteral("Weather/latitude"), m_weatherLatitude);
     settings.setValue(QStringLiteral("Weather/longitude"), m_weatherLongitude);

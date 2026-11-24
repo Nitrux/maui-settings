@@ -12,6 +12,8 @@ Maui.ScrollColumn
     readonly property var toma: (typeof tomaInfo !== "undefined" && tomaInfo) ? tomaInfo : null
 
     property var audioDeviceModel: []
+    property var gpuDeviceLabels: [i18n("Automatic")]
+    property var gpuDeviceAddresses: [""]
 
     property var screenPlacementLabels: [i18n("Active screen"), i18n("All screens")]
     property var screenPlacementValues: ["active", "all"]
@@ -19,6 +21,31 @@ Maui.ScrollColumn
     property var iconModeValues: ["system16", "nerd"]
     property var temperatureUnitLabels: [i18n("Celsius"), i18n("Fahrenheit")]
     property var temperatureUnitValues: ["celsius", "fahrenheit"]
+
+    function refreshGpuDevices()
+    {
+        const labels = [i18n("Automatic")]
+        const addresses = [""]
+        const devices = typeof aboutInfo !== "undefined" && aboutInfo ? aboutInfo.graphicsDevices : []
+        for (let i = 0; i < devices.length; ++i)
+        {
+            labels.push(devices[i].title)
+            addresses.push(devices[i].address)
+        }
+        root.gpuDeviceLabels = labels
+        root.gpuDeviceAddresses = addresses
+    }
+
+    function gpuTemperatureDeviceIndex()
+    {
+        const selected = info ? info.controlCenterGpuTemperatureDevice : ""
+        for (let i = 0; i < root.gpuDeviceAddresses.length; ++i)
+        {
+            if (root.gpuDeviceAddresses[i] === selected)
+                return i
+        }
+        return 0
+    }
 
     function refreshAudioDevices()
     {
@@ -58,6 +85,7 @@ Maui.ScrollColumn
         if (toma)
             toma.reload()
         root.refreshAudioDevices()
+        root.refreshGpuDevices()
     }
 
     function saveSettings()
@@ -71,6 +99,7 @@ Maui.ScrollColumn
         if (typeof audioController !== "undefined" && audioController)
             audioController.start()
         root.refreshAudioDevices()
+        root.refreshGpuDevices()
     }
 
     Connections
@@ -516,6 +545,59 @@ Maui.ScrollColumn
                     Layout.preferredWidth: Maui.Style.units.gridUnit * 13
                     text: info ? info.darkColorScheme : "CatppuccinMochaNitrux"
                     onEditingFinished: if (info) info.darkColorScheme = text
+                }
+            }
+
+            Maui.SectionItem
+            {
+                Layout.fillWidth: true
+                flat: true
+                label1.text: i18n("GPU temperature device")
+                label1.elide: Text.ElideRight
+                label2.text: i18n("GPU used for the Control Center temperature reading.")
+                label2.wrapMode: Text.Wrap
+                template.content: ComboBox
+                {
+                    id: gpuTemperatureDeviceComboBox
+                    contentItem: Text
+                    {
+                        text: gpuTemperatureDeviceComboBox.displayText
+                        font: gpuTemperatureDeviceComboBox.font
+                        color: Maui.Theme.textColor
+                        wrapMode: Text.Wrap
+                        elide: Text.ElideNone
+                        leftPadding: 0
+                        rightPadding: gpuTemperatureDeviceComboBox.indicator.width + gpuTemperatureDeviceComboBox.spacing
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    property Item wideParent
+                    property Item responsiveSectionItem
+                    readonly property bool responsiveNarrow: responsiveSectionItem && (Maui.Handy.isMobile || responsiveSectionItem.width < Maui.Style.units.gridUnit * 30)
+
+                    function updateResponsiveParent()
+                    {
+                        if (!wideParent || !responsiveSectionItem)
+                            return
+                        parent = responsiveNarrow ? responsiveSectionItem.contentItem : wideParent
+                    }
+
+                    onResponsiveNarrowChanged: updateResponsiveParent()
+                    Component.onCompleted:
+                    {
+                        const originalParent = parent
+                        responsiveSectionItem = originalParent.parent.parent.parent
+                        wideParent = originalParent
+                        updateResponsiveParent()
+                    }
+                    Layout.fillWidth: responsiveNarrow
+                    Layout.minimumWidth: responsiveNarrow ? 0 : -1
+                    Layout.maximumWidth: responsiveNarrow ? Number.POSITIVE_INFINITY : Maui.Style.units.gridUnit * 18
+                    Layout.preferredWidth: Maui.Style.units.gridUnit * 13
+                    model: root.gpuDeviceLabels
+                    currentIndex: root.gpuTemperatureDeviceIndex()
+                    onActivated: if (info) info.controlCenterGpuTemperatureDevice = root.gpuDeviceAddresses[currentIndex]
                 }
             }
 

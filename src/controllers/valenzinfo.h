@@ -22,6 +22,7 @@ class ValenzInfo : public QObject
     Q_PROPERTY(QString launcherCommand READ launcherCommand WRITE setLauncherCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString clipboardCommand READ clipboardCommand WRITE setClipboardCommand NOTIFY settingsChanged)
     Q_PROPERTY(QString controlCenterDiskUsagePath READ controlCenterDiskUsagePath WRITE setControlCenterDiskUsagePath NOTIFY settingsChanged)
+    Q_PROPERTY(QString controlCenterGpuTemperatureDevice READ controlCenterGpuTemperatureDevice WRITE setControlCenterGpuTemperatureDevice NOTIFY settingsChanged)
     Q_PROPERTY(bool mprisAlwaysVisible READ mprisAlwaysVisible WRITE setMprisAlwaysVisible NOTIFY settingsChanged)
     Q_PROPERTY(double weatherLatitude READ weatherLatitude WRITE setWeatherLatitude NOTIFY settingsChanged)
     Q_PROPERTY(double weatherLongitude READ weatherLongitude WRITE setWeatherLongitude NOTIFY settingsChanged)
@@ -47,6 +48,7 @@ public:
     QString launcherCommand() const;
     QString clipboardCommand() const;
     QString controlCenterDiskUsagePath() const;
+    QString controlCenterGpuTemperatureDevice() const;
     bool mprisAlwaysVisible() const;
     double weatherLatitude() const;
     double weatherLongitude() const;
@@ -67,6 +69,7 @@ public:
     void setLauncherCommand(const QString &value);
     void setClipboardCommand(const QString &value);
     void setControlCenterDiskUsagePath(const QString &value);
+    void setControlCenterGpuTemperatureDevice(const QString &value);
     void setMprisAlwaysVisible(bool value);
     void setWeatherLatitude(double value);
     void setWeatherLongitude(double value);
@@ -99,6 +102,7 @@ private:
     QString m_launcherCommand = QStringLiteral("vicinae toggle");
     QString m_clipboardCommand = QStringLiteral("vicinae vicinae://launch/clipboard/history");
     QString m_controlCenterDiskUsagePath = QStringLiteral("/");
+    QString m_controlCenterGpuTemperatureDevice;
     bool m_mprisAlwaysVisible = false;
     double m_weatherLatitude = 40.7128;
     double m_weatherLongitude = -74.0060;

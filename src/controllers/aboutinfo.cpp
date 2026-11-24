@@ -260,6 +260,24 @@ QString cleanGpuModel(const QString &description)
     QString model = description.trimmed();
     model.remove(QRegularExpression(QStringLiteral(R"(\s+\(rev [^)]+\)$)")));
     model.remove(QRegularExpression(QStringLiteral(R"(\s+\[[0-9a-fA-F]{4}:[0-9a-fA-F]{4}\]$)")));
+
+    const QRegularExpression bracketedName(QStringLiteral(R"(\[([^\]]+)\])"));
+    QRegularExpressionMatchIterator matches = bracketedName.globalMatch(model);
+    QString productName;
+    while (matches.hasNext())
+    {
+        const QString candidate = matches.next().captured(1).trimmed();
+        if (candidate.contains(QRegularExpression(QStringLiteral(R"(^[0-9a-fA-F]{4}:[0-9a-fA-F]{4}$)"))))
+            continue;
+        if (candidate.compare(QStringLiteral("AMD/ATI"), Qt::CaseInsensitive) == 0)
+            continue;
+        productName = candidate;
+    }
+
+    if (!productName.isEmpty())
+        return productName.simplified();
+
+    model.remove(QRegularExpression(QStringLiteral(R"(^[^:]+:\s*)")));
     return model.simplified();
 }
 
