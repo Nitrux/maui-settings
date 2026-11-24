@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(maui-settings VERSION 4.0.5 LANGUAGES CXX)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
+endif()
+
 set(APP_NAME maui-settings)
 set(QT_MAJOR_VERSION 6)
 set(REQUIRED_QT_VERSION 6.9)
