@@ -12,7 +12,8 @@ Maui.ScrollColumn
     readonly property int controlWidth: Maui.Style.units.gridUnit * 13
     readonly property int spinBoxWidth: Maui.Style.units.gridUnit * 7
     readonly property bool resetAvailable: root.info !== null && root.info.available && (
-        root.info.layout !== "dwindle"
+        !root.info.tilingEnabled
+        || root.info.layout !== "dwindle"
         || root.info.gapsIn !== 4
         || root.info.gapsOut !== 8
         || root.info.activeOpacity !== 100
@@ -124,6 +125,7 @@ Maui.ScrollColumn
         if (!root.info)
             return
 
+        root.info.tilingEnabled = true
         root.info.layout = "dwindle"
         root.info.gapsIn = 4
         root.info.gapsOut = 8
@@ -173,9 +175,23 @@ Maui.ScrollColumn
                 label2.wrapMode: Text.Wrap
             }
 
+            Maui.FlexSectionItem
+            {
+                Layout.fillWidth: true
+                label1.text: i18n("Enable tiling")
+                label2.text: i18n("Automatically tile newly opened windows. Disable to open them floating.")
+
+                Switch
+                {
+                    checked: root.info ? root.info.tilingEnabled : true
+                    onToggled: if (root.info) root.info.tilingEnabled = checked
+                }
+            }
+
             Maui.SectionItem
             {
                 Layout.fillWidth: true
+                enabled: root.info && root.info.tilingEnabled
                 flat: true
                 label1.text: i18n("Layout style")
                 label1.elide: Text.ElideRight
@@ -202,6 +218,7 @@ Maui.ScrollColumn
             Maui.SectionItem
             {
                 Layout.fillWidth: true
+                enabled: root.info && root.info.tilingEnabled
                 flat: true
                 label1.text: i18n("Inner gaps")
                 label1.elide: Text.ElideRight
@@ -229,6 +246,7 @@ Maui.ScrollColumn
             Maui.SectionItem
             {
                 Layout.fillWidth: true
+                enabled: root.info && root.info.tilingEnabled
                 flat: true
                 label1.text: i18n("Outer gaps")
                 label1.elide: Text.ElideRight

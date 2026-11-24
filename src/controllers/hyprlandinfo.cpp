@@ -298,6 +298,7 @@ bool HyprlandInfo::borderColorsFollowTheme() const { return m_borderColorsFollow
 int HyprlandInfo::borderGradientAngle() const { return m_borderGradientAngle; }
 int HyprlandInfo::rounding() const { return m_rounding; }
 bool HyprlandInfo::roundingFollowsMauiKit() const { return m_roundingFollowsMauiKit; }
+bool HyprlandInfo::tilingEnabled() const { return m_tilingEnabled; }
 QString HyprlandInfo::layout() const { return m_layout; }
 int HyprlandInfo::activeOpacity() const { return m_activeOpacity; }
 int HyprlandInfo::inactiveOpacity() const { return m_inactiveOpacity; }
@@ -416,6 +417,14 @@ void HyprlandInfo::setRoundingFollowsMauiKit(bool value)
     if (m_roundingFollowsMauiKit == value)
         return;
     m_roundingFollowsMauiKit = value;
+    setChanged();
+}
+
+void HyprlandInfo::setTilingEnabled(bool value)
+{
+    if (m_tilingEnabled == value)
+        return;
+    m_tilingEnabled = value;
     setChanged();
 }
 
@@ -865,6 +874,7 @@ void HyprlandInfo::load()
     m_blurSize = integerValue(valueInTable(lines, blur, QStringLiteral("size")), 6, 1, 20);
     m_blurPasses = integerValue(valueInTable(lines, blur, QStringLiteral("passes")), 3, 1, 10);
     m_animationsEnabled = valueInTable(lines, animations, QStringLiteral("enabled")).trimmed().toLower() != QLatin1String("false");
+    m_tilingEnabled = HyprlandRules::tilingEnabled(lines);
     m_windowRules = HyprlandRules::parse(lines);
     m_keyboardLayout = valueInTable(lines, input, QStringLiteral("kb_layout"));
     if (m_keyboardLayout.isEmpty()) m_keyboardLayout = QStringLiteral("us");
@@ -1043,6 +1053,8 @@ bool HyprlandInfo::save()
         lines.erase(lines.begin() + workspaceSwipeGesture.start,
                     lines.begin() + workspaceSwipeGesture.end + 1);
     }
+
+    lines = HyprlandRules::setTilingEnabled(lines, m_tilingEnabled);
 
     QSaveFile destination(m_configPath);
     if (!destination.open(QIODevice::WriteOnly | QIODevice::Text))

@@ -20,6 +20,7 @@ class HyprlandInfo : public QObject
     Q_PROPERTY(int borderGradientAngle READ borderGradientAngle WRITE setBorderGradientAngle NOTIFY settingsChanged)
     Q_PROPERTY(int rounding READ rounding WRITE setRounding NOTIFY settingsChanged)
     Q_PROPERTY(bool roundingFollowsMauiKit READ roundingFollowsMauiKit WRITE setRoundingFollowsMauiKit NOTIFY settingsChanged)
+    Q_PROPERTY(bool tilingEnabled READ tilingEnabled WRITE setTilingEnabled NOTIFY settingsChanged)
     Q_PROPERTY(QString layout READ layout WRITE setLayout NOTIFY settingsChanged)
     Q_PROPERTY(int activeOpacity READ activeOpacity WRITE setActiveOpacity NOTIFY settingsChanged)
     Q_PROPERTY(int inactiveOpacity READ inactiveOpacity WRITE setInactiveOpacity NOTIFY settingsChanged)
@@ -66,6 +67,7 @@ public:
     int borderGradientAngle() const;
     int rounding() const;
     bool roundingFollowsMauiKit() const;
+    bool tilingEnabled() const;
     QString layout() const;
     int activeOpacity() const;
     int inactiveOpacity() const;
@@ -107,6 +109,7 @@ public:
     void setBorderGradientAngle(int value);
     void setRounding(int value);
     void setRoundingFollowsMauiKit(bool value);
+    void setTilingEnabled(bool value);
     void setLayout(const QString &value);
     void setActiveOpacity(int value);
     void setInactiveOpacity(int value);
@@ -167,6 +170,7 @@ private:
     int m_borderGradientAngle = 45;
     int m_rounding = 16;
     bool m_roundingFollowsMauiKit = true;
+    bool m_tilingEnabled = true;
     QString m_layout = QStringLiteral("dwindle");
     int m_activeOpacity = 100;
     int m_inactiveOpacity = 80;

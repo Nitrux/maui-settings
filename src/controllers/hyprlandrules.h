@@ -6,6 +6,8 @@
 
 namespace HyprlandRules
 {
+bool tilingEnabled(const QStringList &lines);
+QStringList setTilingEnabled(QStringList lines, bool enabled);
 QVariantList parse(const QStringList &lines);
 QStringList append(QStringList lines, const QString &type, const QString &name,
                    const QString &matchKey, const QString &matchValue,

@@ -41,7 +41,16 @@ int braceDelta(const QString &line)
     return delta;
 }
 
-QList<RuleBlock> blocks(const QStringList &lines)
+bool isTilingRule(const QStringList &lines, const RuleBlock &block)
+{
+    const QString source = lines.mid(block.start, block.end - block.start + 1)
+        .join(QLatin1Char('\n'));
+    return block.type == QLatin1String("window") && QRegularExpression(
+        QStringLiteral("^\\s*name\\s*=\\s*\"maui-settings-disable-tiling\"\\s*,?\\s*(?:--[^\\n]*)?$"),
+        QRegularExpression::MultilineOption).match(source).hasMatch();
+}
+
+QList<RuleBlock> blocks(const QStringList &lines, bool includeTilingRule = false)
 {
     QList<RuleBlock> result;
     const QRegularExpression expression(
@@ -59,10 +68,12 @@ QList<RuleBlock> blocks(const QStringList &lines)
             depth += braceDelta(lines.at(line));
             if (depth == 0)
             {
-                result.append({start, line,
-                               match.captured(1) == QLatin1String("window_rule")
-                                   ? QStringLiteral("window")
-                                   : QStringLiteral("layer")});
+                const RuleBlock block{start, line,
+                                      match.captured(1) == QLatin1String("window_rule")
+                                          ? QStringLiteral("window")
+                                          : QStringLiteral("layer")};
+                if (includeTilingRule || !isTilingRule(lines, block))
+                    result.append(block);
                 start = line;
                 break;
             }
@@ -279,5 +290,43 @@ QStringList HyprlandRules::remove(QStringList lines, int index)
     if (block.start < lines.size() && lines.at(block.start).isEmpty()
         && block.start > 0 && lines.at(block.start - 1).isEmpty())
         lines.removeAt(block.start);
+    return lines;
+}
+
+bool HyprlandRules::tilingEnabled(const QStringList &lines)
+{
+    for (const RuleBlock &block : blocks(lines, true))
+    {
+        if (!isTilingRule(lines, block))
+            continue;
+        const QString source = lines.mid(block.start, block.end - block.start + 1)
+            .join(QLatin1Char('\n'));
+        return QRegularExpression(QStringLiteral("^\\s*enabled\\s*=\\s*false\\s*,?\\s*(?:--[^\\n]*)?$"),
+                                  QRegularExpression::MultilineOption).match(source).hasMatch();
+    }
+    return true;
+}
+
+QStringList HyprlandRules::setTilingEnabled(QStringList lines, bool enabled)
+{
+    const auto ruleBlocks = blocks(lines, true);
+    for (int index = ruleBlocks.size() - 1; index >= 0; --index)
+    {
+        const RuleBlock &block = ruleBlocks.at(index);
+        if (isTilingRule(lines, block))
+            lines.remove(block.start, block.end - block.start + 1);
+    }
+    while (!lines.isEmpty() && lines.constLast().isEmpty())
+        lines.removeLast();
+    lines += QStringList{
+        QString(),
+        QStringLiteral("hl.window_rule({"),
+        QStringLiteral("    name = \"maui-settings-disable-tiling\","),
+        QStringLiteral("    enabled = %1,").arg(enabled ? QStringLiteral("false") : QStringLiteral("true")),
+        QStringLiteral("    match = { class = \".*\" },"),
+        QStringLiteral("    float = true,"),
+        QStringLiteral("})"),
+        QString()
+    };
     return lines;
 }
