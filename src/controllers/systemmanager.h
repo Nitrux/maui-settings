@@ -41,6 +41,11 @@ public:
     Q_INVOKABLE void setLocale(const QString &locale);
     Q_INVOKABLE void setHostName(const QString &hostName);
     Q_INVOKABLE void reloadUsers();
+    Q_INVOKABLE QString credentialUser() const;
+    Q_INVOKABLE bool credentialToolAvailable(const QString &operation) const;
+    Q_INVOKABLE void manageCredential(const QString &operation, const QString &currentPin,
+                                      const QString &newPin);
+
     Q_INVOKABLE void addUser(const QString &username, const QString &fullName, const QString &password, bool administrator, bool usePasswordQuality, const QString &avatarPath);
     Q_INVOKABLE void updateUser(const QString &username, const QString &password, const QString &avatarPath);
     Q_INVOKABLE void deleteUser(const QString &username);
@@ -54,6 +59,7 @@ Q_SIGNALS:
     void localesChanged();
     void hostNameChanged();
     void usersChanged();
+    void credentialMessage(const QString &message);
     void automaticLocationChanged();
     void busyChanged();
     void errorMessageChanged();

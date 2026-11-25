@@ -229,6 +229,74 @@ Maui.ScrollColumn
         ColumnLayout { Layout.fillWidth: true; spacing: Maui.Style.space.small
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Avatar"); label2.text: editingAvatarPath.length > 0 ? editingAvatarPath : i18n("Keep the current avatar."); Button { text: i18n("Choose"); onClicked: root.pickEditAvatar() } }
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("New password"); label2.text: i18n("Leave empty to keep the current password."); TextField { id: editPasswordField; Layout.fillWidth: true; placeholderText: i18n("New password (optional)"); echoMode: TextInput.Password } }
+            ColumnLayout {
+                visible: root.manager && root.editingUsername === root.manager.credentialUser()
+                Layout.fillWidth: true
+                property string operation: ["setup", "change", "delete", "enroll", "removePrints"][method.currentIndex]
+                id: credentials
+                ComboBox {
+                    id: method
+                    Layout.fillWidth: true
+                    enabled: !root.manager.busy
+                    model: [i18n("Set PIN"), i18n("Change PIN"), i18n("Remove PIN"),
+                            i18n("Enroll fingerprint"), i18n("Remove all fingerprints")]
+                    onCurrentIndexChanged: credentials.resetFields()
+                }
+                function resetFields() {
+                    if (oldPin) oldPin.clear()
+                    if (newPin) newPin.clear()
+                    if (confirmPin) confirmPin.clear()
+                }
+                Maui.PasswordField {
+                    id: oldPin
+                    visible: method.currentIndex === 1 || method.currentIndex === 2
+                    placeholderText: i18n("Current PIN")
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+                Maui.PasswordField {
+                    id: newPin
+                    visible: method.currentIndex < 2
+                    placeholderText: i18n("New PIN")
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+                Maui.PasswordField {
+                    id: confirmPin
+                    visible: newPin.visible
+                    placeholderText: i18n("Confirm new PIN")
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+                Button {
+                    text: method.currentText
+                    enabled: root.manager && !root.manager.busy && root.manager.credentialToolAvailable(credentials.operation)
+                        && (!oldPin.visible || oldPin.acceptableInput)
+                        && (!newPin.visible || (newPin.acceptableInput && newPin.text === confirmPin.text))
+                    onClicked: {
+                        credentialStatus.text = ""
+                        root.manager.manageCredential(credentials.operation, oldPin.text, newPin.text)
+                        credentials.resetFields()
+                    }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    visible: root.manager && !root.manager.credentialToolAvailable(credentials.operation)
+                    text: method.currentIndex < 3 ? i18n("PIN setup requires pinpam.")
+                                                  : i18n("Fingerprint enrollment requires fprintd.")
+                    wrapMode: Text.WordWrap
+                }
+                Label {
+                    id: credentialStatus
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                }
+                Connections {
+                    target: root.manager
+                    function onCredentialMessage(message) { credentialStatus.text = message }
+                }
+                Connections {
+                    target: editUserDialog
+                    function onClosed() { credentials.resetFields(); credentialStatus.text = "" }
+                }
+            }
         }
     }
 

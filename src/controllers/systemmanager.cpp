@@ -11,12 +11,15 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QSysInfo>
 #include <algorithm>
 #include <QUrl>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 
 #include <KAuth/Action>
 #include <KAuth/ExecuteJob>
@@ -29,6 +32,16 @@ constexpr auto localeFile = "/etc/default/locale";
 constexpr auto hostnameFile = "/etc/hostname";
 constexpr auto helperId = "org.maui.settings.datetime";
 constexpr auto actionId = "org.maui.settings.datetime.set";
+QString credentialTool(const QString &operation)
+{
+    if (operation == "setup" || operation == "change" || operation == "delete")
+        return QStringLiteral("/usr/bin/pinutil");
+    if (operation == "enroll")
+        return QStringLiteral("/usr/bin/fprintd-enroll");
+    if (operation == "removePrints")
+        return QStringLiteral("/usr/bin/fprintd-delete");
+    return {};
+}
 bool isSudoMember(const QString &username) { const QByteArray name = username.toUtf8(); const struct passwd *user = ::getpwnam(name.constData()); const struct group *sudo = ::getgrnam("sudo"); if (!user || !sudo) return false; if (user->pw_gid == sudo->gr_gid) return true; for (char **member = sudo->gr_mem; member && *member; ++member) if (username == QString::fromLocal8Bit(*member)) return true; return false; }
 }
 
@@ -111,6 +124,88 @@ QVariantList SystemManager::users() const { return m_users; }
 bool SystemManager::automaticLocation() const { return m_automaticLocation; }
 bool SystemManager::busy() const { return m_busy; }
 QString SystemManager::errorMessage() const { return m_errorMessage; }
+
+QString SystemManager::credentialUser() const
+{
+    const passwd *account = ::getpwuid(::getuid());
+    return account ? QString::fromLocal8Bit(account->pw_name) : QString();
+}
+
+bool SystemManager::credentialToolAvailable(const QString &operation) const
+{
+    return QFileInfo(credentialTool(operation)).isExecutable();
+}
+
+void SystemManager::manageCredential(const QString &operation, const QString &currentPin,
+                                     const QString &newPin)
+{
+    const QString user = credentialUser();
+    if (busy() || user.isEmpty() || !credentialToolAvailable(operation))
+        return;
+    const QString program = credentialTool(operation);
+    QStringList args;
+    QByteArray input;
+    if (program.endsWith("/pinutil")) {
+        static const QRegularExpression digits(QStringLiteral("^[0-9]+\\z"));
+        if (operation != "setup" && ::getuid() != 0) {
+            if (!digits.match(currentPin).hasMatch())
+                return;
+            input += currentPin.toLatin1() + '\n';
+        }
+        if (operation != "delete") {
+            if (!digits.match(newPin).hasMatch())
+                return;
+            input += newPin.toLatin1() + '\n';
+        }
+        args << "--machine" << operation;
+    } else {
+        args << user;
+    }
+    auto *process = new QProcess(this);
+    if (!program.endsWith("/pinutil"))
+        process->setProcessChannelMode(QProcess::MergedChannels);
+    setBusy(true);
+    connect(process, &QProcess::readyReadStandardOutput, this, [this, process, program] {
+        if (program.endsWith("/pinutil"))
+            return;
+        const QString output = QString::fromLocal8Bit(process->readAllStandardOutput()).trimmed();
+        if (!output.isEmpty())
+            Q_EMIT credentialMessage(output);
+    });
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) {
+            Q_EMIT credentialMessage(process->errorString());
+            setBusy(false);
+            process->deleteLater();
+        }
+    });
+    connect(process, &QProcess::finished, this, [this, process, program, operation](int code, QProcess::ExitStatus status) {
+        if (operation == "delete" && code == 0 && status == QProcess::NormalExit) {
+            // pinutil can acknowledge a deletion request even if the current PIN was wrong.
+            if (process->arguments().contains("delete")) {
+                process->readAllStandardOutput();
+                process->start(program, {"--machine", "status"});
+                process->closeWriteChannel();
+                return;
+            }
+            const auto result = QJsonDocument::fromJson(process->readAllStandardOutput()).object();
+            if (!result.contains("Ok") || !result.value("Ok").isNull())
+                code = 1;
+        }
+        if (code != 0 || status != QProcess::NormalExit)
+            Q_EMIT credentialMessage(tr("Credential operation failed."));
+        else if (program.endsWith("/pinutil"))
+            Q_EMIT credentialMessage(tr("PIN request completed."));
+        setBusy(false);
+        process->deleteLater();
+    });
+    process->start(program, args);
+    if (!input.isEmpty()) {
+        process->write(input);
+        input.fill(0);
+    }
+    process->closeWriteChannel();
+}
 
 void SystemManager::reloadUsers() {
     QVariantList users;
