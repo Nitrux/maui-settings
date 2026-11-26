@@ -107,7 +107,7 @@ Maui.ScrollColumn
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: (audioObject.default ? i18n("Default output · %1", audioObject.volume) + "%" : i18n("Available output · %1", audioObject.volume) + "%")
+                    label2.text: (audioObject.default ? i18n("Default output • %1", audioObject.volume) + "%" : i18n("Available output • %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
                     template.content: RowLayout
                     {
@@ -264,7 +264,7 @@ Rectangle
                     flat: true
                     label1.text: audioObject.description || audioObject.name
                     label1.elide: Text.ElideRight
-                    label2.text: (audioObject.default ? i18n("Default input · %1", audioObject.volume) + "%" : i18n("Available input · %1", audioObject.volume) + "%")
+                    label2.text: (audioObject.default ? i18n("Default input • %1", audioObject.volume) + "%" : i18n("Available input • %1", audioObject.volume) + "%")
                     label2.wrapMode: Text.Wrap
 
                     template.content: RowLayout
@@ -386,7 +386,7 @@ Rectangle
                     flat: true
                     label1.text: audioObject.name || audioObject.description
                     label1.elide: Text.ElideRight
-                    label2.text: i18n("Playback stream · %1", audioObject.volume) + "%"
+                    label2.text: i18n("Playback stream • %1", audioObject.volume) + "%"
                     label2.wrapMode: Text.Wrap
                     template.content: RowLayout
                     {
@@ -464,7 +464,7 @@ Rectangle
                     flat: true
                     label1.text: audioObject.name || audioObject.description
                     label1.elide: Text.ElideRight
-                    label2.text: i18n("Recording stream · %1", audioObject.volume) + "%"
+                    label2.text: i18n("Recording stream • %1", audioObject.volume) + "%"
                     label2.wrapMode: Text.Wrap
                     template.content: RowLayout
                     {

@@ -498,6 +498,8 @@ Maui.ScrollColumn
             implicitHeight: Maui.Style.units.gridUnit * 12
             spacing: Maui.Style.space.small
 
+            Item { Layout.fillWidth: true }
+
             Tumbler
             {
                 id: hoursTumbler
@@ -548,6 +550,8 @@ Maui.ScrollColumn
 
                 onCurrentIndexChanged: root.tempMinute = currentIndex
             }
+
+            Item { Layout.fillWidth: true }
         }
     }
 

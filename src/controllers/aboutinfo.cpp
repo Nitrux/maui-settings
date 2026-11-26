@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QLibraryInfo>
 #include <QLocale>
 #include <QProcess>
 #include <QRegularExpression>
@@ -289,7 +290,7 @@ QVariantMap graphicsDeviceToMap(const QString &address, const QString &model, co
     data.insert(QStringLiteral("title"), model.isEmpty() ? address : model);
     data.insert(QStringLiteral("address"), address);
     data.insert(QStringLiteral("driver"), safeDriver);
-    data.insert(QStringLiteral("subtitle"), QStringLiteral("%1 · %2").arg(safeDriver, address));
+    data.insert(QStringLiteral("subtitle"), QStringLiteral("%1 • %2").arg(safeDriver, address));
     return data;
 }
 
@@ -417,8 +418,8 @@ QVariantMap storageDeviceToMap(const QString &diskName, const QList<QStorageInfo
     data.insert(QStringLiteral("devicePath"), devicePath);
     data.insert(QStringLiteral("deviceType"), diskTypeLabel(diskName));
     data.insert(QStringLiteral("mountPoints"), mountPoints.join(QStringLiteral(", ")));
-    data.insert(QStringLiteral("subtitle"), mountPoints.isEmpty() ? QStringLiteral("%1 · %2").arg(devicePath, diskTypeLabel(diskName))
-                                                                     : QStringLiteral("%1 · %2 · mounted at %3").arg(devicePath, diskTypeLabel(diskName), mountPoints.join(QStringLiteral(", "))));
+    data.insert(QStringLiteral("subtitle"), mountPoints.isEmpty() ? QStringLiteral("%1 • %2").arg(devicePath, diskTypeLabel(diskName))
+                                                                     : QStringLiteral("%1 • %2 • mounted at %3").arg(devicePath, diskTypeLabel(diskName), mountPoints.join(QStringLiteral(", "))));
     const bool hasTotal = totalBytes > 0;
     const bool showUsage = hasUsage && hasTotal;
     const qint64 displayUsedBytes = showUsage ? usedBytes : 0;
@@ -467,6 +468,39 @@ AboutInfo::AboutInfo(QObject *parent)
     timer->start();
 
     refreshStorageDevices();
+}
+
+QVariantMap AboutInfo::frameworkVersions() const
+{
+    QVariantMap versions;
+    const QStringList libraries = {QStringLiteral("Accounts"), QStringLiteral("Audio"), QStringLiteral("Archiver"),
+                                   QStringLiteral("Calendar"), QStringLiteral("Documents"), QStringLiteral("FileBrowsing"),
+                                   QStringLiteral("ImageTools"), QStringLiteral("TextEditor"), QStringLiteral("Terminal"),
+                                   QStringLiteral("System")};
+    const QStringList directories = {QStringLiteral(MAUIKIT_PACKAGE_DIR),
+                                     QLibraryInfo::path(QLibraryInfo::LibrariesPath) + QStringLiteral("/cmake")};
+    static const QRegularExpression versionLine(QStringLiteral(R"re((?m)^\s*set\(PACKAGE_VERSION\s+"([^"]+)"\))re"));
+    for (const auto &library : libraries)
+    {
+        QString package = QStringLiteral("MauiKit") + library;
+        if (library != QStringLiteral("System"))
+            package += QLatin1Char('4');
+
+        for (const auto &directory : directories)
+        {
+            QFile file(QDir(directory).filePath(package + QLatin1Char('/') + package + QStringLiteral("ConfigVersion.cmake")));
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+                continue;
+            const auto match = versionLine.match(QString::fromUtf8(file.readAll()));
+            if (match.hasMatch())
+            {
+                versions.insert(library, match.captured(1));
+                break;
+            }
+        }
+    }
+
+    return versions;
 }
 
 QString AboutInfo::formatBytes(qint64 bytes)

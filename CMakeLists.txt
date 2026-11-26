@@ -285,6 +285,9 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
     src/views/sidebar/security_login/FlatpakPermissionsPage.qml
 )
 
+get_filename_component(MAUIKIT_PACKAGE_DIR "${MauiKit4_DIR}" DIRECTORY)
+target_compile_definitions(${APP_NAME} PRIVATE MAUIKIT_PACKAGE_DIR="${MAUIKIT_PACKAGE_DIR}")
+
 target_link_libraries(${APP_NAME}
     PRIVATE
     PkgConfig::PWQUALITY

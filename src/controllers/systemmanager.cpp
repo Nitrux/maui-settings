@@ -43,7 +43,7 @@ constexpr auto helperId = "org.maui.settings.datetime";
 constexpr auto actionId = "org.maui.settings.datetime.set";
 QString credentialTool(const QString &operation)
 {
-    if (operation == "setup" || operation == "change" || operation == "delete")
+    if (operation == "setup" || operation == "change" || operation == "delete" || operation == "status")
         return QStringLiteral("/usr/bin/pinutil");
     if (operation == "enroll")
         return QStringLiteral("/usr/bin/fprintd-enroll");
@@ -66,6 +66,7 @@ void SystemManager::initialize()
         return;
 
     m_initialized = true;
+    manageCredential("status", {}, {});
     QFile file(QString::fromLatin1(timezoneFile));
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         m_timezone = QString::fromUtf8(file.readAll()).trimmed();
@@ -212,12 +213,12 @@ void SystemManager::manageCredential(const QString &operation, const QString &cu
     QByteArray input;
     if (program.endsWith("/pinutil")) {
         static const QRegularExpression digits(QStringLiteral("^[0-9]+\\z"));
-        if (operation != "setup" && ::getuid() != 0) {
+        if (operation != "setup" && operation != "status" && ::getuid() != 0) {
             if (!digits.match(currentPin).hasMatch())
                 return;
             input += currentPin.toLatin1() + '\n';
         }
-        if (operation != "delete") {
+        if (operation != "delete" && operation != "status") {
             if (!digits.match(newPin).hasMatch())
                 return;
             input += newPin.toLatin1() + '\n';
@@ -245,22 +246,30 @@ void SystemManager::manageCredential(const QString &operation, const QString &cu
         }
     });
     connect(process, &QProcess::finished, this, [this, process, program, operation](int code, QProcess::ExitStatus status) {
-        if (operation == "delete" && code == 0 && status == QProcess::NormalExit) {
-            // pinutil can acknowledge a deletion request even if the current PIN was wrong.
-            if (process->arguments().contains("delete")) {
+        if (program.endsWith("/pinutil") && code == 0 && status == QProcess::NormalExit) {
+            if (!process->arguments().contains("status")) {
                 process->readAllStandardOutput();
                 process->start(program, {"--machine", "status"});
                 process->closeWriteChannel();
                 return;
             }
-            const auto result = QJsonDocument::fromJson(process->readAllStandardOutput()).object();
-            if (!result.contains("Ok") || !result.value("Ok").isNull())
+            const auto result = QJsonDocument::fromJson(process->readAllStandardOutput()).object().value("Ok");
+            const bool enabled = result.isObject();
+            if (m_pinEnabled != enabled) {
+                m_pinEnabled = enabled;
+                Q_EMIT pinEnabledChanged();
+            }
+            if (!enabled && !result.isNull())
+                code = 1;
+            else if (operation != "status" && enabled != (operation != "delete"))
                 code = 1;
         }
-        if (code != 0 || status != QProcess::NormalExit)
-            Q_EMIT credentialMessage(tr("Credential operation failed."));
-        else if (program.endsWith("/pinutil"))
-            Q_EMIT credentialMessage(tr("PIN request completed."));
+        if (operation != "status") {
+            if (code != 0 || status != QProcess::NormalExit)
+                Q_EMIT credentialMessage(tr("Credential operation failed."));
+            else if (program.endsWith("/pinutil"))
+                Q_EMIT pinOperationSucceeded();
+        }
         setBusy(false);
         if (operation == "enroll" || operation == "removePrints") refreshFingerprints();
         process->deleteLater();

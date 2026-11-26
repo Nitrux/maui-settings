@@ -339,7 +339,7 @@ void DisplaysController::loadMonitors()
         monitorValue.insert(QStringLiteral("scale"), monitor.scale);
         const QString monitorType = monitor.output == m_internalOutput ? QStringLiteral("Internal") : QStringLiteral("External");
         monitorValue.insert(QStringLiteral("type"), monitorType);
-        monitorValue.insert(QStringLiteral("display"), QStringLiteral("%1 · %2").arg(monitor.output, monitorType));
+        monitorValue.insert(QStringLiteral("display"), QStringLiteral("%1 • %2").arg(monitor.output, monitorType));
         m_monitorsVariant.append(monitorValue);
     }
 

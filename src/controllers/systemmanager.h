@@ -10,6 +10,7 @@ class QNetworkAccessManager;
 class SystemManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool pinEnabled MEMBER m_pinEnabled NOTIFY pinEnabledChanged)
     Q_PROPERTY(QString timezone READ timezone NOTIFY timezoneChanged)
     Q_PROPERTY(QStringList timezones READ timezones NOTIFY timezonesChanged)
     Q_PROPERTY(QString locale READ locale NOTIFY localeChanged)
@@ -64,6 +65,8 @@ Q_SIGNALS:
     void usersChanged();
     void fingerprintReaderChanged(bool available);
     void fingerprintsListed(const QStringList &fingers, bool available);
+    void pinEnabledChanged();
+    void pinOperationSucceeded();
     void credentialMessage(const QString &message);
     void automaticLocationChanged();
     void busyChanged();
@@ -72,6 +75,7 @@ Q_SIGNALS:
 
 private:
     void execute(const QVariantMap &arguments, const QString &successMessage);
+    bool m_pinEnabled = false;
     void setBusy(bool busy);
     void setErrorMessage(const QString &message);
 

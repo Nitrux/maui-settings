@@ -3,10 +3,12 @@
 #include <QObject>
 #include <QString>
 #include <QVariantList>
+#include <QVariantMap>
 
 class AboutInfo : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QVariantMap frameworkVersions READ frameworkVersions CONSTANT)
     Q_PROPERTY(QString osDistribution READ osDistribution CONSTANT)
     Q_PROPERTY(QString osVersion READ osVersion CONSTANT)
     Q_PROPERTY(QString osKernel READ osKernel CONSTANT)
@@ -23,6 +25,7 @@ class AboutInfo : public QObject
 public:
     explicit AboutInfo(QObject *parent = nullptr);
 
+    QVariantMap frameworkVersions() const;
     QString osDistribution() const;
     QString osVersion() const;
     QString osKernel() const;

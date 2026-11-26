@@ -446,11 +446,11 @@ Maui.ScrollColumn
                     label1.elide: Text.ElideRight
                     label2.text: modelData.connected
                                  ? modelData.ipAddress.length > 0
-                                   ? i18n("Connected · %1 · IP address %2", modelData.interfaceName, modelData.ipAddress)
-                                   : i18n("Connected · %1", modelData.interfaceName)
+                                   ? i18n("Connected • %1 • IP address %2", modelData.interfaceName, modelData.ipAddress)
+                                   : i18n("Connected • %1", modelData.interfaceName)
                                  : modelData.connecting
-                                   ? i18n("Connecting · %1", modelData.interfaceName)
-                                   : i18n("Disconnected · %1", modelData.interfaceName)
+                                   ? i18n("Connecting • %1", modelData.interfaceName)
+                                   : i18n("Disconnected • %1", modelData.interfaceName)
                     label2.wrapMode: Text.Wrap
                     template.iconSource: "network-wired"
                     template.iconSizeHint: Maui.Style.iconSizes.small
@@ -806,7 +806,7 @@ Maui.ScrollColumn
                 flat: true
                 label1.text: _currentWifiItem.connection.ssid || ""
                 label1.elide: Text.ElideRight
-                label2.text: _currentWifiItem.connection.ssid ? i18n("Connected · %1 · %2% signal", _currentWifiItem.connection.security, _currentWifiItem.connection.signalStrength) : ""
+                label2.text: _currentWifiItem.connection.ssid ? i18n("Connected • %1 • %2% signal", _currentWifiItem.connection.security, _currentWifiItem.connection.signalStrength) : ""
                 label2.wrapMode: Text.Wrap
                 template.iconSource: _currentWifiItem.connection.security && _currentWifiItem.connection.security !== i18n("Open") ? "lock" : "unlock"
                 template.content: RowLayout
@@ -901,8 +901,8 @@ Maui.ScrollColumn
                                  : modelData.connecting
                                    ? i18n("Connecting")
                                    : modelData.autoConnect
-                                     ? i18n("Saved · Connects automatically")
-                                     : i18n("Saved · Connect manually")
+                                     ? i18n("Saved • Connects automatically")
+                                     : i18n("Saved • Connect manually")
                     label2.wrapMode: Text.Wrap
                     template.iconSource: "network-wireless"
                     template.iconSizeHint: Maui.Style.iconSizes.small
@@ -1049,10 +1049,10 @@ Maui.ScrollColumn
                     label1.text: ssid
                     label1.elide: Text.ElideRight
                     label2.text: connected
-                                 ? i18n("Connected · %1 · %2% signal", security, signalStrength)
+                                 ? i18n("Connected • %1 • %2% signal", security, signalStrength)
                                  : saved
-                                   ? i18n("Saved · %1 · %2% signal", security, signalStrength)
-                                   : i18n("%1 · %2% signal", security, signalStrength)
+                                   ? i18n("Saved • %1 • %2% signal", security, signalStrength)
+                                   : i18n("%1 • %2% signal", security, signalStrength)
                     label2.wrapMode: Text.Wrap
                     template.iconSource: secure ? "lock" : "unlock"
                     template.content: RowLayout

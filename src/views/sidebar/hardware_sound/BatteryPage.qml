@@ -167,7 +167,7 @@ Maui.ScrollColumn
 
                             const source = root.controller.onBattery ? i18n("Battery") : i18n("AC adapter")
                             if (root.controller.energyRate > 0)
-                                return i18n("Power source: %1 · Current draw: %2 W", source, root.controller.energyRate.toFixed(1))
+                                return i18n("Power source: %1 • Current draw: %2 W", source, root.controller.energyRate.toFixed(1))
                             return i18n("Power source: %1", source)
                         }
                         color: Maui.Theme.textColor
@@ -441,7 +441,7 @@ Maui.ScrollColumn
                 label1.elide: Text.ElideRight
                 label2.text: root.controller && root.controller.hasBattery && root.controller.health > 0
                               ? root.controller.capacityLevel.length > 0
-                                ? i18n("%1% · %2", root.controller.health, root.controller.capacityLevel)
+                                ? i18n("%1% • %2", root.controller.health, root.controller.capacityLevel)
                                 : i18n("%1%", root.controller.health)
                               : i18n("N/A")
                 label2.wrapMode: Text.Wrap
@@ -454,7 +454,7 @@ Maui.ScrollColumn
                 label1.elide: Text.ElideRight
                 label2.text: root.controller && root.controller.hasBattery && root.controller.energyFull > 0
                               ? root.controller.energyFullDesign > 0
-                                ? i18n("%1 Wh of %2 Wh · %3 Wh design", root.controller.energy.toFixed(1), root.controller.energyFull.toFixed(1), root.controller.energyFullDesign.toFixed(1))
+                                ? i18n("%1 Wh of %2 Wh • %3 Wh design", root.controller.energy.toFixed(1), root.controller.energyFull.toFixed(1), root.controller.energyFullDesign.toFixed(1))
                                 : i18n("%1 Wh of %2 Wh", root.controller.energy.toFixed(1), root.controller.energyFull.toFixed(1))
                               : i18n("N/A")
                 label2.wrapMode: Text.Wrap

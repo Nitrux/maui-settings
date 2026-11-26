@@ -555,9 +555,9 @@ Maui.ScrollColumn
                     label1.elide: Text.ElideRight
                     label2.text: batteryPercentage >= 0
                                  ? (connected
-                                    ? i18n("Connected · %1 · Battery %2%", address, batteryPercentage)
-                                    : i18n("Paired · %1 · Battery %2%", address, batteryPercentage))
-                                 : (connected ? i18n("Connected · %1", address) : i18n("Paired · %1", address))
+                                    ? i18n("Connected • %1 • Battery %2%", address, batteryPercentage)
+                                    : i18n("Paired • %1 • Battery %2%", address, batteryPercentage))
+                                 : (connected ? i18n("Connected • %1", address) : i18n("Paired • %1", address))
                     label2.wrapMode: Text.Wrap
                     template.iconSource: iconName.length > 0 ? iconName : "preferences-system-bluetooth"
                     template.iconSizeHint: Maui.Style.iconSizes.small
@@ -686,8 +686,8 @@ Maui.ScrollColumn
                     label1.text: name
                     label1.elide: Text.ElideRight
                     label2.text: signalStrength !== 0
-                                 ? i18n("Available · RSSI %1 dBm", signalStrength)
-                                 : i18n("Available · %1", address)
+                                 ? i18n("Available • RSSI %1 dBm", signalStrength)
+                                 : i18n("Available • %1", address)
                     label2.wrapMode: Text.Wrap
                     template.iconSource: iconName.length > 0 ? iconName : "preferences-system-bluetooth"
                     template.iconSizeHint: Maui.Style.iconSizes.small

@@ -800,7 +800,9 @@ Maui.ScrollColumn
                     flat: true
                     label1.text: modelData.name.length > 0 ? modelData.name : modelData.username
                     label1.elide: Text.ElideRight
-                    label2.text: modelData.username + " · " + modelData.home
+                    label2.text: modelData.username + " • " + modelData.home
+                        + (root.manager.pinEnabled && modelData.username === root.manager.credentialUser()
+                           ? " • " + i18n("PIN enabled") : "")
                     label2.elide: Text.ElideRight
                     label2.wrapMode: Text.NoWrap
                     template.imageSource: modelData.facePath || ""
@@ -932,6 +934,15 @@ Maui.ScrollColumn
                 label2.text: i18n("Choose whose password to change.")
                 ComboBox {
                     id: passwordUser
+                    popup.enter: Transition {
+                        PropertyAction { property: "scale"; value: 1 }
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: Maui.Style.enableEffects ? Maui.Style.units.shortDuration : 0
+                        }
+                    }
                     Layout.fillWidth: true
                     enabled: root.manager && !root.manager.busy
                     model: {
@@ -1121,6 +1132,15 @@ Maui.ScrollColumn
                 ComboBox
                 {
                     id: method
+                    popup.enter: Transition {
+                        PropertyAction { property: "scale"; value: 1 }
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: Maui.Style.enableEffects ? Maui.Style.units.shortDuration : 0
+                        }
+                    }
                     Layout.fillWidth: true
                     enabled: root.manager && !root.manager.busy
                     model: [i18n("Set PIN"), i18n("Change PIN"), i18n("Remove PIN")]
@@ -1195,6 +1215,7 @@ Maui.ScrollColumn
             Connections
             {
                 target: root.manager
+                function onPinOperationSucceeded() { pinDialog.close() }
                 function onCredentialMessage(message) { if (pinDialog.visible) status.text = message }
             }
         }

@@ -22,23 +22,18 @@ Maui.ScrollColumn
 
     function componentVersion(name)
     {
+        if (name === "MauiKit Frameworks") {
+            const libraries = ["Accounts", "Audio", "Archiver", "Calendar", "Documents",
+                               "FileBrowsing", "ImageTools", "TextEditor", "Terminal", "System"]
+            const versions = info?.frameworkVersions ?? {}
+            return libraries.map(library => {
+                const component = componentByName("MauiKit " + library)
+                const version = (component && component.version) || versions[library]
+                return library + " • " + (version || i18n("Unknown"))
+            }).join("\n")
+        }
         const component = componentByName(name)
-        if (component)
-        {
-            if (name === "MauiKit System")
-                return component.version + " (" + (component.description || i18n("n/a")) + ")"
-
-            return component.version
-        }
-
-        if (name === "MauiKit System")
-        {
-            const mauikit = componentByName("MauiKit Core")
-            const version = mauikit ? mauikit.version : (Maui.App.mauikitVersion || i18n("n/a"))
-            return version + " (" + i18n("n/a") + ")"
-        }
-
-        return i18n("Unknown")
+        return component ? component.version : i18n("Unknown")
     }
 
     anchors.fill: parent
@@ -144,7 +139,7 @@ Maui.ScrollColumn
 
             Repeater
             {
-                model: ["MauiKit Core", "MauiKit Calendar", "MauiKit System", "Qt", "KDE Frameworks"]
+                model: ["MauiKit Core", "MauiKit Frameworks", "Qt", "KDE Frameworks"]
 
                 delegate: Maui.SectionItem
                 {

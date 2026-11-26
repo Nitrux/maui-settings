@@ -547,8 +547,8 @@ Maui.ScrollColumn
                     label1.elide: Text.ElideRight
                     label1.wrapMode: Text.NoWrap
                     label2.text: (modelData.type === "layer" ? i18n("Layer rule") : i18n("Window rule"))
-                        + " · " + modelData.matchKey + " = " + modelData.matchValue
-                        + (modelData.details ? " · " + modelData.details : "")
+                        + " • " + modelData.matchKey + " = " + modelData.matchValue
+                        + (modelData.details ? " • " + modelData.details : "")
                     label2.elide: Text.ElideRight
                     label2.wrapMode: Text.NoWrap
 
