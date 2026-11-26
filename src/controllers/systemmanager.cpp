@@ -1,4 +1,12 @@
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusReply>
+#include <QDBusObjectPath>
 #include "systemmanager.h"
+
+extern "C" {
+#include <pwquality.h>
+}
 
 #include <QDateTime>
 #include <QDir>
@@ -11,6 +19,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
@@ -125,6 +134,19 @@ bool SystemManager::automaticLocation() const { return m_automaticLocation; }
 bool SystemManager::busy() const { return m_busy; }
 QString SystemManager::errorMessage() const { return m_errorMessage; }
 
+int SystemManager::passwordScore(const QString &password, const QString &username) const
+{
+    auto *settings = pwquality_default_settings();
+    if (!settings)
+        return -1;
+    int score = pwquality_read_config(settings, "/etc/security/pwquality.conf", nullptr);
+    if (score == 0)
+        score = pwquality_check(settings, password.toUtf8().constData(), nullptr,
+                                username.toUtf8().constData(), nullptr);
+    pwquality_free_settings(settings);
+    return score;
+}
+
 QString SystemManager::credentialUser() const
 {
     const passwd *account = ::getpwuid(::getuid());
@@ -134,6 +156,49 @@ QString SystemManager::credentialUser() const
 bool SystemManager::credentialToolAvailable(const QString &operation) const
 {
     return QFileInfo(credentialTool(operation)).isExecutable();
+}
+
+static bool fingerprintReaderAvailable()
+{
+    const auto request = QDBusMessage::createMethodCall(
+        QStringLiteral("net.reactivated.Fprint"), QStringLiteral("/net/reactivated/Fprint/Manager"),
+        QStringLiteral("net.reactivated.Fprint.Manager"), QStringLiteral("GetDefaultDevice"));
+    const QDBusReply<QDBusObjectPath> device = QDBusConnection::systemBus().call(request, QDBus::Block, 2000);
+    return device.isValid() && !device.value().path().isEmpty();
+}
+
+void SystemManager::refreshFingerprints()
+{
+    const QString user = credentialUser();
+    const bool reader = fingerprintReaderAvailable();
+    Q_EMIT fingerprintReaderChanged(reader);
+    if (!reader || user.isEmpty()) {
+        Q_EMIT fingerprintsListed({}, false);
+        return;
+    }
+    auto *process = new QProcess(this);
+    auto environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
+    process->setProcessEnvironment(environment);
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) {
+            Q_EMIT fingerprintsListed({}, false);
+            process->deleteLater();
+        }
+    });
+    connect(process, &QProcess::finished, this, [this, process](int code, QProcess::ExitStatus status) {
+        const QString output = QString::fromUtf8(process->readAllStandardOutput());
+        static const QRegularExpression finger(QStringLiteral(R"(^[ \t]*(?:-[ \t]*)?#\d+:[ \t]*([a-z-]+)[ \t]*$)"),
+                                                QRegularExpression::MultilineOption);
+        QStringList fingers;
+        auto matches = finger.globalMatch(output);
+        while (matches.hasNext())
+            fingers.append(matches.next().captured(1).replace('-', ' '));
+        Q_EMIT fingerprintsListed(fingers, status == QProcess::NormalExit && code == 0
+                                  && !output.contains(QStringLiteral("No devices available")));
+        process->deleteLater();
+    });
+    process->start(QStringLiteral("/usr/bin/fprintd-list"), {user});
 }
 
 void SystemManager::manageCredential(const QString &operation, const QString &currentPin,
@@ -197,6 +262,7 @@ void SystemManager::manageCredential(const QString &operation, const QString &cu
         else if (program.endsWith("/pinutil"))
             Q_EMIT credentialMessage(tr("PIN request completed."));
         setBusy(false);
+        if (operation == "enroll" || operation == "removePrints") refreshFingerprints();
         process->deleteLater();
     });
     process->start(program, args);
@@ -220,6 +286,20 @@ void SystemManager::reloadUsers() {
         user.insert(QStringLiteral("home"), home);
         const QString facePath = home + QStringLiteral("/.face");
         if (QFileInfo::exists(facePath) && QFileInfo(facePath).isFile() && QFileInfo(facePath).isReadable()) user.insert(QStringLiteral("facePath"), QUrl::fromLocalFile(facePath).toString());
+        QString email;
+        const auto fields = QString::fromLocal8Bit(entry->pw_gecos).split(QLatin1Char(','));
+        for (const auto &field : fields.mid(4))
+            if (field.startsWith(QStringLiteral("email="))) email = field.mid(6);
+        user.insert(QStringLiteral("email"), email);
+        QStringList groups;
+        ::setgrent();
+        while (const auto *group = ::getgrent()) {
+            for (char **member = group->gr_mem; member && *member; ++member)
+                if (user.value(QStringLiteral("username")).toString() == QString::fromLocal8Bit(*member))
+                    groups.append(QString::fromLocal8Bit(group->gr_name));
+        }
+        ::endgrent();
+        user.insert(QStringLiteral("groups"), groups.join(QStringLiteral(", ")));
         users.append(user);
     }
     ::endpwent();
@@ -249,6 +329,15 @@ void SystemManager::updateUser(const QString &username, const QString &password,
     if (password.isEmpty() && normalizedAvatar.isEmpty()) { setErrorMessage(QStringLiteral("Choose a new avatar or enter a new password.")); return; }
     if (!normalizedAvatar.isEmpty() && (!QFileInfo(normalizedAvatar).isAbsolute() || !QFileInfo(normalizedAvatar).isFile() || !QFileInfo(normalizedAvatar).isReadable())) { setErrorMessage(QStringLiteral("Select a readable avatar image.")); return; }
     execute({{QStringLiteral("operation"), QStringLiteral("updateUser")}, {QStringLiteral("username"), value}, {QStringLiteral("password"), password}, {QStringLiteral("avatarPath"), normalizedAvatar}}, QStringLiteral("User updated."));
+}
+
+void SystemManager::updateProfile(const QString &username, const QString &name, const QString &email,
+                                  const QString &groups, bool groupsChanged, const QString &avatar)
+{
+    QVariantMap args{{"operation", "profile"}, {"username", username}, {"name", name.trimmed()},
+                     {"email", email.trimmed()}, {"avatar", avatar.startsWith("file://") ? QUrl(avatar).toLocalFile() : avatar}};
+    if (groupsChanged) args.insert("groups", groups);
+    execute(args, QStringLiteral("User updated."));
 }
 
 void SystemManager::deleteUser(const QString &username) {

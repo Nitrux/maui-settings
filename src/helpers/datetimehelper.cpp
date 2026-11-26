@@ -109,6 +109,56 @@ bool addUser(const QString &username, const QString &fullName, const QString &pa
 
 bool sudoMember(const struct passwd *account) { const struct group *sudo = ::getgrnam("sudo"); if (!account || !sudo) return false; if (account->pw_gid == sudo->gr_gid) return true; for (char **member = sudo->gr_mem; member && *member; ++member) if (std::strcmp(account->pw_name, *member) == 0) return true; return false; }
 bool accountCanBeDeleted(const QString &username, QString *e) { const QByteArray name = username.toUtf8(); const struct passwd *target = ::getpwnam(name.constData()); if (!target || target->pw_uid < 1000 || target->pw_uid == 65534) { *e = "This account cannot be deleted."; return false; } int regular = 0, sudo = 0; bool targetSudo = false; ::setpwent(); while (const struct passwd *account = ::getpwent()) { if (account->pw_uid < 1000 || account->pw_uid == 65534) continue; ++regular; if (sudoMember(account)) { ++sudo; if (username == QString::fromLocal8Bit(account->pw_name)) targetSudo = true; } } ::endpwent(); if (regular <= 1 || (targetSudo && sudo <= 1)) { *e = "This account cannot be deleted."; return false; } return true; }
+bool updateProfile(const QVariantMap &args, QString *error)
+{
+    const QString username = args.value("username").toString();
+    const passwd *account = validUsername(username) ? ::getpwnam(username.toUtf8().constData()) : nullptr;
+    if (!account || account->pw_uid < 1000 || account->pw_uid == 65534) {
+        *error = "Select a regular local account.";
+        return false;
+    }
+
+    const QString name = args.value("name").toString();
+    const QString email = args.value("email").toString();
+    static const QRegularExpression invalidField(QStringLiteral("[,:\\p{Cc}]"));
+    if (name.contains(invalidField) || email.contains(invalidField)
+        || (!email.isEmpty() && !email.contains(QLatin1Char('@')))) {
+        *error = "Enter a valid real name and email address.";
+        return false;
+    }
+    QStringList fields = QString::fromLocal8Bit(account->pw_gecos).split(',');
+    fields[0] = name;
+    for (int i = fields.size() - 1; i >= 4; --i)
+        if (fields[i].startsWith("email=")) fields.removeAt(i);
+    if (!email.isEmpty()) {
+        while (fields.size() < 4) fields.append(QString());
+        fields.append(QStringLiteral("email=") + email);
+    }
+    QStringList options{"--comment", fields.join(',')};
+    if (args.contains("groups")) {
+        QStringList groups;
+        for (const QString &part : args.value("groups").toString().split(',', Qt::SkipEmptyParts)) {
+            const QString group = part.trimmed();
+            if (!::getgrnam(group.toUtf8().constData())) {
+                *error = QStringLiteral("Unknown group: %1").arg(group);
+                return false;
+            }
+            groups.append(group);
+        }
+        options << "--groups" << groups.join(',');
+    }
+    const QString avatar = args.value("avatar").toString();
+    QString source;
+    if (!avatar.isEmpty() && !validAvatar(avatar, &source, error)) return false;
+    options << "--" << username;
+    if (QProcess::execute(QStringLiteral("/usr/sbin/usermod"), options) != 0) {
+        *error = "Could not update the account profile.";
+        return false;
+    }
+    if (!persistAccountFiles(error)) return false;
+    return avatar.isEmpty() || installAvatar(avatar, account, error);
+}
+
 bool updateUserAccount(const QString &username, const QString &password, const QString &avatarPath, QString *e) { if (!validUsername(username)) { *e = "Invalid username."; return false; } const struct passwd *account = ::getpwnam(username.toUtf8().constData()); if (!account || account->pw_uid < 1000 || account->pw_uid == 65534) { *e = "The user account could not be found."; return false; } if (!password.isEmpty() && !validatePassword(username, password, e)) return false; if (!password.isEmpty()) { QProcess process; process.setProgram(QStringLiteral("/usr/sbin/chpasswd")); process.start(); if (!process.waitForStarted(5000) || process.write(username.toUtf8() + QByteArray(":") + password.toUtf8() + QByteArray("\n")) < 0) { *e = "The password could not be set."; return false; } process.closeWriteChannel(); if (!process.waitForFinished(30000) || process.exitCode() != 0) { *e = "The password could not be set."; return false; } } if (!avatarPath.isEmpty() && !installAvatar(avatarPath, account, e)) return false; return persistAccountFiles(e); }
 bool deleteUserAccount(const QString &username, QString *e) { if (!accountCanBeDeleted(username, e)) return false; QProcess process; process.setProgram(QStringLiteral("/usr/sbin/userdel")); process.setArguments({QStringLiteral("--remove"), username}); process.start(); if (!process.waitForFinished(30000) || process.exitCode() != 0) { *e = QString::fromLocal8Bit(process.readAllStandardError()).trimmed(); if (e->isEmpty()) *e = "Could not delete the user account."; return false; } return persistAccountFiles(e); }
 bool updateHostname(const QString &hostname, QString *e) {
@@ -131,5 +181,5 @@ bool updateLocale(const QString &locale, QString *e) {
     return true;
 }
 }
-KAuth::ActionReply DateTimeHelper::set(const QVariantMap &a) { QString e; const QString op=a.value("operation").toString(); if(op=="timezone"){const QString z=a.value("timezone").toString().trimmed();if(!valid(z))return error("Invalid IANA timezone.",1001);if(!updateTimezone(z,&e))return error(e,1002);}else if(op=="clock"){const qint64 s=a.value("epochSeconds").toLongLong();if(s<0||!clock(s,&e))return error(e.isEmpty()?"Invalid clock value.":e,1003);}else if(op=="hostname"){if(!updateHostname(a.value("hostname").toString().trimmed(),&e))return error(e,1005);}else if(op=="addUser"){if(!addUser(a.value("username").toString().trimmed(),a.value("fullName").toString().trimmed(),a.value("password").toString(),a.value("administrator").toBool(),a.value("usePasswordQuality").toBool(),a.value("avatarPath").toString(),&e))return error(e,1006);}else if(op=="updateUser"){if(!updateUserAccount(a.value("username").toString().trimmed(),a.value("password").toString(),a.value("avatarPath").toString(),&e))return error(e,1007);}else if(op=="deleteUser"){if(!deleteUserAccount(a.value("username").toString().trimmed(),&e))return error(e,1008);}else if(op=="locale"){if(!updateLocale(a.value("locale").toString().trimmed(),&e))return error(e,1004);}else return error("Unknown System operation.",1000);return KAuth::ActionReply::SuccessReply();}
+KAuth::ActionReply DateTimeHelper::set(const QVariantMap &a) { QString e; const QString op=a.value("operation").toString(); if(op=="timezone"){const QString z=a.value("timezone").toString().trimmed();if(!valid(z))return error("Invalid IANA timezone.",1001);if(!updateTimezone(z,&e))return error(e,1002);}else if(op=="clock"){const qint64 s=a.value("epochSeconds").toLongLong();if(s<0||!clock(s,&e))return error(e.isEmpty()?"Invalid clock value.":e,1003);}else if(op=="hostname"){if(!updateHostname(a.value("hostname").toString().trimmed(),&e))return error(e,1005);}else if(op=="addUser"){if(!addUser(a.value("username").toString().trimmed(),a.value("fullName").toString().trimmed(),a.value("password").toString(),a.value("administrator").toBool(),a.value("usePasswordQuality").toBool(),a.value("avatarPath").toString(),&e))return error(e,1006);}else if(op=="profile"){if(!updateProfile(a,&e))return error(e,1007);}else if(op=="updateUser"){if(!updateUserAccount(a.value("username").toString().trimmed(),a.value("password").toString(),a.value("avatarPath").toString(),&e))return error(e,1007);}else if(op=="deleteUser"){if(!deleteUserAccount(a.value("username").toString().trimmed(),&e))return error(e,1008);}else if(op=="locale"){if(!updateLocale(a.value("locale").toString().trimmed(),&e))return error(e,1004);}else return error("Unknown System operation.",1000);return KAuth::ActionReply::SuccessReply();}
 KAUTH_HELPER_MAIN("org.maui.settings.datetime", DateTimeHelper)

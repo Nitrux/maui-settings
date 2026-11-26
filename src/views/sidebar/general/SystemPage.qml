@@ -19,6 +19,7 @@ Maui.ScrollColumn
     property string savedDateTime: ""
     property string selectedHostName: ""
     property string savedHostName: ""
+    property string originalGroups: ""
     property string editingUsername: ""
     property string editingAvatarPath: ""
     property string pendingDeleteUsername: ""
@@ -31,7 +32,7 @@ Maui.ScrollColumn
         avatarDialog.open()
     }
 
-    function openEditUserDialog(user) { editingUsername = user.username; editingAvatarPath = ""; editPasswordField.clear(); editUserDialog.open() }
+    function openEditUserDialog(user) { editingUsername = user.username; editingAvatarPath = ""; profileName.text = user.name; profileEmail.text = user.email; profileGroups.text = user.groups; originalGroups = user.groups; editUserDialog.open() }
     function pickEditAvatar() { avatarDialog.currentPath = FB.FM.homePath(); avatarDialog.callback = (paths) => { if (paths && paths.length) editingAvatarPath = paths[0] }; avatarDialog.open() }
     function requestDeleteUser(username) { pendingDeleteUsername = username; deleteUserDialog.open() }
     function openAddUserDialog()
@@ -199,6 +200,7 @@ Maui.ScrollColumn
                     Layout.fillWidth: true
                     placeholderText: administratorSwitch.checked ? i18n("Password (required)") : i18n("Password (optional)")
                     echoMode: TextInput.Password
+                    passwordMaskDelay: 0
                 }
             }
 
@@ -225,78 +227,12 @@ Maui.ScrollColumn
         persistent: true
         template.visible: true
         template.iconVisible: false
-        actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); Maui.Controls.status: Maui.Controls.Positive; enabled: root.manager && !root.manager.busy && (editPasswordField.text.length > 0 || editingAvatarPath.length > 0); onTriggered: root.manager.updateUser(editingUsername, editPasswordField.text, editingAvatarPath) }]
+        actions: [Action { text: i18n("Cancel"); Maui.Controls.status: Maui.Controls.Normal; onTriggered: editUserDialog.close() }, Action { text: i18n("Apply"); Maui.Controls.status: Maui.Controls.Positive; enabled: root.manager && !root.manager.busy; onTriggered: root.manager.updateProfile(editingUsername, profileName.text, profileEmail.text, profileGroups.text, profileGroups.text !== originalGroups, editingAvatarPath) }]
         ColumnLayout { Layout.fillWidth: true; spacing: Maui.Style.space.small
             Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Avatar"); label2.text: editingAvatarPath.length > 0 ? editingAvatarPath : i18n("Keep the current avatar."); Button { text: i18n("Choose"); onClicked: root.pickEditAvatar() } }
-            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("New password"); label2.text: i18n("Leave empty to keep the current password."); TextField { id: editPasswordField; Layout.fillWidth: true; placeholderText: i18n("New password (optional)"); echoMode: TextInput.Password } }
-            ColumnLayout {
-                visible: root.manager && root.editingUsername === root.manager.credentialUser()
-                Layout.fillWidth: true
-                property string operation: ["setup", "change", "delete", "enroll", "removePrints"][method.currentIndex]
-                id: credentials
-                ComboBox {
-                    id: method
-                    Layout.fillWidth: true
-                    enabled: !root.manager.busy
-                    model: [i18n("Set PIN"), i18n("Change PIN"), i18n("Remove PIN"),
-                            i18n("Enroll fingerprint"), i18n("Remove all fingerprints")]
-                    onCurrentIndexChanged: credentials.resetFields()
-                }
-                function resetFields() {
-                    if (oldPin) oldPin.clear()
-                    if (newPin) newPin.clear()
-                    if (confirmPin) confirmPin.clear()
-                }
-                Maui.PasswordField {
-                    id: oldPin
-                    visible: method.currentIndex === 1 || method.currentIndex === 2
-                    placeholderText: i18n("Current PIN")
-                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
-                }
-                Maui.PasswordField {
-                    id: newPin
-                    visible: method.currentIndex < 2
-                    placeholderText: i18n("New PIN")
-                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
-                }
-                Maui.PasswordField {
-                    id: confirmPin
-                    visible: newPin.visible
-                    placeholderText: i18n("Confirm new PIN")
-                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
-                }
-                Button {
-                    text: method.currentText
-                    enabled: root.manager && !root.manager.busy && root.manager.credentialToolAvailable(credentials.operation)
-                        && (!oldPin.visible || oldPin.acceptableInput)
-                        && (!newPin.visible || (newPin.acceptableInput && newPin.text === confirmPin.text))
-                    onClicked: {
-                        credentialStatus.text = ""
-                        root.manager.manageCredential(credentials.operation, oldPin.text, newPin.text)
-                        credentials.resetFields()
-                    }
-                }
-                Label {
-                    Layout.fillWidth: true
-                    visible: root.manager && !root.manager.credentialToolAvailable(credentials.operation)
-                    text: method.currentIndex < 3 ? i18n("PIN setup requires pinpam.")
-                                                  : i18n("Fingerprint enrollment requires fprintd.")
-                    wrapMode: Text.WordWrap
-                }
-                Label {
-                    id: credentialStatus
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
-                }
-                Connections {
-                    target: root.manager
-                    function onCredentialMessage(message) { credentialStatus.text = message }
-                }
-                Connections {
-                    target: editUserDialog
-                    function onClosed() { credentials.resetFields(); credentialStatus.text = "" }
-                }
-            }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Real name"); TextField { id: profileName; Layout.fillWidth: true } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Email"); TextField { id: profileEmail; Layout.fillWidth: true } }
+            Maui.FlexSectionItem { Layout.fillWidth: true; label1.text: i18n("Supplementary groups (comma-separated)"); TextField { id: profileGroups; Layout.fillWidth: true } }
         }
     }
 
@@ -888,6 +824,382 @@ Maui.ScrollColumn
             }
         }
     }
+
+    Rectangle {
+        Layout.fillWidth: true
+        color: Maui.Theme.alternateBackgroundColor
+        radius: Maui.Style.radiusV
+        implicitHeight: credentialCard.implicitHeight + Maui.Style.contentMargins * 2
+        ColumnLayout {
+            id: credentialCard
+            anchors.fill: parent
+            anchors.margins: Maui.Style.contentMargins
+            spacing: Maui.Style.space.small
+            readonly property string operation: ["setup", "change", "delete"][method.currentIndex]
+
+            function resetFields()
+            {
+                if (oldPin) oldPin.clear()
+                if (newPin) newPin.clear()
+                if (confirmPin) confirmPin.clear()
+                if (status) status.text = ""
+            }
+
+            Maui.SectionHeader
+            {
+                Layout.fillWidth: true
+                text1: i18n("Authentication")
+                text2: root.manager
+                    ? i18n("Manage authentication credentials for %1.", root.manager.credentialUser())
+                    : i18n("Manage PIN and fingerprint credentials for this user.")
+            }
+
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                label1.text: i18n("Password")
+                label2.text: i18n("Change the sign-in password for a local account.")
+                Button {
+                    text: i18n("Change Password")
+                    onClicked: passwordDialog.open()
+                }
+            }
+
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                label1.text: i18n("PIN")
+                label2.text: i18n("Set, change, or remove your PIN.")
+                Button {
+                    text: i18n("Manage")
+                    onClicked: pinDialog.open()
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                label1.text: i18n("Fingerprints")
+                label2.text: fingerprintDialog.available
+                    ? i18np("%1 enrolled fingerprint", "%1 enrolled fingerprints", fingerprintDialog.fingers.length)
+                    : i18n("Manage your enrolled fingerprints.")
+                Button {
+                    text: i18n("Manage")
+                    onClicked: fingerprintDialog.open()
+                }
+            }
+
+        }
+    }
+
+    Maui.InfoDialog {
+        id: passwordDialog
+        leftPadding: 0
+        rightPadding: 0
+        implicitWidth: Maui.Style.units.gridUnit * 22
+        title: passwordUser.currentText
+            ? i18n("Change Password for %1", passwordUser.currentText) : i18n("Change Password")
+        modal: true
+        standardButtons: Dialog.Cancel | Dialog.Apply
+        property string feedback: ""
+
+        function clearForm() {
+            accountPassword.clear()
+            confirmPassword.clear()
+            feedback = ""
+        }
+
+        onOpened: {
+            passwordUser.currentIndex = passwordUser.find(root.manager.credentialUser())
+            if (passwordUser.currentIndex < 0 && passwordUser.count) passwordUser.currentIndex = 0
+            accountPassword.forceActiveFocus()
+        }
+        onClosed: clearForm()
+        Component.onCompleted: {
+            const apply = standardButton(Dialog.Apply)
+            apply.text = i18n("Change Password")
+            apply.enabled = Qt.binding(() => root.manager && !root.manager.busy && passwordUser.currentIndex >= 0
+                && accountPassword.length > 0 && accountPassword.text === confirmPassword.text)
+        }
+        onApplied: {
+            feedback = ""
+            root.manager.updateUser(passwordUser.currentText, accountPassword.text, "")
+            feedback = root.manager.errorMessage
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                label1.text: i18n("Local account")
+                label2.text: i18n("Choose whose password to change.")
+                ComboBox {
+                    id: passwordUser
+                    Layout.fillWidth: true
+                    enabled: root.manager && !root.manager.busy
+                    model: {
+                        if (!root.manager) return []
+                        const current = root.manager.credentialUser()
+                        const accounts = Array.from(root.manager.users, user => user.username)
+                        return current ? [current, ...accounts.filter(name => name !== current)] : accounts
+                    }
+                    onCurrentIndexChanged: if (confirmPassword) passwordDialog.clearForm()
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                label1.text: i18n("New password")
+                label2.text: i18n("Enter a new sign-in password.")
+                Maui.PasswordField {
+                    id: accountPassword
+                    passwordMaskDelay: 0
+                    actions: []
+                    Layout.fillWidth: true
+                }
+            }
+            RowLayout {
+                id: strength
+                Layout.fillWidth: true
+                visible: accountPassword.length > 0
+                readonly property int score: visible && root.manager
+                    ? root.manager.passwordScore(accountPassword.text, passwordUser.currentText) : -1
+                readonly property int level: score < 34 ? 1 : score < 67 ? 2 : 3
+                readonly property color tint: level === 1 ? Maui.Theme.negativeTextColor
+                    : level === 2 ? Maui.Theme.neutralTextColor : Maui.Theme.positiveTextColor
+                ProgressBar {
+                    Layout.fillWidth: true
+                    to: 3
+                    value: strength.level
+                    id: strengthBar
+                    contentItem: Rectangle {
+                        implicitHeight: Maui.Style.space.small
+                        radius: height / 2
+                        color: Maui.Theme.alternateBackgroundColor
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: strengthBar.mirrored ? parent.width - width : 0
+                            width: parent.width * strengthBar.position
+                            height: parent.height
+                            radius: parent.radius
+                            color: strength.tint
+                        }
+                    }
+                    background: null
+                    Accessible.name: i18n("Password strength")
+                }
+                Label {
+                    color: strength.tint
+                    text: strength.level === 1 ? i18n("Weak")
+                        : strength.level === 2 ? i18n("Medium") : i18n("Strong")
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                label1.text: i18n("Confirm password")
+                label2.text: i18n("Enter the new password again.")
+                Maui.PasswordField {
+                    id: confirmPassword
+                    passwordMaskDelay: 0
+                    actions: []
+                    Layout.fillWidth: true
+                }
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: confirmPassword.length > 0 && confirmPassword.text !== accountPassword.text
+                text: i18n("Passwords do not match.")
+                color: Maui.Theme.negativeTextColor
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: text.length > 0
+                wrapMode: Text.WordWrap
+                color: Maui.Theme.negativeTextColor
+                text: passwordDialog.feedback
+            }
+            Connections {
+                target: root.manager
+                function onErrorMessageChanged() {
+                    if (passwordDialog.visible) passwordDialog.feedback = root.manager.errorMessage
+                }
+                function onOperationSucceeded(message) {
+                    if (passwordDialog.visible && message === "User updated.") passwordDialog.close()
+                }
+            }
+        }
+    }
+
+    Maui.InfoDialog {
+        id: fingerprintDialog
+        implicitWidth: Maui.Style.units.gridUnit * 22
+        title: root.manager ? i18n("Fingerprints for %1", root.manager.credentialUser()) : i18n("Fingerprints")
+        modal: true
+        standardButtons: Dialog.Discard | Dialog.Apply
+        property bool readerAvailable: false
+        property var fingers: []
+        property bool available: false
+        onOpened: {
+            printStatus.text = ""
+            if (root.manager) root.manager.refreshFingerprints()
+        }
+        Component.onCompleted: {
+            const remove = standardButton(Dialog.Discard)
+            remove.text = i18n("Remove All")
+            remove.enabled = Qt.binding(() => root.manager && !root.manager.busy && available
+                && fingers.length > 0 && root.manager.credentialToolAvailable("removePrints"))
+            const enroll = standardButton(Dialog.Apply)
+            enroll.text = i18n("Enroll Fingerprint")
+            enroll.enabled = Qt.binding(() => root.manager && !root.manager.busy && fingerprintDialog.readerAvailable && root.manager.credentialToolAvailable("enroll"))
+            if (root.manager) root.manager.refreshFingerprints()
+        }
+        onDiscarded: root.manager.manageCredential("removePrints", "", "")
+        onApplied: root.manager.manageCredential("enroll", "", "")
+        ColumnLayout {
+            Layout.fillWidth: true
+            Label {
+                text: !fingerprintDialog.readerAvailable ? i18n("No fingerprint reader available.")
+                    : !fingerprintDialog.available ? i18n("Fingerprint list unavailable.")
+                    : fingerprintDialog.fingers.length ? i18n("Enrolled fingerprints") : i18n("No fingerprints enrolled.")
+            }
+            Repeater {
+                model: fingerprintDialog.fingers
+                delegate: Maui.SectionItem {
+                    required property string modelData
+                    Layout.fillWidth: true
+                    flat: true
+                    label1.text: modelData
+                    label1.elide: Text.ElideRight
+                }
+            }
+            Label { id: printStatus; Layout.fillWidth: true; visible: text.length > 0; wrapMode: Text.WordWrap }
+            Connections {
+                target: root.manager
+                function onFingerprintReaderChanged(available) { fingerprintDialog.readerAvailable = available }
+                function onFingerprintsListed(fingers, available) {
+                    fingerprintDialog.fingers = fingers
+                    fingerprintDialog.available = available
+                }
+                function onCredentialMessage(message) { if (fingerprintDialog.visible) printStatus.text = message }
+            }
+        }
+    }
+
+    Maui.InfoDialog {
+        id: pinDialog
+        leftPadding: 0
+        rightPadding: 0
+        implicitWidth: Maui.Style.units.gridUnit * 22
+        title: root.manager ? i18n("PIN for %1", root.manager.credentialUser())
+                            : i18n("PIN")
+        modal: true
+        standardButtons: Dialog.Close | Dialog.Apply
+        onClosed: credentialCard.resetFields()
+        Component.onCompleted: {
+            const apply = standardButton(Dialog.Apply)
+            apply.text = Qt.binding(() => method.currentText)
+            apply.Maui.Controls.status = Qt.binding(() => credentialCard.operation === "delete"
+                ? Maui.Controls.Negative : Maui.Controls.Positive)
+            apply.enabled = Qt.binding(() => root.manager && !root.manager.busy && root.manager.credentialToolAvailable(credentialCard.operation)
+                && (!oldPin.visible || oldPin.acceptableInput)
+                && (!newPin.visible || (newPin.acceptableInput && newPin.text === confirmPin.text)))
+        }
+        onApplied: {
+            status.text = ""
+            root.manager.manageCredential(credentialCard.operation, oldPin.text, newPin.text)
+            oldPin.clear()
+            newPin.clear()
+            confirmPin.clear()
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Maui.Style.space.medium
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                label1.text: i18n("PIN action")
+                label2.text: i18n("Choose how to manage your PIN.")
+                ComboBox
+                {
+                    id: method
+                    Layout.fillWidth: true
+                    enabled: root.manager && !root.manager.busy
+                    model: [i18n("Set PIN"), i18n("Change PIN"), i18n("Remove PIN")]
+                    onCurrentIndexChanged: credentialCard.resetFields()
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                visible: method.currentIndex === 1 || method.currentIndex === 2
+                label1.text: i18n("Current PIN")
+                label2.text: i18n("Enter the PIN you use now.")
+                Maui.PasswordField {
+                    id: oldPin
+                    passwordMaskDelay: 0
+                    actions: []
+                    Layout.fillWidth: true
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                visible: method.currentIndex < 2
+                label1.text: i18n("New PIN")
+                label2.text: i18n("Enter a new numeric PIN.")
+                Maui.PasswordField {
+                    id: newPin
+                    passwordMaskDelay: 0
+                    actions: []
+                    Layout.fillWidth: true
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+            }
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                visible: method.currentIndex < 2
+                label1.text: i18n("Confirm PIN")
+                label2.text: i18n("Enter the new PIN again.")
+                Maui.PasswordField {
+                    id: confirmPin
+                    passwordMaskDelay: 0
+                    actions: []
+                    Layout.fillWidth: true
+                    validator: RegularExpressionValidator { regularExpression: /[0-9]+/ }
+                }
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: method.currentIndex < 2 && confirmPin.length > 0 && confirmPin.text !== newPin.text
+                text: i18n("PINs do not match.")
+                color: Maui.Theme.negativeTextColor
+                wrapMode: Text.WordWrap
+            }
+            Label
+            {
+                Layout.fillWidth: true
+                visible: root.manager && !root.manager.credentialToolAvailable(credentialCard.operation)
+                text: i18n("PIN setup requires pinpam.")
+                wrapMode: Text.WordWrap
+            }
+
+            Label
+            {
+                id: status
+                visible: text.length > 0
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+            }
+
+            Connections
+            {
+                target: root.manager
+                function onCredentialMessage(message) { if (pinDialog.visible) status.text = message }
+            }
+        }
+    }
+
 
     Label
     {

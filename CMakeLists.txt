@@ -287,6 +287,7 @@ qt_add_qml_module(${APP_NAME} URI app.maui.settings
 
 target_link_libraries(${APP_NAME}
     PRIVATE
+    PkgConfig::PWQUALITY
     MauiKit4
     MauiKit4::FileBrowsing
     MauiKit4::Calendar
