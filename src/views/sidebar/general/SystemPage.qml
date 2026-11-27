@@ -892,9 +892,6 @@ Maui.ScrollColumn
 
     Maui.InfoDialog {
         id: passwordDialog
-        leftPadding: 0
-        rightPadding: 0
-        implicitWidth: Maui.Style.units.gridUnit * 22
         title: passwordUser.currentText
             ? i18n("Change Password for %1", passwordUser.currentText) : i18n("Change Password")
         modal: true
@@ -1042,7 +1039,6 @@ Maui.ScrollColumn
 
     Maui.InfoDialog {
         id: fingerprintDialog
-        implicitWidth: Maui.Style.units.gridUnit * 22
         title: root.manager ? i18n("Fingerprints for %1", root.manager.credentialUser()) : i18n("Fingerprints")
         modal: true
         standardButtons: Dialog.Discard | Dialog.Apply
@@ -1097,9 +1093,6 @@ Maui.ScrollColumn
 
     Maui.InfoDialog {
         id: pinDialog
-        leftPadding: 0
-        rightPadding: 0
-        implicitWidth: Maui.Style.units.gridUnit * 22
         title: root.manager ? i18n("PIN for %1", root.manager.credentialUser())
                             : i18n("PIN")
         modal: true
