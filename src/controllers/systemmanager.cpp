@@ -19,7 +19,9 @@ extern "C" {
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
-#include <QProcessEnvironment>
+#include <QDBusPendingCallWatcher>
+#include <QDBusVariant>
+#include <QUuid>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
@@ -45,8 +47,6 @@ QString credentialTool(const QString &operation)
 {
     if (operation == "setup" || operation == "change" || operation == "delete" || operation == "status")
         return QStringLiteral("/usr/bin/pinutil");
-    if (operation == "enroll")
-        return QStringLiteral("/usr/bin/fprintd-enroll");
     if (operation == "removePrints")
         return QStringLiteral("/usr/bin/fprintd-delete");
     return {};
@@ -159,47 +159,175 @@ bool SystemManager::credentialToolAvailable(const QString &operation) const
     return QFileInfo(credentialTool(operation)).isExecutable();
 }
 
-static bool fingerprintReaderAvailable()
+namespace
 {
-    const auto request = QDBusMessage::createMethodCall(
-        QStringLiteral("net.reactivated.Fprint"), QStringLiteral("/net/reactivated/Fprint/Manager"),
-        QStringLiteral("net.reactivated.Fprint.Manager"), QStringLiteral("GetDefaultDevice"));
-    const QDBusReply<QDBusObjectPath> device = QDBusConnection::systemBus().call(request, QDBus::Block, 2000);
-    return device.isValid() && !device.value().path().isEmpty();
+constexpr auto fprintService = "net.reactivated.Fprint";
+constexpr auto deviceInterface = "net.reactivated.Fprint.Device";
+
+QDBusMessage deviceRequest(const QString &path, const QString &method, const QVariantList &args = {})
+{
+    auto request = QDBusMessage::createMethodCall(fprintService, path, deviceInterface, method);
+    request.setInteractiveAuthorizationAllowed(method == "Claim" || method == "EnrollStart" || method == "DeleteEnrolledFinger");
+    request.setArguments(args);
+    return request;
+}
 }
 
 void SystemManager::refreshFingerprints()
 {
-    const QString user = credentialUser();
-    const bool reader = fingerprintReaderAvailable();
-    Q_EMIT fingerprintReaderChanged(reader);
-    if (!reader || user.isEmpty()) {
+    const auto bus = QDBusConnection::systemBus();
+    const auto request = QDBusMessage::createMethodCall(fprintService, QStringLiteral("/net/reactivated/Fprint/Manager"),
+                                                        QStringLiteral("net.reactivated.Fprint.Manager"), QStringLiteral("GetDefaultDevice"));
+    const QDBusReply<QDBusObjectPath> reader = bus.call(request, QDBus::Block, 2000);
+    m_readerPath = reader.isValid() ? reader.value().path() : QString();
+    Q_EMIT fingerprintReaderChanged(!m_readerPath.isEmpty());
+    if (m_readerPath.isEmpty() || credentialUser().isEmpty()) {
         Q_EMIT fingerprintsListed({}, false);
         return;
     }
-    auto *process = new QProcess(this);
-    auto environment = QProcessEnvironment::systemEnvironment();
-    environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
-    process->setProcessEnvironment(environment);
-    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
-        if (error == QProcess::FailedToStart) {
-            Q_EMIT fingerprintsListed({}, false);
-            process->deleteLater();
+    const QDBusReply<QStringList> list = bus.call(deviceRequest(m_readerPath, "ListEnrolledFingers", {credentialUser()}), QDBus::Block, 2000);
+    Q_EMIT fingerprintsListed(list.value(), list.isValid() || list.error().name() == "net.reactivated.Fprint.Error.NoEnrolledPrints");
+}
+
+SystemManager::~SystemManager()
+{
+    cancelFingerprintEnrollment();
+}
+
+void SystemManager::removeFingerprint(const QString &finger)
+{
+    const QString path = m_readerPath;
+    const QString user = credentialUser();
+    if (busy() || path.isEmpty() || user.isEmpty() || finger.isEmpty())
+        return;
+
+    const QString session = QUuid::createUuid().toString();
+    const auto bus = QDBusConnection::connectToBus(QDBusConnection::SystemBus, session);
+    auto *operation = new QObject(this);
+    connect(operation, &QObject::destroyed, [session] { QDBusConnection::disconnectFromBus(session); });
+    setBusy(true);
+    const auto finish = [this, operation](const QString &error) {
+        operation->deleteLater();
+        refreshFingerprints();
+        setBusy(false);
+        Q_EMIT credentialMessage(error.isEmpty() ? tr("Fingerprint removed.") : error);
+    };
+    auto *claim = new QDBusPendingCallWatcher(bus.asyncCall(deviceRequest(path, "Claim", {user})), operation);
+    connect(claim, &QDBusPendingCallWatcher::finished, this, [operation, bus, path, finger, finish](QDBusPendingCallWatcher *reply) {
+        if (reply->isError()) {
+            finish(reply->error().message());
+            return;
         }
+        auto *remove = new QDBusPendingCallWatcher(bus.asyncCall(deviceRequest(path, "DeleteEnrolledFinger", {finger})), operation);
+        connect(remove, &QDBusPendingCallWatcher::finished, operation, [operation, bus, path, finish](QDBusPendingCallWatcher *result) {
+            const QString error = result->error().message();
+            auto *release = new QDBusPendingCallWatcher(bus.asyncCall(deviceRequest(path, "Release")), operation);
+            connect(release, &QDBusPendingCallWatcher::finished, operation, [error, finish](QDBusPendingCallWatcher *released) {
+                finish(error.isEmpty() ? released->error().message() : error);
+            });
+        });
     });
-    connect(process, &QProcess::finished, this, [this, process](int code, QProcess::ExitStatus status) {
-        const QString output = QString::fromUtf8(process->readAllStandardOutput());
-        static const QRegularExpression finger(QStringLiteral(R"(^[ \t]*(?:-[ \t]*)?#\d+:[ \t]*([a-z-]+)[ \t]*$)"),
-                                                QRegularExpression::MultilineOption);
-        QStringList fingers;
-        auto matches = finger.globalMatch(output);
-        while (matches.hasNext())
-            fingers.append(matches.next().captured(1).replace('-', ' '));
-        Q_EMIT fingerprintsListed(fingers, status == QProcess::NormalExit && code == 0
-                                  && !output.contains(QStringLiteral("No devices available")));
-        process->deleteLater();
+}
+
+void SystemManager::enrollFingerprint(const QString &finger)
+{
+    if (busy() || m_readerPath.isEmpty()) {
+        Q_EMIT enrollmentFinished(false, tr("The fingerprint reader is unavailable."));
+        return;
+    }
+
+    // A separate bus connection ties the claim to this enrollment, including during authorization.
+    const QString session = QUuid::createUuid().toString();
+    auto bus = QDBusConnection::connectToBus(QDBusConnection::SystemBus, session);
+    m_enrollmentConnection = session;
+    m_enrollmentPath = m_readerPath;
+    setBusy(true);
+    if (!bus.connect(fprintService, m_enrollmentPath, deviceInterface, "EnrollStatus", this,
+                     SLOT(handleEnrollStatus(QString,bool)))) {
+        cancelFingerprintEnrollment();
+        Q_EMIT enrollmentFinished(false, tr("Could not connect to the fingerprint reader."));
+        return;
+    }
+
+    auto *claim = new QDBusPendingCallWatcher(bus.asyncCall(deviceRequest(m_enrollmentPath, "Claim", {credentialUser()})), this);
+    connect(claim, &QDBusPendingCallWatcher::finished, this, [this, session, finger](QDBusPendingCallWatcher *reply) {
+        reply->deleteLater();
+        if (session != m_enrollmentConnection)
+            return;
+        if (reply->isError()) {
+            const QString reason = reply->error().message();
+            cancelFingerprintEnrollment();
+            Q_EMIT enrollmentFinished(false, reason);
+            return;
+        }
+        const QDBusConnection bus(session);
+        const auto property = [&](const QString &name) {
+            auto request = QDBusMessage::createMethodCall(fprintService, m_enrollmentPath, "org.freedesktop.DBus.Properties", "Get");
+            request << QString::fromLatin1(deviceInterface) << name;
+            const QDBusReply<QDBusVariant> value = bus.call(request, QDBus::Block, 2000);
+            return value.value().variant();
+        };
+        const QString scanType = property("scan-type").toString();
+        const int stages = property("num-enroll-stages").toInt();
+        auto *start = new QDBusPendingCallWatcher(bus.asyncCall(deviceRequest(m_enrollmentPath, "EnrollStart", {finger})), this);
+        connect(start, &QDBusPendingCallWatcher::finished, this, [this, session, scanType, stages](QDBusPendingCallWatcher *result) {
+            result->deleteLater();
+            if (session != m_enrollmentConnection)
+                return;
+            if (result->isError()) {
+                const QString reason = result->error().message();
+                cancelFingerprintEnrollment();
+                Q_EMIT enrollmentFinished(false, reason);
+                return;
+            }
+            Q_EMIT enrollmentReady(scanType, stages);
+        });
     });
-    process->start(QStringLiteral("/usr/bin/fprintd-list"), {user});
+}
+
+void SystemManager::cancelFingerprintEnrollment()
+{
+    if (m_enrollmentConnection.isEmpty())
+        return;
+    QDBusConnection bus(m_enrollmentConnection);
+    bus.disconnect(fprintService, m_enrollmentPath, deviceInterface, "EnrollStatus", this, SLOT(handleEnrollStatus(QString,bool)));
+    bus.send(deviceRequest(m_enrollmentPath, "EnrollStop"));
+    bus.send(deviceRequest(m_enrollmentPath, "Release"));
+    QDBusConnection::disconnectFromBus(m_enrollmentConnection);
+    m_enrollmentConnection.clear();
+    m_enrollmentPath.clear();
+    setBusy(false);
+}
+
+void SystemManager::handleEnrollStatus(const QString &result, bool done)
+{
+    if (m_enrollmentConnection.isEmpty())
+        return;
+    if (done) {
+        const bool success = result == "enroll-completed";
+        QString reason;
+        if (result == "enroll-data-full")
+            reason = tr("The reader is full. Remove an enrolled fingerprint and try again.");
+        else if (result == "enroll-disconnected")
+            reason = tr("The reader was disconnected. Reconnect it and try again.");
+        else if (result == "enroll-duplicate")
+            reason = tr("This finger is already enrolled. Choose another finger.");
+        else if (!success)
+            reason = tr("The reader could not enroll this finger. Try again.");
+        cancelFingerprintEnrollment();
+        refreshFingerprints();
+        Q_EMIT enrollmentFinished(success, reason);
+    } else if (result == "enroll-stage-passed") {
+        Q_EMIT enrollmentScanAccepted();
+    } else if (result == "enroll-swipe-too-short") {
+        Q_EMIT enrollmentFeedback(tr("Swipe the full length of your finger across the reader."));
+    } else if (result == "enroll-finger-not-centered") {
+        Q_EMIT enrollmentFeedback(tr("Center your finger on the reader and try again."));
+    } else if (result == "enroll-remove-and-retry") {
+        Q_EMIT enrollmentFeedback(tr("Lift your finger, then scan it again."));
+    } else {
+        Q_EMIT enrollmentFeedback(tr("Scan your finger again."));
+    }
 }
 
 void SystemManager::manageCredential(const QString &operation, const QString &currentPin,
@@ -271,7 +399,7 @@ void SystemManager::manageCredential(const QString &operation, const QString &cu
                 Q_EMIT pinOperationSucceeded();
         }
         setBusy(false);
-        if (operation == "enroll" || operation == "removePrints") refreshFingerprints();
+        if (operation == "removePrints") refreshFingerprints();
         process->deleteLater();
     });
     process->start(program, args);

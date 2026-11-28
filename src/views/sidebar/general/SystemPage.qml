@@ -1039,46 +1039,228 @@ Maui.ScrollColumn
 
     Maui.InfoDialog {
         id: fingerprintDialog
-        title: root.manager ? i18n("Fingerprints for %1", root.manager.credentialUser()) : i18n("Fingerprints")
+        title: step !== "list" ? selectedName : root.manager
+            ? i18n("Fingerprints for %1", root.manager.credentialUser()) : i18n("Fingerprints")
         modal: true
-        standardButtons: Dialog.Discard | Dialog.Apply
+        standardButtons: Dialog.Close | Dialog.Apply
         property bool readerAvailable: false
         property var fingers: []
         property bool available: false
-        onOpened: {
-            printStatus.text = ""
-            if (root.manager) root.manager.refreshFingerprints()
+        property string step: "list"
+        property string selectedName
+        property string scanType
+        property string feedback
+        property int acceptedScans
+        property int totalScans
+        readonly property var fingerChoices: [
+            { key: "right-index-finger", name: i18n("Right index finger") },
+            { key: "left-thumb", name: i18n("Left thumb") },
+            { key: "left-index-finger", name: i18n("Left index finger") },
+            { key: "left-middle-finger", name: i18n("Left middle finger") },
+            { key: "left-ring-finger", name: i18n("Left ring finger") },
+            { key: "left-little-finger", name: i18n("Left little finger") },
+            { key: "right-thumb", name: i18n("Right thumb") },
+            { key: "right-middle-finger", name: i18n("Right middle finger") },
+            { key: "right-ring-finger", name: i18n("Right ring finger") },
+            { key: "right-little-finger", name: i18n("Right little finger") }
+        ]
+        readonly property var remaining: fingerChoices.filter(finger => !fingers.includes(finger.key))
+
+        readonly property bool removingOne: fingerprintAction.currentIndex === 1 && fingers.length > 0
+
+        readonly property bool removingAll: fingerprintAction.currentIndex === 2 && fingers.length > 0
+
+        function fingerName(key) {
+            const finger = fingerChoices.find(item => item.key === key)
+            return finger ? finger.name : key
         }
+
+        function showList() {
+            if (root.manager) {
+                root.manager.cancelFingerprintEnrollment()
+                root.manager.refreshFingerprints()
+            }
+            feedback = ""
+            fingerprintAction.currentIndex = 0
+            step = "list"
+        }
+
+        function enroll(finger) {
+            selectedName = finger.name
+            acceptedScans = 0
+            totalScans = 0
+            scanType = ""
+            feedback = ""
+            step = "starting"
+            root.manager.enrollFingerprint(finger.key)
+        }
+
+        onOpened: showList()
+        onAboutToHide: if (root.manager) root.manager.cancelFingerprintEnrollment()
         Component.onCompleted: {
-            const remove = standardButton(Dialog.Discard)
-            remove.text = i18n("Remove All")
-            remove.enabled = Qt.binding(() => root.manager && !root.manager.busy && available
-                && fingers.length > 0 && root.manager.credentialToolAvailable("removePrints"))
-            const enroll = standardButton(Dialog.Apply)
-            enroll.text = i18n("Enroll Fingerprint")
-            enroll.enabled = Qt.binding(() => root.manager && !root.manager.busy && fingerprintDialog.readerAvailable && root.manager.credentialToolAvailable("enroll"))
+            standardButton(Dialog.Close).visible = Qt.binding(() => step === "list")
+            const action = standardButton(Dialog.Apply)
+            action.text = Qt.binding(() => {
+                switch (step) {
+                case "list": return removingAll ? i18n("Remove") : fingerprintAction.currentText
+                case "complete": return i18n("Done")
+                case "failed": return i18n("Back")
+                default: return i18n("Cancel")
+                }
+            })
+            action.Maui.Controls.status = Qt.binding(() => step === "list" && (removingOne || removingAll)
+                ? Maui.Controls.Negative : Maui.Controls.Positive)
+            action.enabled = Qt.binding(() => step !== "list" || (root.manager && !root.manager.busy && available
+                && (removingAll ? root.manager.credentialToolAvailable("removePrints") : fingerSelector.currentIndex >= 0)))
             if (root.manager) root.manager.refreshFingerprints()
         }
-        onDiscarded: root.manager.manageCredential("removePrints", "", "")
-        onApplied: root.manager.manageCredential("enroll", "", "")
+        onApplied: {
+            if (step !== "list") {
+                showList()
+            } else if (removingOne) {
+                feedback = ""
+                root.manager.removeFingerprint(fingers[fingerSelector.currentIndex])
+            } else if (removingAll) {
+                feedback = ""
+                root.manager.manageCredential("removePrints", "", "")
+            } else {
+                enroll(remaining[fingerSelector.currentIndex])
+            }
+        }
+
         ColumnLayout {
             Layout.fillWidth: true
-            Label {
-                text: !fingerprintDialog.readerAvailable ? i18n("No fingerprint reader available.")
-                    : !fingerprintDialog.available ? i18n("Fingerprint list unavailable.")
-                    : fingerprintDialog.fingers.length ? i18n("Enrolled fingerprints") : i18n("No fingerprints enrolled.")
-            }
-            Repeater {
-                model: fingerprintDialog.fingers
-                delegate: Maui.SectionItem {
-                    required property string modelData
+            spacing: Maui.Style.space.medium
+            Maui.FlexSectionItem {
+                Layout.fillWidth: true
+                wide: false
+                visible: fingerprintDialog.step === "list"
+                label1.text: i18n("Fingerprint action")
+                label2.text: {
+                    if (!fingerprintDialog.readerAvailable) return i18n("No fingerprint reader available.")
+                    if (!fingerprintDialog.available) return i18n("Fingerprint list unavailable.")
+                    if (!fingerprintDialog.fingers.length) return i18n("No fingerprints enrolled. Choose a finger below to add your first fingerprint.")
+                    return i18n("Enrolled: %1", fingerprintDialog.fingers.map(key => fingerprintDialog.fingerName(key)).join(i18n(", ")))
+                }
+                ComboBox {
+                    id: fingerprintAction
                     Layout.fillWidth: true
-                    flat: true
-                    label1.text: modelData
-                    label1.elide: Text.ElideRight
+                    enabled: root.manager && !root.manager.busy && fingerprintDialog.available
+                    model: fingerprintDialog.fingers.length
+                        ? [i18n("Enroll Fingerprint"), i18n("Remove Fingerprint"), i18n("Remove All Fingerprints")] : [i18n("Enroll Fingerprint")]
                 }
             }
-            Label { id: printStatus; Layout.fillWidth: true; visible: text.length > 0; wrapMode: Text.WordWrap }
+            Item {
+                Layout.fillWidth: true
+                implicitHeight: Math.max(fingerField.implicitHeight, removalWarning.visible ? removalWarning.implicitHeight : 0)
+                visible: fingerprintDialog.step === "list" && fingerprintDialog.available
+                    && (fingerprintDialog.remaining.length > 0 || fingerprintDialog.removingOne || fingerprintDialog.removingAll)
+
+                Maui.FlexSectionItem {
+                    id: removalWarning
+                    width: parent.width
+                    wide: false
+                    visible: fingerprintDialog.removingAll
+                    label1.text: i18n("All fingerprints for this account will be deleted.")
+                    label1.color: Maui.Theme.negativeTextColor
+                    label2.text: i18n("You’ll need to enroll a finger again to use fingerprint authentication.")
+                    label1.wrapMode: Text.WordWrap
+                    label2.wrapMode: Text.WordWrap
+                }
+                Maui.FlexSectionItem {
+                    id: fingerField
+                    width: parent.width
+                    wide: false
+                    visible: !fingerprintDialog.removingAll
+                    label1.text: fingerprintDialog.removingOne ? i18n("Finger to remove") : i18n("Finger to enroll")
+                    label2.text: fingerprintDialog.removingOne ? i18n("Choose the enrolled fingerprint to remove.") : i18n("Choose the finger you will scan.")
+                    ComboBox {
+                        id: fingerSelector
+                        Layout.fillWidth: true
+                        model: fingerprintDialog.removingOne ? fingerprintDialog.fingers.map(key => fingerprintDialog.fingerName(key))
+                                : fingerprintDialog.remaining.map(finger => finger.name)
+                        Accessible.name: fingerField.label1.text
+                    }
+                }
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: fingerprintDialog.step === "list" && text.length > 0
+                text: fingerprintDialog.feedback
+                wrapMode: Text.WordWrap
+            }
+
+            Maui.GridItemTemplate {
+                Layout.fillWidth: true
+                visible: fingerprintDialog.step !== "list"
+                iconComponent: Component {
+                    Item {
+                        implicitHeight: Maui.Style.iconSizes.big
+                        implicitWidth: implicitHeight
+                        Canvas {
+                            anchors.centerIn: parent
+                            width: Math.min(parent.width, Maui.Style.iconSizes.big)
+                            height: width
+                            readonly property color ink: Maui.Theme.textColor
+                            onInkChanged: requestPaint()
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.reset()
+                                // Normalized ridge coordinates scale with the theme icon size.
+                                ctx.scale(width, height)
+                                ctx.strokeStyle = ink
+                                ctx.lineWidth = 0.045
+                                ctx.lineCap = "round"
+                                ctx.beginPath()
+                                ctx.moveTo(0.14, 0.30)
+                                ctx.bezierCurveTo(0.31, 0.04, 0.68, 0.03, 0.86, 0.30)
+                                ctx.moveTo(0.09, 0.53)
+                                ctx.bezierCurveTo(0.10, 0.14, 0.77, 0.04, 0.89, 0.51)
+                                ctx.moveTo(0.12, 0.73)
+                                ctx.bezierCurveTo(0.24, 0.58, 0.13, 0.36, 0.43, 0.30)
+                                ctx.bezierCurveTo(0.69, 0.24, 0.79, 0.44, 0.81, 0.62)
+                                ctx.moveTo(0.22, 0.82)
+                                ctx.bezierCurveTo(0.40, 0.63, 0.23, 0.45, 0.46, 0.41)
+                                ctx.bezierCurveTo(0.71, 0.36, 0.64, 0.70, 0.84, 0.76)
+                                ctx.moveTo(0.32, 0.89)
+                                ctx.bezierCurveTo(0.52, 0.69, 0.36, 0.54, 0.49, 0.52)
+                                ctx.bezierCurveTo(0.59, 0.51, 0.53, 0.75, 0.74, 0.85)
+                                ctx.moveTo(0.49, 0.64)
+                                ctx.bezierCurveTo(0.49, 0.78, 0.54, 0.87, 0.63, 0.93)
+                                ctx.stroke()
+                            }
+                        }
+                    }
+                }
+                label1.font: Maui.Style.h1Font
+                label2.wrapMode: Text.WordWrap
+                labelSizeHint: label1.implicitHeight + label2.implicitHeight + Maui.Style.space.medium
+                text1: {
+                    if (fingerprintDialog.step === "complete") return i18n("100%")
+                    if (fingerprintDialog.step === "scanning" && fingerprintDialog.totalScans > 0)
+                        return i18n("%1%", Math.min(99, Math.floor(100 * fingerprintDialog.acceptedScans / fingerprintDialog.totalScans)))
+                    return ""
+                }
+                text2: {
+                    if (fingerprintDialog.feedback) return fingerprintDialog.feedback
+                    switch (fingerprintDialog.step) {
+                    case "starting": return i18n("Preparing the reader…")
+                    case "scanning":
+                        if (fingerprintDialog.scanType === "swipe") return i18n("Swipe your finger across the reader, then repeat.")
+                        if (fingerprintDialog.scanType === "press") return i18n("Touch the reader, then lift your finger and repeat.")
+                        return i18n("Scan your finger again until enrollment is complete.")
+                    case "complete": return i18n("Fingerprint added.")
+                    default: return ""
+                    }
+                }
+            }
+            ProgressBar {
+                Layout.fillWidth: true
+                visible: fingerprintDialog.step === "scanning" && fingerprintDialog.totalScans > 0
+                indeterminate: false
+                to: Math.max(1, fingerprintDialog.totalScans)
+                value: fingerprintDialog.acceptedScans
+            }
             Connections {
                 target: root.manager
                 function onFingerprintReaderChanged(available) { fingerprintDialog.readerAvailable = available }
@@ -1086,7 +1268,23 @@ Maui.ScrollColumn
                     fingerprintDialog.fingers = fingers
                     fingerprintDialog.available = available
                 }
-                function onCredentialMessage(message) { if (fingerprintDialog.visible) printStatus.text = message }
+                function onEnrollmentReady(scanType, stages) {
+                    fingerprintDialog.scanType = scanType
+                    fingerprintDialog.totalScans = stages
+                    fingerprintDialog.step = "scanning"
+                }
+                function onEnrollmentScanAccepted() {
+                    fingerprintDialog.acceptedScans++
+                    fingerprintDialog.feedback = ""
+                }
+                function onEnrollmentFeedback(message) { fingerprintDialog.feedback = message }
+                function onEnrollmentFinished(success, message) {
+                    fingerprintDialog.feedback = message
+                    fingerprintDialog.step = success ? "complete" : "failed"
+                }
+                function onCredentialMessage(message) {
+                    if (fingerprintDialog.visible && fingerprintDialog.step === "list") fingerprintDialog.feedback = message
+                }
             }
         }
     }

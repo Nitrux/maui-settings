@@ -24,6 +24,11 @@ class SystemManager : public QObject
 public:
     explicit SystemManager(QObject *parent = nullptr);
 
+    ~SystemManager() override;
+    Q_INVOKABLE void removeFingerprint(const QString &finger);
+    Q_INVOKABLE void enrollFingerprint(const QString &finger);
+    Q_INVOKABLE void cancelFingerprintEnrollment();
+
     QString timezone() const;
     QStringList timezones() const;
     QString locale() const;
@@ -65,6 +70,10 @@ Q_SIGNALS:
     void usersChanged();
     void fingerprintReaderChanged(bool available);
     void fingerprintsListed(const QStringList &fingers, bool available);
+    void enrollmentReady(const QString &scanType, int stages);
+    void enrollmentScanAccepted();
+    void enrollmentFeedback(const QString &message);
+    void enrollmentFinished(bool success, const QString &message);
     void pinEnabledChanged();
     void pinOperationSucceeded();
     void credentialMessage(const QString &message);
@@ -73,7 +82,13 @@ Q_SIGNALS:
     void errorMessageChanged();
     void operationSucceeded(const QString &message);
 
+private Q_SLOTS:
+    void handleEnrollStatus(const QString &result, bool done);
+
 private:
+    QString m_readerPath;
+    QString m_enrollmentPath;
+    QString m_enrollmentConnection;
     void execute(const QVariantMap &arguments, const QString &successMessage);
     bool m_pinEnabled = false;
     void setBusy(bool busy);
